@@ -48,12 +48,24 @@ func main() {
 	// Admin routes
 	admin := protected.PathPrefix("/admin").Subrouter()
 	admin.Use(middleware.AdminMiddleware)
+
+	// Users
 	admin.HandleFunc("/users", handlers.GetAllUsers).Methods("GET", "OPTIONS")
 	admin.HandleFunc("/users/{id}", handlers.UpdateUser).Methods("PUT", "OPTIONS")
 	admin.HandleFunc("/users/{id}", handlers.DeleteUser).Methods("DELETE", "OPTIONS")
+
+	// Orders
 	admin.HandleFunc("/orders", handlers.GetAllOrders).Methods("GET", "OPTIONS")
 	admin.HandleFunc("/orders/recent", handlers.GetRecentOrders).Methods("GET", "OPTIONS")
+
+	// Stats
 	admin.HandleFunc("/stats", handlers.GetAdminStats).Methods("GET", "OPTIONS")
+
+	// Ingredients
+	admin.HandleFunc("/ingredients", handlers.GetAllIngredients).Methods("GET", "OPTIONS")
+	admin.HandleFunc("/ingredients", handlers.CreateIngredient).Methods("POST", "OPTIONS")
+	admin.HandleFunc("/ingredients/{id}", handlers.UpdateIngredient).Methods("PUT", "OPTIONS")
+	admin.HandleFunc("/ingredients/{id}", handlers.DeleteIngredient).Methods("DELETE", "OPTIONS")
 
 	// CORS настройки
 	c := cors.New(cors.Options{
