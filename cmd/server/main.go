@@ -33,6 +33,9 @@ func main() {
 	// API Routes
 	api := router.PathPrefix("/api").Subrouter()
 
+	// Health check endpoint (публичный)
+	api.HandleFunc("/health", handlers.HealthCheck).Methods("GET", "OPTIONS")
+
 	// Auth routes (публичные)
 	api.HandleFunc("/auth/register", handlers.Register).Methods("POST", "OPTIONS")
 	api.HandleFunc("/auth/login", handlers.Login).Methods("POST", "OPTIONS")
