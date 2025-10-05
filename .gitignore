@@ -4,8 +4,9 @@
 *.dll
 *.so
 *.dylib
-server
-main
+/server
+/main
+!/cmd/server/main.go
 
 # Test binary
 *.test
