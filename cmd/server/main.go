@@ -39,6 +39,12 @@ func main() {
 	// Middleware
 	router.Use(middleware.Logger)
 
+	// Root health check для Koyeb и других платформ деплоя
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	}).Methods("GET")
+
 	// API Routes
 	api := router.PathPrefix("/api").Subrouter()
 
