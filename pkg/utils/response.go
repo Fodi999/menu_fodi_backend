@@ -29,15 +29,15 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
 func WriteError(w http.ResponseWriter, status int, err string, message ...string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	
+
 	errResp := ErrorResponse{
 		Error: err,
 	}
-	
+
 	if len(message) > 0 {
 		errResp.Message = message[0]
 	}
-	
+
 	json.NewEncoder(w).Encode(errResp)
 }
 
@@ -45,16 +45,16 @@ func WriteError(w http.ResponseWriter, status int, err string, message ...string
 func WriteSuccess(w http.ResponseWriter, data interface{}, message ...string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	resp := SuccessResponse{
 		Success: true,
 		Data:    data,
 	}
-	
+
 	if len(message) > 0 {
 		resp.Message = message[0]
 	}
-	
+
 	json.NewEncoder(w).Encode(resp)
 }
 

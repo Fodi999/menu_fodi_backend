@@ -64,11 +64,3 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "User deleted successfully"})
 }
-
-// GetAllOrders получение всех заказов (только для админа)
-func GetAllOrders(w http.ResponseWriter, r *http.Request) {
-	// TODO: Реализовать получение заказов из БД
-	orders := []models.Order{}
-
-	utils.RespondWithJSON(w, http.StatusOK, orders)
-}

@@ -10,7 +10,10 @@ type IngredientRepository struct{}
 // FindAll возвращает все ингредиенты со складскими остатками
 func (r *IngredientRepository) FindAll() ([]models.StockItem, error) {
 	var stockItems []models.StockItem
-	result := DB.Preload("Ingredient").Find(&stockItems)
+	result := DB.
+		Preload("Ingredient").
+		Order(`"updatedAt" DESC`).
+		Find(&stockItems)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -31,20 +34,20 @@ func (r *IngredientRepository) FindByID(id string) (*models.StockItem, error) {
 func (r *IngredientRepository) CreateIngredient(ingredient *models.Ingredient, stockItem *models.StockItem) error {
 	// Создаем в транзакции
 	tx := DB.Begin()
-	
+
 	// Создаем ингредиент
 	if err := tx.Create(ingredient).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	// Создаем складской остаток
 	stockItem.IngredientID = ingredient.ID
 	if err := tx.Create(stockItem).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	return tx.Commit().Error
 }
 
@@ -67,21 +70,21 @@ func (r *IngredientRepository) DeleteStockItem(id string) error {
 	if err := DB.First(&stockItem, "id = ?", id).Error; err != nil {
 		return err
 	}
-	
+
 	// Удаляем в транзакции
 	tx := DB.Begin()
-	
+
 	// Удаляем складской остаток
 	if err := tx.Delete(&stockItem).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	// Удаляем ингредиент
 	if err := tx.Delete(&models.Ingredient{}, "id = ?", stockItem.IngredientID).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
 	return tx.Commit().Error
 }

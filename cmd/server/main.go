@@ -24,6 +24,15 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// Автоматическая миграция схемы базы данных
+	if err := database.AutoMigrate(); err != nil {
+		log.Fatal("Failed to migrate database:", err)
+	}
+
+	// Инициализация WebSocket Hub для real-time уведомлений
+	handlers.InitWebSocketHub()
+	log.Println("✅ WebSocket Hub initialized")
+
 	// Инициализация роутера
 	router := mux.NewRouter()
 
@@ -40,6 +49,10 @@ func main() {
 	api.HandleFunc("/auth/register", handlers.Register).Methods("POST", "OPTIONS")
 	api.HandleFunc("/auth/login", handlers.Login).Methods("POST", "OPTIONS")
 
+	// Public Products endpoint (для главной страницы - только видимые продукты)
+	api.HandleFunc("/products", handlers.GetPublicProducts).Methods("GET", "OPTIONS")
+	api.HandleFunc("/products/{id}", handlers.GetProduct).Methods("GET", "OPTIONS")
+
 	// Protected routes (требуют JWT)
 	protected := api.PathPrefix("").Subrouter()
 	protected.Use(middleware.AuthMiddleware)
@@ -47,6 +60,10 @@ func main() {
 	// User routes
 	protected.HandleFunc("/user/profile", handlers.GetProfile).Methods("GET", "OPTIONS")
 	protected.HandleFunc("/user/profile", handlers.UpdateProfile).Methods("PUT", "OPTIONS")
+	protected.HandleFunc("/user/orders", handlers.GetUserOrders).Methods("GET", "OPTIONS")
+
+	// Orders (публичный endpoint для создания заказа)
+	api.HandleFunc("/orders", handlers.CreateOrder).Methods("POST", "OPTIONS")
 
 	// Admin routes
 	admin := protected.PathPrefix("/admin").Subrouter()
@@ -60,6 +77,7 @@ func main() {
 	// Orders
 	admin.HandleFunc("/orders", handlers.GetAllOrders).Methods("GET", "OPTIONS")
 	admin.HandleFunc("/orders/recent", handlers.GetRecentOrders).Methods("GET", "OPTIONS")
+	admin.HandleFunc("/orders/{id}/status", handlers.UpdateOrderStatus).Methods("PUT", "OPTIONS")
 
 	// Stats
 	admin.HandleFunc("/stats", handlers.GetAdminStats).Methods("GET", "OPTIONS")
@@ -69,6 +87,24 @@ func main() {
 	admin.HandleFunc("/ingredients", handlers.CreateIngredient).Methods("POST", "OPTIONS")
 	admin.HandleFunc("/ingredients/{id}", handlers.UpdateIngredient).Methods("PUT", "OPTIONS")
 	admin.HandleFunc("/ingredients/{id}", handlers.DeleteIngredient).Methods("DELETE", "OPTIONS")
+	admin.HandleFunc("/ingredients/{id}/movements", handlers.GetStockMovements).Methods("GET", "OPTIONS")
+
+	// Semi-Finished Products (Полуфабрикаты)
+	admin.HandleFunc("/semi-finished", handlers.GetSemiFinished).Methods("GET", "OPTIONS")
+	admin.HandleFunc("/semi-finished", handlers.CreateSemiFinished).Methods("POST", "OPTIONS")
+	admin.HandleFunc("/semi-finished/{id}", handlers.GetSemiFinishedByID).Methods("GET", "OPTIONS")
+	admin.HandleFunc("/semi-finished/{id}", handlers.UpdateSemiFinished).Methods("PUT", "OPTIONS")
+	admin.HandleFunc("/semi-finished/{id}", handlers.DeleteSemiFinished).Methods("DELETE", "OPTIONS")
+
+	// Products
+	admin.HandleFunc("/products", handlers.GetAllProducts).Methods("GET", "OPTIONS")
+	admin.HandleFunc("/products", handlers.CreateProduct).Methods("POST", "OPTIONS")
+	admin.HandleFunc("/products/{id}", handlers.GetProduct).Methods("GET", "OPTIONS")
+	admin.HandleFunc("/products/{id}", handlers.UpdateProduct).Methods("PUT", "OPTIONS")
+	admin.HandleFunc("/products/{id}", handlers.DeleteProduct).Methods("DELETE", "OPTIONS")
+
+	// WebSocket для real-time уведомлений (вне всех middleware, проверка токена внутри хэндлера)
+	router.HandleFunc("/api/admin/ws", handlers.HandleWebSocket)
 
 	// CORS настройки
 	c := cors.New(cors.Options{

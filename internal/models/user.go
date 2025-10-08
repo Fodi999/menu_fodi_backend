@@ -7,7 +7,7 @@ type User struct {
 	ID        string    `gorm:"primaryKey;column:id" json:"id"`
 	Email     string    `gorm:"unique;column:email" json:"email"`
 	Name      string    `gorm:"column:name" json:"name"`
-	Password  string    `gorm:"column:password" json:"-"` // не возвращается в JSON
+	Password  string    `gorm:"column:password" json:"-"`             // не возвращается в JSON
 	Role      string    `gorm:"column:role;default:user" json:"role"` // "user" или "admin"
 	CreatedAt time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
