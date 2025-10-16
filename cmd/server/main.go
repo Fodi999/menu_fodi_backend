@@ -51,13 +51,15 @@ func main() {
 	// Health check endpoint (публичный)
 	api.HandleFunc("/health", handlers.HealthCheck).Methods("GET", "OPTIONS")
 
+	// Hint endpoint для Elixir бота (с API key защитой)
+	hintRouter := api.PathPrefix("/hint").Subrouter()
+	hintRouter.Use(middleware.APIKeyMiddleware)
+	hintRouter.HandleFunc("", handlers.HintHandler).Methods("POST", "OPTIONS")
+
 	// Auth routes (публичные)
 	api.HandleFunc("/auth/register", handlers.Register).Methods("POST", "OPTIONS")
 	api.HandleFunc("/auth/login", handlers.Login).Methods("POST", "OPTIONS")
-
-	// Public Products endpoint (для главной страницы - только видимые продукты)
-	api.HandleFunc("/products", handlers.GetPublicProducts).Methods("GET", "OPTIONS")
-	api.HandleFunc("/products/{id}", handlers.GetProduct).Methods("GET", "OPTIONS")
+	api.HandleFunc("/auth/verify", handlers.VerifyTokenHandler).Methods("POST", "OPTIONS")
 
 	// Protected routes (требуют JWT)
 	protected := api.PathPrefix("").Subrouter()
@@ -79,6 +81,7 @@ func main() {
 	admin.HandleFunc("/users", handlers.GetAllUsers).Methods("GET", "OPTIONS")
 	admin.HandleFunc("/users/{id}", handlers.UpdateUser).Methods("PUT", "OPTIONS")
 	admin.HandleFunc("/users/{id}", handlers.DeleteUser).Methods("DELETE", "OPTIONS")
+	admin.HandleFunc("/users/update-role", handlers.UpdateUserRole).Methods("PATCH", "OPTIONS")
 
 	// Orders
 	admin.HandleFunc("/orders", handlers.GetAllOrders).Methods("GET", "OPTIONS")
@@ -112,11 +115,42 @@ func main() {
 	// WebSocket для real-time уведомлений (вне всех middleware, проверка токена внутри хэндлера)
 	router.HandleFunc("/api/admin/ws", handlers.HandleWebSocket)
 
+	// Business routes (публичные)
+	api.HandleFunc("/businesses", handlers.GetBusinesses).Methods("GET", "OPTIONS")
+	api.HandleFunc("/businesses", handlers.CreateBusiness).Methods("POST", "OPTIONS") // ✅ Стандартный REST endpoint
+	api.HandleFunc("/businesses/create", handlers.CreateBusiness).Methods("POST", "OPTIONS")
+	api.HandleFunc("/businesses/{id}", handlers.GetBusinessByID).Methods("GET", "OPTIONS")
+	api.HandleFunc("/businesses/{id}", handlers.UpdateBusiness).Methods("PUT", "OPTIONS")
+	api.HandleFunc("/businesses/{id}", handlers.DeleteBusiness).Methods("DELETE", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/permanent", handlers.PermanentDeleteBusiness).Methods("DELETE", "OPTIONS")
+
+	// Business Token routes (публичные)
+	api.HandleFunc("/businesses/{id}/tokens", handlers.GetBusinessTokens).Methods("GET", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/tokens", handlers.CreateBusinessToken).Methods("POST", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/tokens/mint", handlers.MintBusinessTokens).Methods("POST", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/tokens/burn", handlers.BurnBusinessTokens).Methods("POST", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/tokens/recalculate-price", handlers.RecalculateTokenPrice).Methods("POST", "OPTIONS")
+
+	// Business Subscription routes (инвестиции)
+	api.HandleFunc("/businesses/{id}/subscribe", handlers.SubscribeToBusiness).Methods("POST", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/unsubscribe", handlers.UnsubscribeFromBusiness).Methods("DELETE", "OPTIONS")
+	api.HandleFunc("/businesses/{id}/subscribers", handlers.GetBusinessSubscribers).Methods("GET", "OPTIONS")
+	api.HandleFunc("/users/{id}/subscriptions", handlers.GetUserSubscriptions).Methods("GET", "OPTIONS")
+	api.HandleFunc("/subscriptions/stats", handlers.GetSubscriptionStats).Methods("GET", "OPTIONS")
+
+	// Transaction routes (аналитика и история)
+	api.HandleFunc("/businesses/{id}/transactions", handlers.GetBusinessTransactions).Methods("GET", "OPTIONS")
+	api.HandleFunc("/users/{id}/transactions", handlers.GetUserTransactions).Methods("GET", "OPTIONS")
+	api.HandleFunc("/transactions/analytics", handlers.GetTransactionAnalytics).Methods("GET", "OPTIONS")
+
+	// Metrics routes (AI-метрики)
+	api.HandleFunc("/metrics/{businessId}", handlers.GetBusinessMetrics).Methods("GET", "OPTIONS")
+
 	// CORS настройки
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "https://menu-fodifood.vercel.app"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "https://menu-fodifood.vercel.app", "http://localhost:4000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-API-Key", "X-User-ID"},
 		AllowCredentials: true,
 	})
 

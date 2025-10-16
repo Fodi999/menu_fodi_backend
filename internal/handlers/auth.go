@@ -158,3 +158,115 @@ func UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondWithJSON(w, http.StatusOK, user)
 }
+
+// VerifyTokenRequest структура запроса для верификации токена
+type VerifyTokenRequest struct {
+	Token string `json:"token"`
+}
+
+// VerifyTokenResponse структура ответа верификации токена
+type VerifyTokenResponse struct {
+	Valid  bool   `json:"valid"`
+	UserID string `json:"user_id,omitempty"`
+	Role   string `json:"role,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Email  string `json:"email,omitempty"`
+}
+
+// VerifyTokenHandler обработчик верификации JWT токена
+func VerifyTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var req VerifyTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	// Валидация токена
+	claims, err := auth.ValidateToken(req.Token)
+	if err != nil {
+		utils.RespondWithJSON(w, http.StatusOK, VerifyTokenResponse{Valid: false})
+		return
+	}
+
+	// 🧠 Попробуем найти пользователя в базе
+	user, err := userRepo.FindByID(claims.UserID)
+	if err != nil {
+		// Если не нашли — всё равно возвращаем валидный токен, но без имени/email
+		utils.RespondWithJSON(w, http.StatusOK, VerifyTokenResponse{
+			Valid:  true,
+			UserID: claims.UserID,
+			Role:   claims.Role,
+		})
+		return
+	}
+
+	// ✅ Возвращаем всю информацию
+	utils.RespondWithJSON(w, http.StatusOK, VerifyTokenResponse{
+		Valid:  true,
+		UserID: user.ID,
+		Role:   user.Role,
+		Name:   user.Name,
+		Email:  user.Email,
+	})
+}
+
+// UpdateRoleRequest структура запроса для обновления роли
+type UpdateRoleRequest struct {
+	UserID string `json:"user_id"`
+	Role   string `json:"role"`
+}
+
+// UpdateUserRole обработчик обновления роли пользователя
+func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	var req UpdateRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Валидация роли
+	if req.Role != "user" && req.Role != "admin" && req.Role != "business_owner" && req.Role != "investor" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid role. Must be: user, admin, business_owner, or investor")
+		return
+	}
+
+	// Получить текущего пользователя из контекста (проверка прав)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	// Проверка прав: только админ может менять роли
+	if claims.Role != "admin" {
+		utils.RespondWithError(w, http.StatusForbidden, "Only admins can update user roles")
+		return
+	}
+
+	// Найти пользователя по ID
+	user, err := userRepo.FindByID(req.UserID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "User not found")
+		return
+	}
+
+	// Обновить роль
+	oldRole := user.Role
+	user.Role = req.Role
+
+	if err := userRepo.Update(user); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update user role")
+		return
+	}
+
+	// Вернуть успешный ответ
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message":    "✅ User role updated successfully",
+		"user_id":    user.ID,
+		"old_role":   oldRole,
+		"new_role":   user.Role,
+		"name":       user.Name,
+		"email":      user.Email,
+		"updated_by": claims.UserID,
+	})
+}

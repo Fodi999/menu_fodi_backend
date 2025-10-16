@@ -65,6 +65,10 @@ func AutoMigrate() error {
 		&models.ProductSemiFinished{},
 		&models.Order{},
 		&models.OrderItem{},
+		&models.Business{},
+		&models.BusinessToken{},
+		&models.BusinessSubscription{},
+		&models.Transaction{},
 	)
 
 	if err != nil {
