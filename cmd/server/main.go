@@ -73,6 +73,10 @@ func main() {
 	// Orders (публичный endpoint для создания заказа)
 	api.HandleFunc("/orders", handlers.CreateOrder).Methods("POST", "OPTIONS")
 
+	// Products (публичные - только видимые продукты)
+	api.HandleFunc("/products", handlers.GetPublicProducts).Methods("GET", "OPTIONS")
+	api.HandleFunc("/products/{id}", handlers.GetProduct).Methods("GET", "OPTIONS")
+
 	// Admin routes
 	admin := protected.PathPrefix("/admin").Subrouter()
 	admin.Use(middleware.AdminMiddleware)
