@@ -69,6 +69,24 @@ func AutoMigrate() error {
 		&models.BusinessToken{},
 		&models.BusinessSubscription{},
 		&models.Transaction{},
+		// Culinary Academy & User Dashboard
+		&models.UserProfile{},
+		&models.PersonalRecipe{},
+		&models.Certificate{},
+		&models.UserProgress{},
+		&models.WalletTransaction{},
+		&models.MarketPurchase{},
+		&models.Course{},
+		&models.Lesson{},
+		&models.QuizQuestion{},
+		&models.UserQuiz{},
+		&models.MentorSession{},
+		&models.MentorMessage{},
+		&models.Achievement{},
+		&models.UserAchievement{},
+		// Marketplace Evolution
+		&models.RecipePurchase{},
+		&models.RecipeReview{},
 	)
 
 	if err != nil {

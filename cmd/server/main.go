@@ -150,6 +150,51 @@ func main() {
 	// Metrics routes (AI-метрики)
 	api.HandleFunc("/metrics/{businessId}", handlers.GetBusinessMetrics).Methods("GET", "OPTIONS")
 
+	// 🧠 Culinary AI routes (Groq-powered)
+	api.HandleFunc("/ai/analyze", handlers.AnalyzeRecipeHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ai/review-recipe", handlers.ReviewRecipeHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ai/critique", handlers.CritiqueRecipeHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ai/estimate-price", handlers.EstimatePriceHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/mentor/chat", handlers.MentorChatHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/mentor/analyze-step", handlers.AnalyzeStepHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/mentor/history", handlers.GetMentorSessionHistory).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/mentor/sessions", handlers.GetUserMentorSessions).Methods("GET", "OPTIONS")
+
+	// 📡 WebSocket routes
+	api.HandleFunc("/ws", handlers.HandleWebSocket).Methods("GET")
+	api.HandleFunc("/ws/mentor", handlers.HandleMentorWebSocket).Methods("GET")
+
+	// 📸 Image Upload (Cloudinary)
+	api.HandleFunc("/upload/image", handlers.UploadImageHandler).Methods("POST", "OPTIONS")
+
+	// 👨‍🍳 User Dashboard routes
+	api.HandleFunc("/user/{userId}/profile", handlers.GetUserProfile).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/profile", handlers.UpdateUserProfile).Methods("PUT", "OPTIONS")
+	api.HandleFunc("/user/{userId}/dashboard", handlers.GetUserDashboard).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/progress", handlers.GetUserProgress).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/certificates", handlers.GetUserCertificates).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/recipes", handlers.GetUserRecipes).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/recipes", handlers.CreateUserRecipe).Methods("POST", "OPTIONS")
+	api.HandleFunc("/user/{userId}/recipes/{recipeId}", handlers.DeleteUserRecipe).Methods("DELETE", "OPTIONS")
+	api.HandleFunc("/user/{userId}/wallet", handlers.GetUserWallet).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/market/purchases", handlers.GetMarketPurchases).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/purchases", handlers.GetUserPurchasesHandler).Methods("GET", "OPTIONS")
+
+	// 🛒 Marketplace routes
+	api.HandleFunc("/market/recipes", handlers.GetMarketRecipesHandler).Methods("GET", "OPTIONS")
+	api.HandleFunc("/market/purchase", handlers.PurchaseRecipeHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/market/stats/{userId}", handlers.GetSellerStatsHandler).Methods("GET", "OPTIONS")
+	api.HandleFunc("/leaderboard", handlers.GetLeaderboardHandler(database.DB)).Methods("GET", "OPTIONS")
+
+	// 🎓 Culinary Academy routes
+	api.HandleFunc("/academy/courses", handlers.GetCourses).Methods("GET", "OPTIONS")
+	api.HandleFunc("/academy/courses/{courseId}", handlers.GetCourse).Methods("GET", "OPTIONS")
+	api.HandleFunc("/academy/courses/{courseId}/lessons", handlers.GetCourseLessons).Methods("GET", "OPTIONS")
+	api.HandleFunc("/academy/lessons/{lessonId}", handlers.GetLesson).Methods("GET", "OPTIONS")
+	api.HandleFunc("/academy/quiz/{courseId}", handlers.GetQuiz).Methods("GET", "OPTIONS")
+	api.HandleFunc("/academy/quiz/{courseId}/submit", handlers.SubmitQuiz).Methods("POST", "OPTIONS")
+	api.HandleFunc("/academy/certificate/{courseId}", handlers.GenerateCertificateHandler).Methods("POST", "OPTIONS")
+
 	// CORS настройки
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "https://menu-fodifood.vercel.app", "http://localhost:4000"},

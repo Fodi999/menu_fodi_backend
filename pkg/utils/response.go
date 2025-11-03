@@ -76,3 +76,21 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func RespondWithError(w http.ResponseWriter, code int, message string) {
 	RespondWithJSON(w, code, ErrorResponse{Error: message})
 }
+
+// RespondError отправляет JSON ошибку с деталями
+func RespondError(w http.ResponseWriter, code int, message string, details string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "error",
+		"message": message,
+		"error":   details,
+	})
+}
+
+// RespondJSON отправляет JSON ответ с данными
+func RespondJSON(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(data)
+}
