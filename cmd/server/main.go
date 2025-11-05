@@ -195,10 +195,17 @@ func main() {
 	api.HandleFunc("/academy/quiz/{courseId}/submit", handlers.SubmitQuiz).Methods("POST", "OPTIONS")
 	api.HandleFunc("/academy/certificate/{courseId}", handlers.GenerateCertificateHandler).Methods("POST", "OPTIONS")
 
-	// CORS настройки
+		// CORS Configuration
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:3001", "https://menu-fodifood.vercel.app", "http://localhost:4000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedOrigins: []string{
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:4000",
+			"https://menu-fodifood.vercel.app",
+			"https://dima-fomin.pl",
+			"https://www.dima-fomin.pl",
+		},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-API-Key", "X-User-ID"},
 		AllowCredentials: true,
 	})
