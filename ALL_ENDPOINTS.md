@@ -1,13 +1,80 @@
 # 🎓 Complete API Endpoints List - Culinary Academy
 
 **Production Server:** `https://yeasty-madelaine-fodi999-671ccdf5.koyeb.app`  
-**Version:** Marketplace Evolution v1.0  
-**Total Endpoints:** 83  
-**Date:** 3 November 2025
+**Version:** Marketplace Evolution v1.0 + Recipe Feed  
+**Total Endpoints:** 88 (83 + 5 new Recipe Feed endpoints)  
+**Date:** 5 November 2025
 
 ---
 
-## 🔐 Authentication (2)
+## � Recipe Feed (5) - NEW! 🆕
+
+### 1. Get All Recipes (Main Feed)
+```http
+GET /api/posts
+```
+**Response:** List of all recipes from all users with author details
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "recipe-001",
+      "title": "Fresh Salmon Nigiri",
+      "description": "Autentyczne nigiri z łososiem",
+      "imageUrl": "https://images.unsplash.com/...",
+      "authorId": "ef03cd81-71fd-429f-bb5f-8be5c9172ca8",
+      "author": {
+        "id": "ef03cd81-71fd-429f-bb5f-8be5c9172ca8",
+        "name": "Dima Fomin",
+        "email": "dima@example.com"
+      },
+      "createdAt": "2025-11-05T11:36:50.584057+01:00"
+    }
+  ]
+}
+```
+
+### 2. Get User Recipes (Profile)
+```http
+GET /api/users/{userId}/posts
+```
+**Response:** List of recipes posted by specific user
+
+### 3. Create Recipe
+```http
+POST /api/recipes
+Content-Type: application/json
+
+{
+  "title": "California Roll",
+  "description": "Classic California roll with crab and avocado",
+  "imageUrl": "https://images.unsplash.com/photo-1617196034796-ca11959d7f34?w=800",
+  "authorId": "ef03cd81-71fd-429f-bb5f-8be5c9172ca8"
+}
+```
+
+### 4. Update Recipe
+```http
+PUT /api/recipes/{recipeId}
+Content-Type: application/json
+
+{
+  "title": "Premium California Roll",
+  "description": "Luxury California roll with king crab"
+}
+```
+
+### 5. Delete Recipe
+```http
+DELETE /api/recipes/{recipeId}
+```
+
+📚 **Full Documentation:** [RECIPE_FEED_API.md](RECIPE_FEED_API.md)
+
+---
+
+## �🔐 Authentication (2)
 
 ### 1. Register User
 ```http
