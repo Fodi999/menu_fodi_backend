@@ -195,6 +195,13 @@ func main() {
 	api.HandleFunc("/academy/quiz/{courseId}/submit", handlers.SubmitQuiz).Methods("POST", "OPTIONS")
 	api.HandleFunc("/academy/certificate/{courseId}", handlers.GenerateCertificateHandler).Methods("POST", "OPTIONS")
 
+	// 📱 Recipe Feed routes (public recipe sharing)
+	api.HandleFunc("/posts", handlers.GetAllPosts).Methods("GET", "OPTIONS")                 // Main feed - all users' recipes
+	api.HandleFunc("/users/{id}/posts", handlers.GetUserPosts).Methods("GET", "OPTIONS")     // User profile - specific user's recipes
+	api.HandleFunc("/recipes", handlers.CreateRecipePost).Methods("POST", "OPTIONS")         // Create new recipe post
+	api.HandleFunc("/recipes/{id}", handlers.UpdateRecipePost).Methods("PUT", "OPTIONS")     // Update recipe
+	api.HandleFunc("/recipes/{id}", handlers.DeleteRecipePost).Methods("DELETE", "OPTIONS")  // Delete recipe
+
 		// CORS Configuration
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
