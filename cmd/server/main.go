@@ -155,6 +155,7 @@ func main() {
 	api.HandleFunc("/ai/review-recipe", handlers.ReviewRecipeHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ai/critique", handlers.CritiqueRecipeHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ai/estimate-price", handlers.EstimatePriceHandler).Methods("POST", "OPTIONS")
+	api.HandleFunc("/ai/recipe-helper", handlers.GenerateRecipeHandler).Methods("POST", "OPTIONS") // 🆕 AI Recipe Generator
 	api.HandleFunc("/mentor/chat", handlers.MentorChatHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mentor/analyze-step", handlers.AnalyzeStepHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mentor/history", handlers.GetMentorSessionHistory).Methods("GET", "OPTIONS")
@@ -196,11 +197,12 @@ func main() {
 	api.HandleFunc("/academy/certificate/{courseId}", handlers.GenerateCertificateHandler).Methods("POST", "OPTIONS")
 
 	// 📱 Recipe Feed routes (public recipe sharing)
-	api.HandleFunc("/posts", handlers.GetAllPosts).Methods("GET", "OPTIONS")                 // Main feed - all users' recipes
-	api.HandleFunc("/users/{id}/posts", handlers.GetUserPosts).Methods("GET", "OPTIONS")     // User profile - specific user's recipes
-	api.HandleFunc("/recipes", handlers.CreateRecipePost).Methods("POST", "OPTIONS")         // Create new recipe post
-	api.HandleFunc("/recipes/{id}", handlers.UpdateRecipePost).Methods("PUT", "OPTIONS")     // Update recipe
-	api.HandleFunc("/recipes/{id}", handlers.DeleteRecipePost).Methods("DELETE", "OPTIONS")  // Delete recipe
+	api.HandleFunc("/posts", handlers.GetAllPosts).Methods("GET", "OPTIONS")                      // Main feed - all users' recipes
+	api.HandleFunc("/users/{id}/posts", handlers.GetUserPosts).Methods("GET", "OPTIONS")          // User profile - specific user's recipes
+	protected.HandleFunc("/recipes", handlers.CreateRecipePost).Methods("POST", "OPTIONS")        // Create new recipe post (auth required)
+	protected.HandleFunc("/recipes/{id}", handlers.UpdateRecipePost).Methods("PUT", "OPTIONS")    // Update recipe (auth required)
+	protected.HandleFunc("/recipes/{id}", handlers.DeleteRecipePost).Methods("DELETE", "OPTIONS") // Delete recipe (auth required)
+	api.HandleFunc("/recipes/{id}/view", handlers.IncrementRecipeView).Methods("POST", "OPTIONS") // Increment views & award tokens
 
 		// CORS Configuration
 	c := cors.New(cors.Options{

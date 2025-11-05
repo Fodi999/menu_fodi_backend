@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/auth"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
@@ -66,10 +68,18 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
 // POST /api/recipes
 func CreateRecipePost(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		ImageUrl    string `json:"imageUrl"`
-		AuthorID    string `json:"authorId"`
+		Title        string   `json:"title"`
+		Description  string   `json:"description"`
+		ImageUrl     string   `json:"imageUrl"`
+		GrossWeight  *int     `json:"grossWeight"`
+		NetWeight    *int     `json:"netWeight"`
+		Calories     *int     `json:"calories"`
+		Protein      *float64 `json:"protein"`
+		Fats         *float64 `json:"fats"`
+		Carbs        *float64 `json:"carbs"`
+		RecipeYield  *int     `json:"yield"`
+		Cost         *float64 `json:"cost"`
+		TokensReward *int     `json:"tokensReward"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -77,13 +87,17 @@ func CreateRecipePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get authorID from JWT token (set by auth middleware)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*auth.Claims)
+	if !ok || claims.UserID == "" {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+	authorID := claims.UserID
+
 	// Validate required fields
 	if input.Title == "" {
 		utils.RespondWithError(w, http.StatusBadRequest, "Title is required")
-		return
-	}
-	if input.AuthorID == "" {
-		utils.RespondWithError(w, http.StatusBadRequest, "AuthorID is required")
 		return
 	}
 
@@ -91,20 +105,31 @@ func CreateRecipePost(w http.ResponseWriter, r *http.Request) {
 
 	// Validate that author exists
 	var author models.User
-	if err := db.First(&author, "id = ?", input.AuthorID).Error; err != nil {
+	if err := db.First(&author, "id = ?", authorID).Error; err != nil {
 		utils.RespondWithError(w, http.StatusNotFound, "Author not found")
 		return
 	}
 
-	// Create recipe with UUID
+	// Create recipe with UUID and metrics
 	recipe := models.Recipe{
-		ID:          uuid.New().String(),
-		Title:       input.Title,
-		Description: input.Description,
-		ImageUrl:    input.ImageUrl,
-		AuthorID:    input.AuthorID,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:           uuid.New().String(),
+		Title:        input.Title,
+		Description:  input.Description,
+		ImageUrl:     input.ImageUrl,
+		AuthorID:     authorID,
+		GrossWeight:  input.GrossWeight,
+		NetWeight:    input.NetWeight,
+		Calories:     input.Calories,
+		Protein:      input.Protein,
+		Fats:         input.Fats,
+		Carbs:        input.Carbs,
+		RecipeYield:  input.RecipeYield,
+		Cost:         input.Cost,
+		TokensReward: input.TokensReward,
+		ViewsCount:   0,
+		TokensEarned: 0,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	if err := db.Create(&recipe).Error; err != nil {
@@ -194,5 +219,41 @@ func DeleteRecipePost(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"status":  "success",
 		"message": "Recipe deleted successfully",
+	})
+}
+
+// IncrementRecipeView increments view count and awards tokens to author
+// POST /api/recipes/{id}/view
+func IncrementRecipeView(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	recipeID := vars["id"]
+
+	db := database.GetDB()
+
+	var recipe models.Recipe
+	if err := db.Preload("Author").First(&recipe, "id = ?", recipeID).Error; err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Recipe not found")
+		return
+	}
+
+	// Increment views
+	recipe.ViewsCount++
+	
+	// Award 1 ChefToken for every 10 views
+	if recipe.ViewsCount%10 == 0 {
+		recipe.TokensEarned++
+	}
+
+	if err := db.Save(&recipe).Error; err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update views")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
+			"viewsCount":   recipe.ViewsCount,
+			"tokensEarned": recipe.TokensEarned,
+		},
 	})
 }
