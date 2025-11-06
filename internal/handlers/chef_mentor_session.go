@@ -46,6 +46,12 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate message (reject empty messages)
+	if strings.TrimSpace(req.Message) == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Message cannot be empty")
+		return
+	}
+
 	// Get or create session from database
 	var dbSession *models.ChefMentorSession
 	var err error
