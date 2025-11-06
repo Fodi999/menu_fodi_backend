@@ -155,7 +155,23 @@ func main() {
 	api.HandleFunc("/ai/review-recipe", handlers.ReviewRecipeHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ai/critique", handlers.CritiqueRecipeHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/ai/estimate-price", handlers.EstimatePriceHandler).Methods("POST", "OPTIONS")
-	api.HandleFunc("/ai/recipe-helper", handlers.GenerateRecipeHandler).Methods("POST", "OPTIONS") // 🆕 AI Recipe Generator
+	api.HandleFunc("/ai/recipe-helper", handlers.GenerateRecipeHandler).Methods("POST", "OPTIONS")     // 🆕 AI Recipe Generator
+	api.HandleFunc("/ai/chef-mentor", handlers.ChefMentorHandler).Methods("POST", "OPTIONS")           // 🆕 Interactive Chef Assistant
+	api.HandleFunc("/ai/chef-mentor/session", handlers.ChefMentorSessionHandler).Methods("POST", "OPTIONS") // 🔥 Session-based Chef Mentor
+	api.HandleFunc("/ai/chef-mentor/session", handlers.GetSessionHandler).Methods("GET", "OPTIONS")    // Get session state
+	api.HandleFunc("/ai/chef-mentor/session", handlers.DeleteSessionHandler).Methods("DELETE", "OPTIONS") // Clear session
+	api.HandleFunc("/ai/chef-mentor/stream", handlers.ChefMentorStreamHandler).Methods("POST", "OPTIONS") // 🚀 Streaming Chef Mentor (SSE)
+	
+	// 🧠 AI Culinary OS - Recipe Management
+	api.HandleFunc("/ai/recipes/my", handlers.GetMyRecipesHandler).Methods("GET", "OPTIONS")           // My AI recipes
+	api.HandleFunc("/ai/recipes/marketplace", handlers.GetMarketplaceRecipesHandler).Methods("GET", "OPTIONS") // Public recipes marketplace
+	api.HandleFunc("/ai/recipes/similar", handlers.FindSimilarRecipesHandler).Methods("GET", "OPTIONS") // Find similar recipes
+	api.HandleFunc("/ai/recipes/top", handlers.GetTopRecipesHandler).Methods("GET", "OPTIONS")          // Top recipes
+	api.HandleFunc("/ai/recipes/search", handlers.SearchRecipesHandler).Methods("GET", "OPTIONS")       // Search recipes
+	api.HandleFunc("/ai/recipes/{id}", handlers.GetRecipeByIDHandler).Methods("GET", "OPTIONS")        // Get single recipe
+	api.HandleFunc("/ai/recipes/{id}/publish", handlers.PublishRecipeHandler).Methods("POST", "OPTIONS") // Publish recipe
+	api.HandleFunc("/ai/recipes/{id}/like", handlers.LikeRecipeHandler).Methods("POST", "OPTIONS")      // Like recipe
+	
 	api.HandleFunc("/mentor/chat", handlers.MentorChatHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mentor/analyze-step", handlers.AnalyzeStepHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mentor/history", handlers.GetMentorSessionHistory).Methods("GET", "OPTIONS")

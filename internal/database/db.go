@@ -87,6 +87,12 @@ func AutoMigrate() error {
 		// Marketplace Evolution
 		&models.RecipePurchase{},
 		&models.RecipeReview{},
+		// AI Chef Mentor (persistent sessions)
+		&models.ChefMentorSession{},
+		&models.ChefMentorMessage{},
+		// AI Generated Recipes (Culinary OS)
+		&models.AIGeneratedRecipe{},
+		&models.RecipeLike{},
 	)
 
 	if err != nil {
