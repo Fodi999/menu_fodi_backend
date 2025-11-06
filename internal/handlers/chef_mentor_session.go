@@ -156,6 +156,13 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract recipe updates using improved logic
 	currentRecipe = smartExtractRecipeUpdates(assistantMessage, currentRecipe, req.Message, dbSession.Language)
 
+	// 🧠 Parse isComplete from AI JSON response
+	isComplete := parseIsCompleteFromAI(assistantMessage)
+	if !isComplete {
+		// Fallback to manual detection if AI didn't set it
+		isComplete = isRecipeComplete(currentRecipe)
+	}
+
 	// Calculate nutrition and cost if ingredients were added
 	if len(currentRecipe.Ingredients) > 0 {
 		calculateRecipeMetrics(currentRecipe)
@@ -178,7 +185,7 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Determine next question
 	nextQuestion := determineNextQuestion(currentRecipe, dbSession.Language)
-	isComplete := isRecipeComplete(currentRecipe)
+	// isComplete already determined above from AI response
 
 	// Mark complete if done AND auto-save recipe to AI Culinary OS
 	if isComplete {
@@ -291,6 +298,25 @@ func smartExtractRecipeUpdates(aiResponse string, currentRecipe *RecipeDraft, us
 		currentRecipe = &RecipeDraft{}
 	}
 
+	// 🧠 First, try to parse JSON response from AI
+	var aiRecipeResponse struct {
+		Message string       `json:"message"`
+		Recipe  *RecipeDraft `json:"recipe"`
+	}
+	
+	// Try to find and parse JSON block
+	jsonStart := strings.Index(aiResponse, "{")
+	jsonEnd := strings.LastIndex(aiResponse, "}")
+	
+	if jsonStart >= 0 && jsonEnd > jsonStart {
+		jsonStr := aiResponse[jsonStart:jsonEnd+1]
+		if err := json.Unmarshal([]byte(jsonStr), &aiRecipeResponse); err == nil && aiRecipeResponse.Recipe != nil {
+			// ✅ Successfully parsed JSON recipe from AI
+			return aiRecipeResponse.Recipe
+		}
+	}
+
+	// Fallback to text-based extraction if JSON parsing failed
 	// Call original extraction
 	currentRecipe = extractRecipeUpdates(aiResponse, currentRecipe, userMessage)
 
@@ -623,6 +649,34 @@ func saveCompletedRecipeToDatabase(sessionID uuid.UUID, userID *uuid.UUID, recip
 	}
 	
 	return aiRecipe.ID.String(), nil
+}
+
+// parseIsCompleteFromAI tries to extract isComplete flag from AI JSON response
+func parseIsCompleteFromAI(aiResponse string) bool {
+	// Try to parse AI response as JSON
+	var response struct {
+		IsComplete bool `json:"isComplete"`
+	}
+	
+	// AI might return JSON directly or wrapped in text
+	// Try to find JSON block
+	jsonStart := strings.Index(aiResponse, "{")
+	jsonEnd := strings.LastIndex(aiResponse, "}")
+	
+	if jsonStart >= 0 && jsonEnd > jsonStart {
+		jsonStr := aiResponse[jsonStart:jsonEnd+1]
+		if err := json.Unmarshal([]byte(jsonStr), &response); err == nil {
+			return response.IsComplete
+		}
+	}
+	
+	// Fallback: look for "isComplete": true in text
+	if strings.Contains(aiResponse, `"isComplete":true`) || 
+	   strings.Contains(aiResponse, `"isComplete": true`) {
+		return true
+	}
+	
+	return false
 }
 
 // isRecipeComplete checks if recipe has minimum required fields
