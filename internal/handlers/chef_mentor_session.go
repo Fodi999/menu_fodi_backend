@@ -133,6 +133,13 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 			utils.RespondWithError(w, http.StatusInternalServerError, "AI service error")
 			return
 		}
+		
+		// Check if response has choices
+		if len(response.Choices) == 0 {
+			utils.RespondWithError(w, http.StatusInternalServerError, "AI returned empty response")
+			return
+		}
+		
 		assistantMessage = response.Choices[0].Message.Content
 	}
 
