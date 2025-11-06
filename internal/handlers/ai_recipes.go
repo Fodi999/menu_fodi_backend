@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -257,5 +258,53 @@ func SearchRecipesHandler(w http.ResponseWriter, r *http.Request) {
 			"query":   query,
 			"count":   len(recipes),
 		},
+	})
+}
+
+// UpdateRecipeImageHandler updates recipe image URL
+// POST /api/ai/recipes/{id}/image
+func UpdateRecipeImageHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	recipeIDStr := vars["id"]
+
+	recipeID, err := uuid.Parse(recipeIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid recipe ID")
+		return
+	}
+
+	// Parse request body
+	var req struct {
+		ImageURL string `json:"imageUrl"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.ImageURL == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Image URL is required")
+		return
+	}
+
+	// Update recipe in database
+	repo := database.NewAIRecipeRepository()
+	recipe, err := repo.GetRecipeByID(recipeID.String())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Recipe not found")
+		return
+	}
+
+	// Update image URL
+	recipe.ImageURL = req.ImageURL
+	if err := database.DB.Model(recipe).Update("image_url", req.ImageURL).Error; err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update recipe")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"message": "Recipe image updated",
+		"imageUrl": req.ImageURL,
 	})
 }

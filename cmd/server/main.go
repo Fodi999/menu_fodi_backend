@@ -171,6 +171,7 @@ func main() {
 	api.HandleFunc("/ai/recipes/{id}", handlers.GetRecipeByIDHandler).Methods("GET", "OPTIONS")        // Get single recipe
 	api.HandleFunc("/ai/recipes/{id}/publish", handlers.PublishRecipeHandler).Methods("POST", "OPTIONS") // Publish recipe
 	api.HandleFunc("/ai/recipes/{id}/like", handlers.LikeRecipeHandler).Methods("POST", "OPTIONS")      // Like recipe
+	api.HandleFunc("/ai/recipes/{id}/image", handlers.UpdateRecipeImageHandler).Methods("POST", "OPTIONS") // Update recipe image
 	
 	api.HandleFunc("/mentor/chat", handlers.MentorChatHandler).Methods("POST", "OPTIONS")
 	api.HandleFunc("/mentor/analyze-step", handlers.AnalyzeStepHandler).Methods("POST", "OPTIONS")

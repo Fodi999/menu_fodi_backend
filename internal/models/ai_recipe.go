@@ -18,6 +18,7 @@ type AIGeneratedRecipe struct {
 	Category    string  `gorm:"type:varchar(50)" json:"category,omitempty"`            // sushi, ramen, desserts, etc.
 	Difficulty  string  `gorm:"type:varchar(20)" json:"difficulty,omitempty"`          // easy, intermediate, hard
 	Language    string  `gorm:"type:varchar(5);default:'ua'" json:"language"`
+	ImageURL    string  `gorm:"type:varchar(500)" json:"imageUrl,omitempty"`           // Recipe photo from Cloudinary
 	
 	// Ingredients & Steps (JSONB)
 	Ingredients JSONB `gorm:"type:jsonb;not null" json:"ingredients"`                  // [{name, amount, unit, gross, net}]
