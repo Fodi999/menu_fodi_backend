@@ -22,7 +22,7 @@ func GetMarketRecipesHandler(w http.ResponseWriter, r *http.Request) {
 	maxPriceStr := r.URL.Query().Get("maxPrice")
 	minRatingStr := r.URL.Query().Get("minRating")
 	sortBy := r.URL.Query().Get("sortBy") // "popular", "newest", "rating", "price"
-	
+
 	query := database.DB.Where("is_public = ?", true)
 
 	// Фильтры
@@ -162,8 +162,8 @@ func PurchaseRecipeHandler(w http.ResponseWriter, r *http.Request) {
 	// Проверка баланса
 	if buyerProfile.WalletBalance < recipe.Price {
 		utils.RespondWithJSON(w, http.StatusBadRequest, map[string]interface{}{
-			"status":  "error",
-			"message": "Insufficient ChefToken balance",
+			"status":   "error",
+			"message":  "Insufficient ChefToken balance",
 			"required": recipe.Price,
 			"current":  buyerProfile.WalletBalance,
 		})
@@ -254,12 +254,12 @@ func PurchaseRecipeHandler(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"status": "ok",
 		"data": map[string]interface{}{
-			"purchaseId":    purchase.ID,
-			"recipe":        recipe.Title,
-			"price":         recipe.Price,
-			"commission":    commission,
+			"purchaseId":     purchase.ID,
+			"recipe":         recipe.Title,
+			"price":          recipe.Price,
+			"commission":     commission,
 			"sellerReceived": netAmount,
-			"buyerBalance":  buyerProfile.WalletBalance,
+			"buyerBalance":   buyerProfile.WalletBalance,
 		},
 	})
 }

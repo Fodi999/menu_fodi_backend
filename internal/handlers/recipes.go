@@ -238,7 +238,7 @@ func IncrementRecipeView(w http.ResponseWriter, r *http.Request) {
 
 	// Increment views
 	recipe.ViewsCount++
-	
+
 	// Award 1 ChefToken for every 10 views
 	if recipe.ViewsCount%10 == 0 {
 		recipe.TokensEarned++

@@ -9,16 +9,16 @@ import (
 // RecipeAnalysis результат анализа рецепта
 type RecipeAnalysis struct {
 	RecipeName     string   `json:"recipeName"`
-	Rating         float64  `json:"rating"`           // 1-10
-	ChefComment    string   `json:"chefComment"`      // комментарий шефа
-	TasteBalance   string   `json:"tasteBalance"`     // sweet/salty/umami/sour/bitter
-	Difficulty     string   `json:"difficulty"`       // easy/medium/hard
-	EstimatedPrice float64  `json:"estimatedPrice"`   // цена блюда
-	Category       string   `json:"category"`         // категория
-	Improvements   []string `json:"improvements"`     // рекомендации
-	Keywords       []string `json:"keywords"`         // ключевые слова
-	Allergens      []string `json:"allergens"`        // аллергены
-	NutritionalTip string   `json:"nutritionalTip"`   // совет по питанию
+	Rating         float64  `json:"rating"`         // 1-10
+	ChefComment    string   `json:"chefComment"`    // комментарий шефа
+	TasteBalance   string   `json:"tasteBalance"`   // sweet/salty/umami/sour/bitter
+	Difficulty     string   `json:"difficulty"`     // easy/medium/hard
+	EstimatedPrice float64  `json:"estimatedPrice"` // цена блюда
+	Category       string   `json:"category"`       // категория
+	Improvements   []string `json:"improvements"`   // рекомендации
+	Keywords       []string `json:"keywords"`       // ключевые слова
+	Allergens      []string `json:"allergens"`      // аллергены
+	NutritionalTip string   `json:"nutritionalTip"` // совет по питанию
 }
 
 // RecipeAnalyzer анализатор рецептов с AI

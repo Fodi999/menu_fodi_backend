@@ -37,7 +37,7 @@ func HintHandler(w http.ResponseWriter, r *http.Request) {
 	// Поиск продуктов по вопросу
 	var products []models.Product
 	question := strings.ToLower(req.Question)
-	
+
 	if err := database.DB.Where("LOWER(name) LIKE ?", "%"+question+"%").
 		Or("LOWER(category) LIKE ?", "%"+question+"%").
 		Limit(5).
@@ -62,7 +62,7 @@ func HintHandler(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"status": "ok",
 		"data": map[string]interface{}{
-			"hint":              hint,
+			"hint":               hint,
 			"suggested_products": products,
 		},
 	})

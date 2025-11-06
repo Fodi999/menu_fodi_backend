@@ -127,11 +127,11 @@ func GetBusinessSubscribers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message":        "✅ Business subscribers fetched",
+		"message":         "✅ Business subscribers fetched",
 		"subscriberCount": len(subscribers),
-		"totalInvested":  totalInvested,
+		"totalInvested":   totalInvested,
 		"totalTokensSold": totalTokensSold,
-		"subscribers":    subscribers,
+		"subscribers":     subscribers,
 	})
 }
 

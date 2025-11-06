@@ -200,7 +200,7 @@ func (s *TokenService) calculateTokenPrice(businessID string, supply int64) floa
 
 	// Формула расчета цены:
 	// Price = BasePrice * (1 + supply_multiplier + investor_multiplier + transaction_multiplier)
-	
+
 	// Множитель от supply (каждые 10 токенов добавляют 5%)
 	supplyMultiplier := float64(supply) / 10.0 * 0.05
 
@@ -242,7 +242,7 @@ func (s *TokenService) generateTokenSymbol(businessName string) string {
 	}
 
 	symbol := string(runes[:symbolLength])
-	
+
 	// Добавляем "T" (Token) в конец
 	return symbol + "T"
 }

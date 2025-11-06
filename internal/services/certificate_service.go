@@ -13,13 +13,13 @@ import (
 
 // CertificateData данные для генерации сертификата
 type CertificateData struct {
-	StudentName     string
-	CourseName      string
-	Level           int
-	Stars           int
-	CompletionDate  time.Time
-	Language        string
-	QuizScore       int
+	StudentName           string
+	CourseName            string
+	Level                 int
+	Stars                 int
+	CompletionDate        time.Time
+	Language              string
+	QuizScore             int
 	AIPersonalizedMessage string
 }
 
@@ -58,8 +58,8 @@ func (cs *CertificateService) GenerateCertificate(data CertificateData) (string,
 	cs.drawCertificate(pdf, data)
 
 	// 4. Сохраняем файл
-	filename := fmt.Sprintf("certificate_%s_%d.pdf", 
-		sanitizeFilename(data.StudentName), 
+	filename := fmt.Sprintf("certificate_%s_%d.pdf",
+		sanitizeFilename(data.StudentName),
 		time.Now().Unix())
 	filepath := filepath.Join(cs.outputDir, filename)
 
@@ -82,14 +82,14 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	pdf.SetLineWidth(2)
 	pdf.SetDrawColor(goldR, goldG, goldB)
 	pdf.Rect(10, 10, 277, 190, "D")
-	
+
 	pdf.SetLineWidth(0.5)
 	pdf.Rect(15, 15, 267, 180, "D")
 
 	// Заголовок "CERTIFICATE OF ACHIEVEMENT"
 	pdf.SetFont("Arial", "B", 32)
 	pdf.SetTextColor(darkBlueR, darkBlueG, darkBlueB)
-	
+
 	titles := map[string]string{
 		"pl": "CERTYFIKAT UKOŃCZENIA",
 		"ua": "СЕРТИФІКАТ ЗАВЕРШЕННЯ",
@@ -99,7 +99,7 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	if title == "" {
 		title = titles["pl"]
 	}
-	
+
 	pdf.SetXY(20, 30)
 	pdf.CellFormat(257, 15, title, "", 0, "C", false, 0, "")
 
@@ -126,7 +126,7 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	if certText == "" {
 		certText = texts["pl"]
 	}
-	
+
 	pdf.SetXY(20, 75)
 	pdf.CellFormat(257, 8, certText, "", 0, "C", false, 0, "")
 
@@ -148,7 +148,7 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	if completedText == "" {
 		completedText = completedTexts["pl"]
 	}
-	
+
 	pdf.SetXY(20, 105)
 	pdf.CellFormat(257, 8, completedText, "", 0, "C", false, 0, "")
 
@@ -161,20 +161,20 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	// Оценки и достижения
 	pdf.SetFont("Arial", "", 11)
 	pdf.SetTextColor(0, 0, 0)
-	
+
 	achievementTexts := map[string]string{
-		"pl": fmt.Sprintf("Poziom: %d  |  Wynik testu: %d%%  |  Zdobyte Gwiazdki: %d", 
+		"pl": fmt.Sprintf("Poziom: %d  |  Wynik testu: %d%%  |  Zdobyte Gwiazdki: %d",
 			data.Level, data.QuizScore, data.Stars),
-		"ua": fmt.Sprintf("Рівень: %d  |  Результат тесту: %d%%  |  Зірки: %d", 
+		"ua": fmt.Sprintf("Рівень: %d  |  Результат тесту: %d%%  |  Зірки: %d",
 			data.Level, data.QuizScore, data.Stars),
-		"en": fmt.Sprintf("Level: %d  |  Quiz Score: %d%%  |  Stars Earned: %d", 
+		"en": fmt.Sprintf("Level: %d  |  Quiz Score: %d%%  |  Stars Earned: %d",
 			data.Level, data.QuizScore, data.Stars),
 	}
 	achievementText := achievementTexts[data.Language]
 	if achievementText == "" {
 		achievementText = achievementTexts["pl"]
 	}
-	
+
 	pdf.SetXY(20, 135)
 	pdf.CellFormat(257, 6, achievementText, "", 0, "C", false, 0, "")
 
@@ -183,7 +183,7 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	pdf.Rect(40, 145, 217, 25, "F")
 	pdf.SetDrawColor(goldR, goldG, goldB)
 	pdf.Rect(40, 145, 217, 25, "D")
-	
+
 	pdf.SetFont("Arial", "I", 10)
 	pdf.SetTextColor(50, 50, 50)
 	pdf.SetXY(45, 150)
@@ -192,19 +192,19 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	// Дата и подпись
 	pdf.SetFont("Arial", "", 10)
 	pdf.SetTextColor(0, 0, 0)
-	
+
 	dateFormat := "02.01.2006"
 	dateText := data.CompletionDate.Format(dateFormat)
-	
+
 	pdf.SetXY(50, 180)
 	pdf.CellFormat(80, 6, dateText, "T", 0, "C", false, 0, "")
-	
+
 	pdf.SetXY(167, 180)
 	pdf.CellFormat(80, 6, "Chef Dima Fomin", "T", 0, "C", false, 0, "")
-	
+
 	pdf.SetFont("Arial", "I", 8)
 	pdf.SetTextColor(100, 100, 100)
-	
+
 	dateLabels := map[string]string{
 		"pl": "Data wydania",
 		"ua": "Дата видачі",
@@ -214,10 +214,10 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	if dateLabel == "" {
 		dateLabel = dateLabels["pl"]
 	}
-	
+
 	pdf.SetXY(50, 186)
 	pdf.CellFormat(80, 4, dateLabel, "", 0, "C", false, 0, "")
-	
+
 	signatureLabels := map[string]string{
 		"pl": "Podpis Szefa Kuchni",
 		"ua": "Підпис Шеф-кухаря",
@@ -227,7 +227,7 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 	if signatureLabel == "" {
 		signatureLabel = signatureLabels["pl"]
 	}
-	
+
 	pdf.SetXY(167, 186)
 	pdf.CellFormat(80, 4, signatureLabel, "", 0, "C", false, 0, "")
 }
@@ -235,13 +235,13 @@ func (cs *CertificateService) drawCertificate(pdf *gofpdf.Fpdf, data Certificate
 // generateAIMessage генерирует персонализированное сообщение от AI
 func (cs *CertificateService) generateAIMessage(data CertificateData) (string, error) {
 	client := ai.NewGroqClient()
-	
+
 	systemPrompts := map[string]string{
 		"pl": "Jesteś szefem kuchni wystawiającym certyfikat. Napisz krótką (max 2 zdania) personalizowaną gratulację dla ucznia. Bądź ciepły i motywujący.",
 		"ua": "Ти шеф-кухар, який видає сертифікат. Напиши коротке (макс 2 речення) персоналізоване привітання учневі. Будь теплим та мотивуючим.",
 		"en": "You are a chef issuing a certificate. Write a short (max 2 sentences) personalized congratulation for the student. Be warm and motivating.",
 	}
-	
+
 	userMessages := map[string]string{
 		"pl": fmt.Sprintf("Uczeń %s ukończył kurs '%s' z wynikiem %d%%, zdobywając %d gwiazdek. Poziom %d.",
 			data.StudentName, data.CourseName, data.QuizScore, data.Stars, data.Level),
@@ -250,39 +250,39 @@ func (cs *CertificateService) generateAIMessage(data CertificateData) (string, e
 		"en": fmt.Sprintf("Student %s completed course '%s' with %d%% score, earning %d stars. Level %d.",
 			data.StudentName, data.CourseName, data.QuizScore, data.Stars, data.Level),
 	}
-	
+
 	systemPrompt := systemPrompts[data.Language]
 	userMessage := userMessages[data.Language]
-	
+
 	if systemPrompt == "" {
 		systemPrompt = systemPrompts["pl"]
 		userMessage = userMessages["pl"]
 	}
-	
+
 	response, err := client.SimpleChat(systemPrompt, userMessage)
 	if err != nil {
 		return "", err
 	}
-	
+
 	return response, nil
 }
 
 // getFallbackMessage возвращает стандартное сообщение если AI недоступен
 func (cs *CertificateService) getFallbackMessage(data CertificateData) string {
 	messages := map[string]string{
-		"pl": fmt.Sprintf("Gratulacje, %s! Twoja pasja i determinacja są inspirujące. Kontynuuj swoją kulinarną podróż!", 
+		"pl": fmt.Sprintf("Gratulacje, %s! Twoja pasja i determinacja są inspirujące. Kontynuuj swoją kulinarną podróż!",
 			data.StudentName),
-		"ua": fmt.Sprintf("Вітаємо, %s! Ваша пристрасть та рішучість надихають. Продовжуйте свою кулінарну подорож!", 
+		"ua": fmt.Sprintf("Вітаємо, %s! Ваша пристрасть та рішучість надихають. Продовжуйте свою кулінарну подорож!",
 			data.StudentName),
-		"en": fmt.Sprintf("Congratulations, %s! Your passion and determination are inspiring. Continue your culinary journey!", 
+		"en": fmt.Sprintf("Congratulations, %s! Your passion and determination are inspiring. Continue your culinary journey!",
 			data.StudentName),
 	}
-	
+
 	message := messages[data.Language]
 	if message == "" {
 		message = messages["pl"]
 	}
-	
+
 	return message
 }
 

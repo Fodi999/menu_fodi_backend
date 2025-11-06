@@ -24,68 +24,68 @@ func (r *AIRecipeRepository) SaveRecipe(recipe *models.AIGeneratedRecipe) error 
 // GetRecipeByID retrieves a recipe by ID
 func (r *AIRecipeRepository) GetRecipeByID(recipeID string) (*models.AIGeneratedRecipe, error) {
 	var recipe models.AIGeneratedRecipe
-	
+
 	if err := DB.Where("id = ?", recipeID).First(&recipe).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return &recipe, nil
 }
 
 // GetUserRecipes retrieves all recipes created by a user
 func (r *AIRecipeRepository) GetUserRecipes(userID uuid.UUID, limit int, offset int) ([]models.AIGeneratedRecipe, error) {
 	var recipes []models.AIGeneratedRecipe
-	
+
 	query := DB.Where("user_id = ?", userID).
 		Order("created_at DESC")
-	
+
 	if limit > 0 {
 		query = query.Limit(limit).Offset(offset)
 	}
-	
+
 	if err := query.Find(&recipes).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return recipes, nil
 }
 
 // FindSimilarRecipes finds recipes with matching ingredients
 func (r *AIRecipeRepository) FindSimilarRecipes(ingredients []string, limit int) ([]models.AIGeneratedRecipe, error) {
 	var recipes []models.AIGeneratedRecipe
-	
+
 	// Use PostgreSQL JSONB operators to find matching ingredients
 	// This query finds recipes where ANY ingredient name matches
 	query := DB.Where("ingredients @> ?", buildIngredientsQuery(ingredients)).
 		Where("is_public = ?", true).
 		Order("created_at DESC").
 		Limit(limit)
-	
+
 	if err := query.Find(&recipes).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return recipes, nil
 }
 
 // GetPublicRecipes retrieves all public recipes (marketplace)
 func (r *AIRecipeRepository) GetPublicRecipes(category string, limit int, offset int) ([]models.AIGeneratedRecipe, error) {
 	var recipes []models.AIGeneratedRecipe
-	
+
 	query := DB.Where("is_public = ?", true)
-	
+
 	if category != "" {
 		query = query.Where("category = ?", category)
 	}
-	
+
 	query = query.Order("created_at DESC").
 		Limit(limit).
 		Offset(offset)
-	
+
 	if err := query.Find(&recipes).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return recipes, nil
 }
 
@@ -118,22 +118,22 @@ func (r *AIRecipeRepository) LikeRecipe(recipeID uuid.UUID, userID uuid.UUID) er
 	// Check if already liked
 	var existingLike models.RecipeLike
 	err := DB.Where("recipe_id = ? AND user_id = ?", recipeID, userID).First(&existingLike).Error
-	
+
 	if err == nil {
 		// Already liked
 		return nil
 	}
-	
+
 	// Create like
 	like := models.RecipeLike{
 		RecipeID: recipeID,
 		UserID:   userID,
 	}
-	
+
 	if err := DB.Create(&like).Error; err != nil {
 		return err
 	}
-	
+
 	// Increment likes count
 	return DB.Model(&models.AIGeneratedRecipe{}).
 		Where("id = ?", recipeID).
@@ -147,7 +147,7 @@ func (r *AIRecipeRepository) UnlikeRecipe(recipeID uuid.UUID, userID uuid.UUID) 
 		Delete(&models.RecipeLike{}).Error; err != nil {
 		return err
 	}
-	
+
 	// Decrement likes count
 	return DB.Model(&models.AIGeneratedRecipe{}).
 		Where("id = ?", recipeID).
@@ -157,7 +157,7 @@ func (r *AIRecipeRepository) UnlikeRecipe(recipeID uuid.UUID, userID uuid.UUID) 
 // GetTopRecipes retrieves most popular recipes
 func (r *AIRecipeRepository) GetTopRecipes(sortBy string, limit int) ([]models.AIGeneratedRecipe, error) {
 	var recipes []models.AIGeneratedRecipe
-	
+
 	orderClause := "created_at DESC"
 	switch sortBy {
 	case "views":
@@ -167,15 +167,15 @@ func (r *AIRecipeRepository) GetTopRecipes(sortBy string, limit int) ([]models.A
 	case "downloads":
 		orderClause = "downloads_count DESC"
 	}
-	
+
 	query := DB.Where("is_public = ?", true).
 		Order(orderClause).
 		Limit(limit)
-	
+
 	if err := query.Find(&recipes).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return recipes, nil
 }
 
@@ -190,37 +190,37 @@ func buildIngredientsQuery(ingredients []string) string {
 		}
 	}
 	ingredientsJSON += "]"
-	
+
 	return ingredientsJSON
 }
 
 // CountUserRecipes counts total recipes for a user
 func (r *AIRecipeRepository) CountUserRecipes(userID uuid.UUID) (int64, error) {
 	var count int64
-	
+
 	if err := DB.Model(&models.AIGeneratedRecipe{}).
 		Where("user_id = ?", userID).
 		Count(&count).Error; err != nil {
 		return 0, err
 	}
-	
+
 	return count, nil
 }
 
 // SearchRecipes searches recipes by title or ingredients
 func (r *AIRecipeRepository) SearchRecipes(query string, limit int) ([]models.AIGeneratedRecipe, error) {
 	var recipes []models.AIGeneratedRecipe
-	
+
 	searchQuery := fmt.Sprintf("%%%s%%", query)
-	
-	if err := DB.Where("is_public = ? AND (title ILIKE ? OR description ILIKE ?)", 
+
+	if err := DB.Where("is_public = ? AND (title ILIKE ? OR description ILIKE ?)",
 		true, searchQuery, searchQuery).
 		Order("likes_count DESC, created_at DESC").
 		Limit(limit).
 		Find(&recipes).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return recipes, nil
 }
 
@@ -231,13 +231,13 @@ func ConvertRecipeDraftToAI(draft interface{}, sessionID uuid.UUID, userID *uuid
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Parse draft
 	var draftMap map[string]interface{}
 	if err := json.Unmarshal(draftJSON, &draftMap); err != nil {
 		return nil, err
 	}
-	
+
 	// Extract fields
 	title, _ := draftMap["title"].(string)
 	category, _ := draftMap["category"].(string)
@@ -250,7 +250,7 @@ func ConvertRecipeDraftToAI(draft interface{}, sessionID uuid.UUID, userID *uuid
 	protein, _ := draftMap["protein"].(float64)
 	fats, _ := draftMap["fats"].(float64)
 	carbs, _ := draftMap["carbs"].(float64)
-	
+
 	// Build ingredients JSONB
 	ingredientsJSON := models.JSONB{}
 	if ingredients, ok := draftMap["ingredients"].([]interface{}); ok {
@@ -260,7 +260,7 @@ func ConvertRecipeDraftToAI(draft interface{}, sessionID uuid.UUID, userID *uuid
 			}
 		}
 	}
-	
+
 	// Build nutrition JSONB
 	nutritionJSON := models.JSONB{
 		"calories": calories,
@@ -268,7 +268,7 @@ func ConvertRecipeDraftToAI(draft interface{}, sessionID uuid.UUID, userID *uuid
 		"fats":     fats,
 		"carbs":    carbs,
 	}
-	
+
 	// Build steps JSONB
 	stepsJSON := models.JSONB{}
 	if steps, ok := draftMap["steps"].([]interface{}); ok {
@@ -276,7 +276,7 @@ func ConvertRecipeDraftToAI(draft interface{}, sessionID uuid.UUID, userID *uuid
 			stepsJSON[fmt.Sprintf("step_%d", i+1)] = step
 		}
 	}
-	
+
 	return &models.AIGeneratedRecipe{
 		SessionID:   sessionID,
 		UserID:      userID,

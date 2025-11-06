@@ -27,7 +27,7 @@ type MentorClient struct {
 
 // MentorChatMessage структура сообщения в AI Mentor чате
 type MentorChatMessage struct {
-	Type      string                 `json:"type"`      // "user_message", "ai_response", "session_start", "error"
+	Type      string                 `json:"type"` // "user_message", "ai_response", "session_start", "error"
 	Content   string                 `json:"content"`
 	SessionID string                 `json:"sessionId"`
 	Timestamp time.Time              `json:"timestamp"`
@@ -284,9 +284,9 @@ func HandleMentorWebSocket(w http.ResponseWriter, r *http.Request) {
 func (mc *MentorClient) getWelcomeMessage(studentName string) string {
 	messages := map[string]string{
 		"pl": "Witaj, " + studentName + "! Jestem Twoim osobistym AI Mentor Kulinarny. W czym mogę Ci dzisiaj pomóc? Możesz zapytać o techniki gotowania, przepisy, składniki lub porady kulinarne.",
-		
+
 		"ua": "Вітаю, " + studentName + "! Я твій персональний AI Кулінарний Ментор. Чим можу тобі сьогодні допомогти? Можеш запитати про техніки приготування, рецепти, інгредієнти або кулінарні поради.",
-		
+
 		"en": "Welcome, " + studentName + "! I'm your personal AI Culinary Mentor. How can I help you today? You can ask about cooking techniques, recipes, ingredients, or culinary advice.",
 	}
 

@@ -12,44 +12,44 @@ import (
 
 // BusinessMetrics содержит AI-метрики для бизнеса
 type BusinessMetrics struct {
-	BusinessID string  `json:"businessId"`
-	
+	BusinessID string `json:"businessId"`
+
 	// Token Metrics
-	TokenSymbol      string  `json:"tokenSymbol"`
-	CurrentPrice     float64 `json:"currentPrice"`
-	InitialPrice     float64 `json:"initialPrice"`
-	PriceChange      float64 `json:"priceChange"`      // %
-	TotalSupply      int64   `json:"totalSupply"`
-	TokensSold       int64   `json:"tokensSold"`
-	TokensAvailable  int64   `json:"tokensAvailable"`
-	MarketCap        float64 `json:"marketCap"`        // TotalSupply × Price
-	
+	TokenSymbol     string  `json:"tokenSymbol"`
+	CurrentPrice    float64 `json:"currentPrice"`
+	InitialPrice    float64 `json:"initialPrice"`
+	PriceChange     float64 `json:"priceChange"` // %
+	TotalSupply     int64   `json:"totalSupply"`
+	TokensSold      int64   `json:"tokensSold"`
+	TokensAvailable int64   `json:"tokensAvailable"`
+	MarketCap       float64 `json:"marketCap"` // TotalSupply × Price
+
 	// Investment Metrics
-	TotalInvestors   int     `json:"totalInvestors"`
-	TotalInvested    float64 `json:"totalInvested"`
-	TotalReturned    float64 `json:"totalReturned"`
-	NetInflow        float64 `json:"netInflow"`        // TotalInvested - TotalReturned
-	AvgInvestment    float64 `json:"avgInvestment"`
-	
+	TotalInvestors int     `json:"totalInvestors"`
+	TotalInvested  float64 `json:"totalInvested"`
+	TotalReturned  float64 `json:"totalReturned"`
+	NetInflow      float64 `json:"netInflow"` // TotalInvested - TotalReturned
+	AvgInvestment  float64 `json:"avgInvestment"`
+
 	// Transaction Metrics
-	TotalBuyTx       int64   `json:"totalBuyTransactions"`
-	TotalSellTx      int64   `json:"totalSellTransactions"`
-	BuyVolume        float64 `json:"buyVolume"`
-	SellVolume       float64 `json:"sellVolume"`
-	NetVolume        float64 `json:"netVolume"`
-	
+	TotalBuyTx  int64   `json:"totalBuyTransactions"`
+	TotalSellTx int64   `json:"totalSellTransactions"`
+	BuyVolume   float64 `json:"buyVolume"`
+	SellVolume  float64 `json:"sellVolume"`
+	NetVolume   float64 `json:"netVolume"`
+
 	// Activity Metrics
-	DailyActiveUsers int     `json:"dailyActiveUsers"`  // За последние 24ч
-	WeeklyActiveUsers int    `json:"weeklyActiveUsers"` // За последние 7 дней
-	
+	DailyActiveUsers  int `json:"dailyActiveUsers"`  // За последние 24ч
+	WeeklyActiveUsers int `json:"weeklyActiveUsers"` // За последние 7 дней
+
 	// ROI Metrics
-	ROI              float64 `json:"roi"`               // (CurrentPrice - InitialPrice) / InitialPrice × 100
-	AvgInvestorROI   float64 `json:"avgInvestorROI"`    // Средний ROI всех инвесторов
-	
+	ROI            float64 `json:"roi"`            // (CurrentPrice - InitialPrice) / InitialPrice × 100
+	AvgInvestorROI float64 `json:"avgInvestorROI"` // Средний ROI всех инвесторов
+
 	// Growth Metrics
-	TokenVelocity    float64 `json:"tokenVelocity"`     // Transactions / Supply
-	InvestorGrowth   float64 `json:"investorGrowth"`    // % прироста за неделю
-	PriceVolatility  float64 `json:"priceVolatility"`   // Стандартное отклонение цены
+	TokenVelocity   float64 `json:"tokenVelocity"`   // Transactions / Supply
+	InvestorGrowth  float64 `json:"investorGrowth"`  // % прироста за неделю
+	PriceVolatility float64 `json:"priceVolatility"` // Стандартное отклонение цены
 }
 
 // 📊 GET /api/metrics/{businessId}
@@ -69,11 +69,11 @@ func GetBusinessMetrics(w http.ResponseWriter, r *http.Request) {
 	// 2️⃣ Подсчитываем количество инвесторов и общий инвестиционный объём
 	var investorCount int64
 	var totalInvested float64
-	
+
 	db.Model(&models.BusinessSubscription{}).
 		Where("business_id = ?", businessID).
 		Count(&investorCount)
-	
+
 	db.Model(&models.BusinessSubscription{}).
 		Where("business_id = ?", businessID).
 		Select("COALESCE(SUM(invested), 0)").
@@ -100,25 +100,25 @@ func GetBusinessMetrics(w http.ResponseWriter, r *http.Request) {
 	var buyTxCount, sellTxCount int64
 	var buyVolume, sellVolume float64
 	var tokensSold int64
-	
+
 	db.Model(&models.Transaction{}).
 		Where("business_id = ? AND tx_type = ?", businessID, "buy").
 		Count(&buyTxCount)
-	
+
 	db.Model(&models.Transaction{}).
 		Where("business_id = ? AND tx_type = ?", businessID, "sell").
 		Count(&sellTxCount)
-	
+
 	db.Model(&models.Transaction{}).
 		Where("business_id = ? AND tx_type = ?", businessID, "buy").
 		Select("COALESCE(SUM(amount), 0)").
 		Scan(&buyVolume)
-	
+
 	db.Model(&models.Transaction{}).
 		Where("business_id = ? AND tx_type = ?", businessID, "sell").
 		Select("COALESCE(SUM(amount), 0)").
 		Scan(&sellVolume)
-	
+
 	db.Model(&models.Transaction{}).
 		Where("business_id = ? AND tx_type = ?", businessID, "buy").
 		Select("COALESCE(SUM(tokens), 0)").
@@ -126,14 +126,14 @@ func GetBusinessMetrics(w http.ResponseWriter, r *http.Request) {
 
 	// Активность пользователей
 	var dailyActive, weeklyActive int64
-	
+
 	db.Raw(`
 		SELECT COUNT(DISTINCT from_user) 
 		FROM "Transaction" 
 		WHERE business_id = ? 
 			AND created_at >= NOW() - INTERVAL '24 hours'
 	`, businessID).Scan(&dailyActive)
-	
+
 	db.Raw(`
 		SELECT COUNT(DISTINCT from_user) 
 		FROM "Transaction" 

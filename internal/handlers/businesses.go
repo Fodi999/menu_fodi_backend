@@ -136,7 +136,7 @@ func UpdateBusiness(w http.ResponseWriter, r *http.Request) {
 
 	// Обновление полей (только если переданы)
 	updates := make(map[string]interface{})
-	
+
 	if input.Name != nil {
 		if *input.Name == "" {
 			http.Error(w, "Name cannot be empty", http.StatusBadRequest)

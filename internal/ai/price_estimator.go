@@ -8,11 +8,11 @@ import (
 
 // PriceEstimation оценка стоимости блюда
 type PriceEstimation struct {
-	EstimatedCost float64 `json:"estimatedCost"` // себестоимость
+	EstimatedCost  float64 `json:"estimatedCost"`  // себестоимость
 	SuggestedPrice float64 `json:"suggestedPrice"` // рекомендуемая цена продажи
-	Margin        float64 `json:"margin"`         // маржа (%)
-	PriceCategory string  `json:"priceCategory"`  // budget/mid/premium
-	Explanation   string  `json:"explanation"`    // объяснение
+	Margin         float64 `json:"margin"`         // маржа (%)
+	PriceCategory  string  `json:"priceCategory"`  // budget/mid/premium
+	Explanation    string  `json:"explanation"`    // объяснение
 }
 
 // PriceEstimator AI-оценщик стоимости блюд

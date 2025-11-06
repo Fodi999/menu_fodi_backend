@@ -149,10 +149,10 @@ func PublishRecipeHandler(w http.ResponseWriter, r *http.Request) {
 	recipeID := vars["id"]
 
 	repo := database.NewAIRecipeRepository()
-	
+
 	// Generate share URL
 	shareURL := "recipe-" + recipeID[:8]
-	
+
 	if err := repo.PublishRecipe(recipeID, shareURL); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to publish recipe")
 		return
@@ -303,8 +303,8 @@ func UpdateRecipeImageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"status":  "success",
-		"message": "Recipe image updated",
+		"status":   "success",
+		"message":  "Recipe image updated",
 		"imageUrl": req.ImageURL,
 	})
 }

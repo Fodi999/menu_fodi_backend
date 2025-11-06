@@ -200,13 +200,13 @@ func GetTransactionAnalytics(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем транзакции с группировкой по дате
 	var dailyStats []struct {
-		Date        string  `json:"date"`
-		BuyCount    int64   `json:"buyCount"`
-		SellCount   int64   `json:"sellCount"`
-		BuyAmount   float64 `json:"buyAmount"`
-		SellAmount  float64 `json:"sellAmount"`
-		BuyTokens   int64   `json:"buyTokens"`
-		SellTokens  int64   `json:"sellTokens"`
+		Date       string  `json:"date"`
+		BuyCount   int64   `json:"buyCount"`
+		SellCount  int64   `json:"sellCount"`
+		BuyAmount  float64 `json:"buyAmount"`
+		SellAmount float64 `json:"sellAmount"`
+		BuyTokens  int64   `json:"buyTokens"`
+		SellTokens int64   `json:"sellTokens"`
 	}
 
 	// Группируем по дате за последние 30 дней

@@ -38,7 +38,7 @@ func (r *ChefMentorRepository) CreateSession(userID *uuid.UUID, language string)
 // GetSession retrieves a session by ID
 func (r *ChefMentorRepository) GetSession(sessionID string) (*models.ChefMentorSession, error) {
 	var session models.ChefMentorSession
-	
+
 	if err := DB.Where("id = ?", sessionID).First(&session).Error; err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (r *ChefMentorRepository) SaveMessage(sessionID uuid.UUID, role string, con
 // GetMessages retrieves all messages for a session
 func (r *ChefMentorRepository) GetMessages(sessionID string) ([]models.ChefMentorMessage, error) {
 	var messages []models.ChefMentorMessage
-	
+
 	if err := DB.Where("session_id = ?", sessionID).
 		Order("created_at ASC").
 		Find(&messages).Error; err != nil {
@@ -150,7 +150,7 @@ func (r *ChefMentorRepository) DeleteOldSessions(olderThan time.Duration) (int64
 // GetUserSessions retrieves all sessions for a user
 func (r *ChefMentorRepository) GetUserSessions(userID uuid.UUID, limit int) ([]models.ChefMentorSession, error) {
 	var sessions []models.ChefMentorSession
-	
+
 	query := DB.Where("user_id = ?", userID).
 		Order("last_activity DESC")
 
@@ -168,7 +168,7 @@ func (r *ChefMentorRepository) GetUserSessions(userID uuid.UUID, limit int) ([]m
 // CountMessages returns the number of messages in a session
 func (r *ChefMentorRepository) CountMessages(sessionID string) (int64, error) {
 	var count int64
-	
+
 	if err := DB.Model(&models.ChefMentorMessage{}).
 		Where("session_id = ?", sessionID).
 		Count(&count).Error; err != nil {

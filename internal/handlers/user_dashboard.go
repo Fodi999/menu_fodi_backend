@@ -65,9 +65,9 @@ func UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
 	userID := vars["userId"]
 
 	var input struct {
-		Name      string   `json:"name"`
-		AvatarURL string   `json:"avatarUrl"`
-		Language  string   `json:"language"`
+		Name      string `json:"name"`
+		AvatarURL string `json:"avatarUrl"`
+		Language  string `json:"language"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -396,14 +396,14 @@ func GetUserDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 		marketList = append(marketList, map[string]interface{}{
-			"recipeId":    recipe.ID,
-			"title":       recipe.Title,
-			"price":       recipe.Price,
-			"chef":        chefName,
-			"rating":      recipe.Rating,
-			"purchases":   recipe.Purchases,
-			"imageUrl":    recipe.ImageURL,
-			"category":    recipe.Category,
+			"recipeId":  recipe.ID,
+			"title":     recipe.Title,
+			"price":     recipe.Price,
+			"chef":      chefName,
+			"rating":    recipe.Rating,
+			"purchases": recipe.Purchases,
+			"imageUrl":  recipe.ImageURL,
+			"category":  recipe.Category,
 		})
 	}
 
@@ -504,10 +504,10 @@ func GetUserDashboard(w http.ResponseWriter, r *http.Request) {
 			"walletBalance":    profile.WalletBalance,
 			"totalRecipes":     0, // добавим позже
 		},
-		"courseProgress":      courseProgress,
-		"recentActivity":      recentActivity,
-		"recommendations":     recommendationsList,
-		"recentTransactions":  recentTransactions,
+		"courseProgress":     courseProgress,
+		"recentActivity":     recentActivity,
+		"recommendations":    recommendationsList,
+		"recentTransactions": recentTransactions,
 		// 🍱 Kitchen Simulation
 		"activeRecipes": activeRecipesList,
 		// 🧠 AI Mentor Feed

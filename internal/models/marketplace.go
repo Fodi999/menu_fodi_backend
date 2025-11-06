@@ -6,14 +6,14 @@ import (
 
 // RecipePurchase покупка рецепта на маркетплейсе
 type RecipePurchase struct {
-	ID        string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	RecipeID  string    `gorm:"type:uuid;not null" json:"recipeId"`
-	BuyerID   string    `gorm:"type:uuid;not null" json:"buyerId"`
-	SellerID  string    `gorm:"type:uuid;not null" json:"sellerId"`
-	Price     float64   `gorm:"type:numeric(10,2);not null" json:"price"`
-	Commission float64  `gorm:"type:numeric(10,2);default:0" json:"commission"` // 10% комиссия платформы
-	NetAmount  float64  `gorm:"type:numeric(10,2);not null" json:"netAmount"`   // seller получает
-	CreatedAt time.Time `gorm:"default:now()" json:"createdAt"`
+	ID         string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	RecipeID   string    `gorm:"type:uuid;not null" json:"recipeId"`
+	BuyerID    string    `gorm:"type:uuid;not null" json:"buyerId"`
+	SellerID   string    `gorm:"type:uuid;not null" json:"sellerId"`
+	Price      float64   `gorm:"type:numeric(10,2);not null" json:"price"`
+	Commission float64   `gorm:"type:numeric(10,2);default:0" json:"commission"` // 10% комиссия платформы
+	NetAmount  float64   `gorm:"type:numeric(10,2);not null" json:"netAmount"`   // seller получает
+	CreatedAt  time.Time `gorm:"default:now()" json:"createdAt"`
 
 	// Связи
 	Recipe PersonalRecipe `gorm:"foreignKey:RecipeID;references:ID" json:"recipe,omitempty"`
@@ -28,14 +28,14 @@ func (RecipePurchase) TableName() string {
 
 // RecipeReview отзыв покупателя о рецепте
 type RecipeReview struct {
-	ID         string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	RecipeID   string    `gorm:"type:uuid;not null" json:"recipeId"`
-	UserID     string    `gorm:"type:uuid;not null" json:"userId"`
-	Rating     float64   `gorm:"type:numeric(3,1);check:rating >= 0 AND rating <= 10" json:"rating"`
-	Comment    string    `gorm:"type:text" json:"comment"`
-	WouldBuyAgain bool   `gorm:"default:true" json:"wouldBuyAgain"`
-	CreatedAt  time.Time `gorm:"default:now()" json:"createdAt"`
-	UpdatedAt  time.Time `gorm:"default:now()" json:"updatedAt"`
+	ID            string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	RecipeID      string    `gorm:"type:uuid;not null" json:"recipeId"`
+	UserID        string    `gorm:"type:uuid;not null" json:"userId"`
+	Rating        float64   `gorm:"type:numeric(3,1);check:rating >= 0 AND rating <= 10" json:"rating"`
+	Comment       string    `gorm:"type:text" json:"comment"`
+	WouldBuyAgain bool      `gorm:"default:true" json:"wouldBuyAgain"`
+	CreatedAt     time.Time `gorm:"default:now()" json:"createdAt"`
+	UpdatedAt     time.Time `gorm:"default:now()" json:"updatedAt"`
 
 	// Связи
 	Recipe PersonalRecipe `gorm:"foreignKey:RecipeID;references:ID" json:"recipe,omitempty"`
@@ -59,18 +59,18 @@ type MarketStats struct {
 
 // ChefLeaderboardEntry представляет запись в глобальном рейтинге поваров
 type ChefLeaderboardEntry struct {
-	Rank           int     `json:"rank"`
-	UserID         string  `json:"userId"`
-	Name           string  `json:"name"`
-	AvatarURL      string  `json:"avatarUrl"`
-	Level          int     `json:"level"`
-	TotalXP        int     `json:"totalXp"`
-	Language       string  `json:"language"`
-	TotalSales     int     `json:"totalSales"`
-	TotalRevenue   float64 `json:"totalRevenue"`
-	AverageRating  float64 `json:"averageRating"`
-	RecipeCount    int     `json:"recipeCount"`
-	AchievementCount int   `json:"achievementCount"`
+	Rank             int     `json:"rank"`
+	UserID           string  `json:"userId"`
+	Name             string  `json:"name"`
+	AvatarURL        string  `json:"avatarUrl"`
+	Level            int     `json:"level"`
+	TotalXP          int     `json:"totalXp"`
+	Language         string  `json:"language"`
+	TotalSales       int     `json:"totalSales"`
+	TotalRevenue     float64 `json:"totalRevenue"`
+	AverageRating    float64 `json:"averageRating"`
+	RecipeCount      int     `json:"recipeCount"`
+	AchievementCount int     `json:"achievementCount"`
 }
 
 // LeaderboardResponse формат ответа API лидерборда

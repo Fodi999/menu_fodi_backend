@@ -29,10 +29,10 @@ type MentorChatRequest struct {
 
 // EstimatePriceRequest запрос на оценку цены
 type EstimatePriceRequest struct {
-	RecipeName   string `json:"recipeName" binding:"required"`
-	Ingredients  string `json:"ingredients" binding:"required"`
-	PortionSize  int    `json:"portionSize"`
-	Language     string `json:"language"`
+	RecipeName  string `json:"recipeName" binding:"required"`
+	Ingredients string `json:"ingredients" binding:"required"`
+	PortionSize int    `json:"portionSize"`
+	Language    string `json:"language"`
 }
 
 // AnalyzeStepRequest запрос на анализ шага рецепта
@@ -160,7 +160,7 @@ func AnalyzeStepHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mentor := ai.NewMentorChat(req.Language)
-	
+
 	// Формируем специфичный запрос для анализа шага
 	question := ""
 	switch req.Language {
@@ -243,12 +243,12 @@ func ReviewRecipeHandler(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"status": "ok",
 		"data": map[string]interface{}{
-			"recipeId":      recipe.ID,
-			"rating":        analysis.Rating,
-			"chefComment":   analysis.ChefComment,
-			"tasteBalance":  analysis.TasteBalance,
-			"difficulty":    analysis.Difficulty,
-			"improvements":  analysis.Improvements,
+			"recipeId":       recipe.ID,
+			"rating":         analysis.Rating,
+			"chefComment":    analysis.ChefComment,
+			"tasteBalance":   analysis.TasteBalance,
+			"difficulty":     analysis.Difficulty,
+			"improvements":   analysis.Improvements,
 			"estimatedPrice": analysis.EstimatedPrice,
 		},
 	})
@@ -364,7 +364,7 @@ Respond ONLY in JSON format without additional text.`,
 }
 
 // getFallbackCritique возвращает базовую критику при недоступности AI
-func getFallbackCritique(lang, recipeName string) map[string]interface{}{
+func getFallbackCritique(lang, recipeName string) map[string]interface{} {
 	return map[string]interface{}{
 		"overallRating": 7.5,
 		"taste":         7.5,

@@ -20,7 +20,7 @@ func main() {
 	}
 
 	log.Println("🔧 Dropping foreign key constraint...")
-	
+
 	// Drop foreign key constraint
 	if err := db.Exec(`ALTER TABLE "Business" DROP CONSTRAINT IF EXISTS "fk_Business_owner"`).Error; err != nil {
 		log.Printf("⚠️  Warning dropping FK: %v", err)

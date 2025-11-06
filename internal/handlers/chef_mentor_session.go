@@ -14,6 +14,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 // Repository instance
@@ -122,7 +123,7 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 	// 🧠 Smart context detection: handle greetings & commands BEFORE AI
 	contextResponse := detectUserIntent(req.Message, currentRecipe, dbSession.Language)
 	var assistantMessage string
-	
+
 	if contextResponse != "" {
 		// Use pre-defined response for greetings/commands
 		assistantMessage = contextResponse
@@ -133,13 +134,13 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 			utils.RespondWithError(w, http.StatusInternalServerError, "AI service error")
 			return
 		}
-		
+
 		// Check if response has choices
 		if len(response.Choices) == 0 {
 			utils.RespondWithError(w, http.StatusInternalServerError, "AI returned empty response")
 			return
 		}
-		
+
 		assistantMessage = response.Choices[0].Message.Content
 	}
 
@@ -190,7 +191,7 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 	// Mark complete if done AND auto-save recipe to AI Culinary OS
 	if isComplete {
 		chefMentorRepo.MarkComplete(sessionIDStr)
-		
+
 		// 🚀 AUTO-SAVE TO AI CULINARY OS
 		savedRecipeID, err := saveCompletedRecipeToDatabase(dbSession.ID, dbSession.UserID, currentRecipe, dbSession.Language)
 		if err == nil && savedRecipeID != "" {
@@ -271,6 +272,58 @@ func GetSessionHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetSessionByIDHandler retrieves session history with all messages (path-based)
+// GET /api/ai/chef-mentor/sessions/{sessionId}
+func GetSessionByIDHandler(w http.ResponseWriter, r *http.Request) {
+	// Get sessionId from URL path using gorilla/mux
+	vars := mux.Vars(r)
+	sessionID := vars["sessionId"]
+
+	if sessionID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Session ID is required")
+		return
+	}
+
+	// Get session from database
+	dbSession, err := chefMentorRepo.GetSession(sessionID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Session not found")
+		return
+	}
+
+	// Get all messages for this session
+	messages, err := chefMentorRepo.GetMessages(sessionID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve messages")
+		return
+	}
+
+	// Parse recipe
+	currentRecipe := &RecipeDraft{}
+	if len(dbSession.Recipe) > 0 {
+		recipeJSON, _ := json.Marshal(dbSession.Recipe)
+		json.Unmarshal(recipeJSON, currentRecipe)
+	}
+
+	// Build response
+	response := map[string]interface{}{
+		"id":           dbSession.ID,
+		"userId":       dbSession.UserID,
+		"language":     dbSession.Language,
+		"recipe":       currentRecipe,
+		"context":      dbSession.Context,
+		"isComplete":   dbSession.IsComplete,
+		"lastActivity": dbSession.LastActivity,
+		"createdAt":    dbSession.CreatedAt,
+		"messages":     messages,
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"status": "success",
+		"data":   response,
+	})
+}
+
 // DeleteSessionHandler deletes session from database
 // DELETE /api/ai/chef-mentor/session?id=xxx
 func DeleteSessionHandler(w http.ResponseWriter, r *http.Request) {
@@ -303,13 +356,13 @@ func smartExtractRecipeUpdates(aiResponse string, currentRecipe *RecipeDraft, us
 		Message string       `json:"message"`
 		Recipe  *RecipeDraft `json:"recipe"`
 	}
-	
+
 	// Try to find and parse JSON block
 	jsonStart := strings.Index(aiResponse, "{")
 	jsonEnd := strings.LastIndex(aiResponse, "}")
-	
+
 	if jsonStart >= 0 && jsonEnd > jsonStart {
-		jsonStr := aiResponse[jsonStart:jsonEnd+1]
+		jsonStr := aiResponse[jsonStart : jsonEnd+1]
 		if err := json.Unmarshal([]byte(jsonStr), &aiRecipeResponse); err == nil && aiRecipeResponse.Recipe != nil {
 			// ✅ Successfully parsed JSON recipe from AI
 			return aiRecipeResponse.Recipe
@@ -405,7 +458,7 @@ func parseIngredients(message string, language string) []RecipeIngredient {
 			name := match[1]
 			var amount float64
 			fmt.Sscanf(match[2], "%f", &amount)
-			
+
 			unit := ""
 			if len(match) > 3 && match[3] != "" {
 				unit = match[3]
@@ -416,7 +469,7 @@ func parseIngredients(message string, language string) []RecipeIngredient {
 				// Auto-calculate gross and net
 				gross := amount
 				net := amount * 0.95 // 5% standard cooking loss
-				
+
 				// Adjust loss factor based on ingredient type
 				lossFactor := getCookingLossFactor(name, unit)
 				if lossFactor > 0 {
@@ -440,7 +493,7 @@ func parseIngredients(message string, language string) []RecipeIngredient {
 // getCookingLossFactor returns cooking loss coefficient for ingredient
 func getCookingLossFactor(ingredient string, unit string) float64 {
 	ingredient = strings.ToLower(ingredient)
-	
+
 	// Different ingredients have different loss factors
 	lossFactors := map[string]float64{
 		// Vegetables (high water loss)
@@ -449,31 +502,31 @@ func getCookingLossFactor(ingredient string, unit string) float64 {
 		"капуста":  0.75, // cabbage
 		"картопля": 0.85, // potato
 		"огірок":   0.98, // cucumber (minimal loss, often raw)
-		
+
 		// Proteins (medium loss)
-		"м'ясо":  0.70, // meat
-		"курка":  0.75, // chicken
-		"риба":   0.80, // fish
-		"вугор":  0.85, // eel
+		"м'ясо":    0.70, // meat
+		"курка":    0.75, // chicken
+		"риба":     0.80, // fish
+		"вугор":    0.85, // eel
 		"креветки": 0.70, // shrimp
-		
+
 		// Grains (absorb water, increase weight)
-		"рис":    1.20, // rice (absorbs water)
+		"рис":      1.20, // rice (absorbs water)
 		"макарони": 1.30, // pasta
-		"греча":  1.25, // buckwheat
-		
+		"греча":    1.25, // buckwheat
+
 		// No cooking (100% yield)
-		"норі":     1.00, // nori
-		"авокадо":  0.95, // avocado (just peeling loss)
-		"сир":      0.98, // cheese
-		"масло":    1.00, // oil
-		"соус":     1.00, // sauce
+		"норі":    1.00, // nori
+		"авокадо": 0.95, // avocado (just peeling loss)
+		"сир":     0.98, // cheese
+		"масло":   1.00, // oil
+		"соус":    1.00, // sauce
 	}
-	
+
 	if factor, exists := lossFactors[ingredient]; exists {
 		return factor
 	}
-	
+
 	// Default: 5% loss for unknown ingredients
 	return 0.95
 }
@@ -494,7 +547,7 @@ func calculateRecipeMetrics(recipe *RecipeDraft) {
 	for _, ing := range recipe.Ingredients {
 		// Get nutrition data per 100g
 		nutrition := getNutritionData(ing.Name)
-		
+
 		// Calculate based on net weight (in grams)
 		netGrams := ing.Net
 		if ing.Unit == "кг" || ing.Unit == "kg" {
@@ -511,10 +564,10 @@ func calculateRecipeMetrics(recipe *RecipeDraft) {
 		totalProtein += nutrition.Protein * multiplier
 		totalFats += nutrition.Fats * multiplier
 		totalCarbs += nutrition.Carbs * multiplier
-		
+
 		// Calculate cost
 		totalCost += getCostPerGram(ing.Name) * netGrams
-		
+
 		// Sum yield
 		totalYield += netGrams
 	}
@@ -541,38 +594,38 @@ type NutritionData struct {
 // getNutritionData returns nutrition facts per 100g for ingredient
 func getNutritionData(ingredient string) NutritionData {
 	ingredient = strings.ToLower(ingredient)
-	
+
 	nutritionDB := map[string]NutritionData{
 		// Grains
 		"рис":      {Calories: 130, Protein: 2.7, Fats: 0.3, Carbs: 28.0},
 		"макарони": {Calories: 157, Protein: 5.8, Fats: 0.9, Carbs: 30.9},
 		"греча":    {Calories: 123, Protein: 4.5, Fats: 1.6, Carbs: 25.0},
-		
+
 		// Proteins
 		"вугор":    {Calories: 184, Protein: 18.4, Fats: 11.8, Carbs: 0.0},
 		"лосось":   {Calories: 208, Protein: 20.0, Fats: 13.0, Carbs: 0.0},
 		"курка":    {Calories: 165, Protein: 31.0, Fats: 3.6, Carbs: 0.0},
 		"свинина":  {Calories: 242, Protein: 16.0, Fats: 21.0, Carbs: 0.0},
 		"креветки": {Calories: 99, Protein: 24.0, Fats: 0.3, Carbs: 0.2},
-		
+
 		// Vegetables
 		"огірок":   {Calories: 15, Protein: 0.8, Fats: 0.1, Carbs: 3.6},
 		"авокадо":  {Calories: 160, Protein: 2.0, Fats: 14.7, Carbs: 8.5},
 		"морква":   {Calories: 41, Protein: 0.9, Fats: 0.2, Carbs: 9.6},
 		"цибуля":   {Calories: 40, Protein: 1.1, Fats: 0.1, Carbs: 9.3},
 		"картопля": {Calories: 77, Protein: 2.0, Fats: 0.1, Carbs: 17.0},
-		
+
 		// Seaweed & Others
 		"норі":  {Calories: 35, Protein: 5.8, Fats: 0.3, Carbs: 5.1},
 		"сир":   {Calories: 356, Protein: 24.0, Fats: 29.0, Carbs: 0.5},
 		"масло": {Calories: 884, Protein: 0.0, Fats: 100.0, Carbs: 0.0},
 		"соус":  {Calories: 50, Protein: 1.0, Fats: 2.0, Carbs: 7.0},
 	}
-	
+
 	if data, exists := nutritionDB[ingredient]; exists {
 		return data
 	}
-	
+
 	// Default: medium calorie ingredient
 	return NutritionData{Calories: 100, Protein: 5.0, Fats: 3.0, Carbs: 15.0}
 }
@@ -580,7 +633,7 @@ func getNutritionData(ingredient string) NutritionData {
 // getCostPerGram returns cost in UAH per gram for ingredient
 func getCostPerGram(ingredient string) float64 {
 	ingredient = strings.ToLower(ingredient)
-	
+
 	// Prices in UAH per 100g (approximate Ukrainian market prices)
 	pricesPerKg := map[string]float64{
 		"рис":      0.040, // 40 грн/кг
@@ -597,11 +650,11 @@ func getCostPerGram(ingredient string) float64 {
 		"морква":   0.025, // 25 грн/кг
 		"цибуля":   0.020, // 20 грн/кг
 	}
-	
+
 	if price, exists := pricesPerKg[ingredient]; exists {
 		return price / 1000.0 // convert to per gram
 	}
-	
+
 	// Default: 100 грн/кг = 0.1 грн/г
 	return 0.0001
 }
@@ -630,24 +683,24 @@ func generateNutritionCommentary(recipe *RecipeDraft, language string) string {
 // saveCompletedRecipeToDatabase saves completed recipe to AI Culinary OS
 func saveCompletedRecipeToDatabase(sessionID uuid.UUID, userID *uuid.UUID, recipe *RecipeDraft, language string) (string, error) {
 	aiRecipeRepo := database.NewAIRecipeRepository()
-	
+
 	// Convert RecipeDraft to AIGeneratedRecipe
 	aiRecipe, err := database.ConvertRecipeDraftToAI(recipe, sessionID, userID, language)
 	if err != nil {
 		return "", fmt.Errorf("failed to convert recipe: %w", err)
 	}
-	
+
 	// Generate NEW UUID for recipe (before saving)
 	aiRecipe.ID = uuid.New()
-	
+
 	// Generate unique share URL based on new ID
 	aiRecipe.ShareURL = fmt.Sprintf("recipe-%s", aiRecipe.ID.String()[:8])
-	
+
 	// Save to database
 	if err := aiRecipeRepo.SaveRecipe(aiRecipe); err != nil {
 		return "", fmt.Errorf("failed to save recipe: %w", err)
 	}
-	
+
 	return aiRecipe.ID.String(), nil
 }
 
@@ -657,25 +710,25 @@ func parseIsCompleteFromAI(aiResponse string) bool {
 	var response struct {
 		IsComplete bool `json:"isComplete"`
 	}
-	
+
 	// AI might return JSON directly or wrapped in text
 	// Try to find JSON block
 	jsonStart := strings.Index(aiResponse, "{")
 	jsonEnd := strings.LastIndex(aiResponse, "}")
-	
+
 	if jsonStart >= 0 && jsonEnd > jsonStart {
-		jsonStr := aiResponse[jsonStart:jsonEnd+1]
+		jsonStr := aiResponse[jsonStart : jsonEnd+1]
 		if err := json.Unmarshal([]byte(jsonStr), &response); err == nil {
 			return response.IsComplete
 		}
 	}
-	
+
 	// Fallback: look for "isComplete": true in text
-	if strings.Contains(aiResponse, `"isComplete":true`) || 
-	   strings.Contains(aiResponse, `"isComplete": true`) {
+	if strings.Contains(aiResponse, `"isComplete":true`) ||
+		strings.Contains(aiResponse, `"isComplete": true`) {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -684,34 +737,34 @@ func isRecipeComplete(recipe *RecipeDraft) bool {
 	if recipe == nil {
 		return false
 	}
-	
+
 	// Recipe is complete if it has:
 	// 1. Title (and not default title)
 	// 2. Category
-	// 3. Difficulty  
+	// 3. Difficulty
 	// 4. At least one ingredient
-	hasTitle := recipe.Title != "" && 
-		recipe.Title != "Новий рецепт" && 
+	hasTitle := recipe.Title != "" &&
+		recipe.Title != "Новий рецепт" &&
 		recipe.Title != "New Recipe" &&
 		!strings.Contains(strings.ToLower(recipe.Title), "хочу") // "Хочу приготувати..." is not a real title
-	
+
 	hasCategory := recipe.Category != ""
 	hasDifficulty := recipe.Difficulty != ""
 	hasIngredients := len(recipe.Ingredients) > 0
-	
+
 	return hasTitle && hasCategory && hasDifficulty && hasIngredients
 }
 
 // detectUserIntent handles greetings, commands, and context before AI processing
 func detectUserIntent(message string, recipe *RecipeDraft, language string) string {
 	lower := strings.ToLower(strings.TrimSpace(message))
-	
+
 	// 1. Greetings (don't treat as recipe name!)
 	greetings := []string{
 		"привіт", "привет", "вітаю", "hello", "hi", "hey", "здравствуй", "добрий день",
 		"доброго дня", "good morning", "good afternoon", "good evening", "hola", "cześć",
 	}
-	
+
 	for _, greeting := range greetings {
 		if lower == greeting || strings.HasPrefix(lower, greeting+" ") || strings.HasPrefix(lower, greeting+"!") {
 			responses := map[string]string{
@@ -726,7 +779,7 @@ func detectUserIntent(message string, recipe *RecipeDraft, language string) stri
 			return responses["ua"]
 		}
 	}
-	
+
 	// 2. Help commands
 	helpKeywords := []string{"допомога", "help", "помощь", "допоможи", "как", "що можеш", "what can"}
 	for _, keyword := range helpKeywords {
@@ -742,7 +795,7 @@ func detectUserIntent(message string, recipe *RecipeDraft, language string) stri
 			return responses["ua"]
 		}
 	}
-	
+
 	// 3. Thank you / Goodbye
 	thanksKeywords := []string{"дякую", "спасибо", "thanks", "thank you", "dziękuję"}
 	for _, keyword := range thanksKeywords {
@@ -758,7 +811,7 @@ func detectUserIntent(message string, recipe *RecipeDraft, language string) stri
 			return responses["ua"]
 		}
 	}
-	
+
 	goodbyeKeywords := []string{"бувай", "пока", "bye", "goodbye", "до побачення", "до свидания"}
 	for _, keyword := range goodbyeKeywords {
 		if strings.Contains(lower, keyword) {
@@ -773,7 +826,7 @@ func detectUserIntent(message string, recipe *RecipeDraft, language string) stri
 			return responses["ua"]
 		}
 	}
-	
+
 	// 4. Single letter or very short non-recipe input
 	if len(lower) <= 2 && !unicode.IsDigit(rune(lower[0])) {
 		responses := map[string]string{
@@ -786,7 +839,7 @@ func detectUserIntent(message string, recipe *RecipeDraft, language string) stri
 		}
 		return responses["ua"]
 	}
-	
+
 	// No special context detected - proceed with AI recipe logic
 	return ""
 }
@@ -797,15 +850,15 @@ func isLikelyIngredient(word string, language string) bool {
 	excludeUA := []string{"має", "треба", "потрібно", "скільки", "додати", "взяти", "використати"}
 	excludeEN := []string{"need", "add", "use", "take", "how", "much", "many"}
 	excludeRU := []string{"нужно", "надо", "добавить", "взять", "сколько"}
-	
+
 	word = strings.ToLower(word)
-	
+
 	for _, excluded := range append(append(excludeUA, excludeEN...), excludeRU...) {
 		if word == excluded {
 			return false
 		}
 	}
-	
+
 	// Must be at least 3 characters
 	return len(word) >= 3
 }
@@ -880,11 +933,11 @@ func generateQuickReplies(recipe *RecipeDraft, language string) []string {
 
 // Helper: case-insensitive contains
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		(s == substr || 
-		 s[:len(substr)] == substr ||
-		 len(s) > len(substr) && s[len(s)-len(substr):] == substr ||
-		 findInString(s, substr))
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			s[:len(substr)] == substr ||
+			len(s) > len(substr) && s[len(s)-len(substr):] == substr ||
+			findInString(s, substr))
 }
 
 func findInString(s, substr string) bool {

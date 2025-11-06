@@ -20,7 +20,7 @@ type GroqClient struct {
 
 // GroqMessage сообщение для Groq API
 type GroqMessage struct {
-	Role    string `json:"role"`    // system, user, assistant
+	Role    string `json:"role"` // system, user, assistant
 	Content string `json:"content"`
 }
 

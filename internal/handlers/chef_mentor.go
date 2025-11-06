@@ -12,10 +12,10 @@ import (
 
 // ChefMentorRequest represents a user message in the conversation
 type ChefMentorRequest struct {
-	Message         string                 `json:"message"`          // User's message
-	Language        string                 `json:"language"`         // ui, en, ru, pl
-	ConversationHistory []ConversationMessage `json:"history,omitempty"` // Previous messages
-	CurrentRecipe   *RecipeDraft           `json:"currentRecipe,omitempty"` // Draft being built
+	Message             string                `json:"message"`                 // User's message
+	Language            string                `json:"language"`                // ui, en, ru, pl
+	ConversationHistory []ConversationMessage `json:"history,omitempty"`       // Previous messages
+	CurrentRecipe       *RecipeDraft          `json:"currentRecipe,omitempty"` // Draft being built
 }
 
 // ConversationMessage represents one message in the chat
@@ -48,11 +48,11 @@ type RecipeDraft struct {
 
 // ChefMentorResponse represents the assistant's response
 type ChefMentorResponse struct {
-	Message       string       `json:"message"`       // Assistant's response
-	Recipe        *RecipeDraft `json:"recipe"`        // Updated recipe draft
-	NextQuestion  string       `json:"nextQuestion"`  // Suggested next question
-	IsComplete    bool         `json:"isComplete"`    // Recipe is ready
-	SuggestedActions []string  `json:"suggestedActions,omitempty"` // Quick actions
+	Message          string       `json:"message"`                    // Assistant's response
+	Recipe           *RecipeDraft `json:"recipe"`                     // Updated recipe draft
+	NextQuestion     string       `json:"nextQuestion"`               // Suggested next question
+	IsComplete       bool         `json:"isComplete"`                 // Recipe is ready
+	SuggestedActions []string     `json:"suggestedActions,omitempty"` // Quick actions
 }
 
 // ChefMentorHandler is the interactive AI chef assistant
@@ -76,13 +76,13 @@ func ChefMentorHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Build system prompt based on language
 	systemPrompt := buildMentorSystemPrompt(req.Language)
-	
+
 	// Build context with recipe state
 	contextPrompt := buildRecipeContext(req.CurrentRecipe, req.Language)
 
 	// Create conversation for AI
 	client := ai.NewGroqClient()
-	
+
 	messages := []ai.GroqMessage{
 		{
 			Role:    "system",
@@ -466,7 +466,7 @@ func buildRecipeContext(recipe *RecipeDraft, language string) string {
 
 	var context strings.Builder
 	context.WriteString("ПОТОЧНИЙ СТАН РЕЦЕПТУ:\n")
-	
+
 	if recipe.Title != "" {
 		context.WriteString(fmt.Sprintf("- Назва: %s\n", recipe.Title))
 	}
@@ -501,12 +501,12 @@ func extractRecipeUpdates(aiResponse string, currentRecipe *RecipeDraft, userMes
 
 	// Simple extraction logic (can be improved with NLP)
 	lowerMsg := strings.ToLower(userMessage)
-	
+
 	// Detect title from longer descriptions
 	if currentRecipe.Title == "" && len(userMessage) > 10 {
 		// If message looks like a dish description, extract potential title
 		if strings.Contains(lowerMsg, "рол") || strings.Contains(lowerMsg, "роли") ||
-		   strings.Contains(lowerMsg, "суші") || strings.Contains(lowerMsg, "хочу зробити") {
+			strings.Contains(lowerMsg, "суші") || strings.Contains(lowerMsg, "хочу зробити") {
 			currentRecipe.Title = userMessage
 		}
 	}
@@ -532,14 +532,14 @@ func extractRecipeUpdates(aiResponse string, currentRecipe *RecipeDraft, userMes
 
 	// Category detection
 	categories := map[string]string{
-		"суші": "sushi",
-		"sushi": "sushi",
-		"рол": "sushi",
-		"рамен": "ramen",
+		"суші":   "sushi",
+		"sushi":  "sushi",
+		"рол":    "sushi",
+		"рамен":  "ramen",
 		"десерт": "desserts",
-		"салат": "salad",
+		"салат":  "salad",
 	}
-	
+
 	for keyword, category := range categories {
 		if strings.Contains(lowerMsg, keyword) {
 			currentRecipe.Category = category
@@ -607,22 +607,22 @@ func determineNextQuestion(recipe *RecipeDraft, language string) string {
 // getSuggestedActions provides quick action buttons
 func getSuggestedActions(recipe *RecipeDraft, language string) []string {
 	actions := []string{}
-	
+
 	if recipe.Title == "" {
 		return []string{"Розпочати новий рецепт", "Показати приклад"}
 	}
-	
+
 	if len(recipe.Ingredients) == 0 {
 		actions = append(actions, "Додати інгредієнт")
 	}
-	
+
 	if len(recipe.Steps) == 0 {
 		actions = append(actions, "Додати крок приготування")
 	}
-	
+
 	if isRecipeComplete(recipe) {
 		actions = append(actions, "Завершити рецепт", "Розрахувати калорії", "Оцінити вартість")
 	}
-	
+
 	return actions
 }

@@ -16,15 +16,15 @@ type RecipeGenerationRequest struct {
 
 // GeneratedRecipe represents the AI-generated recipe structure
 type GeneratedRecipe struct {
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	Category    string              `json:"category"`
-	Difficulty  string              `json:"difficulty"` // "beginner", "intermediate", "advanced"
-	Time        int                 `json:"time"`       // minutes
-	Portions    int                 `json:"portions"`
-	Ingredients []RecipeIngredient  `json:"ingredients"`
-	Steps       []string            `json:"steps"`
-	
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Category    string             `json:"category"`
+	Difficulty  string             `json:"difficulty"` // "beginner", "intermediate", "advanced"
+	Time        int                `json:"time"`       // minutes
+	Portions    int                `json:"portions"`
+	Ingredients []RecipeIngredient `json:"ingredients"`
+	Steps       []string           `json:"steps"`
+
 	// Nutrition & Metrics
 	GrossWeight  int     `json:"grossWeight"`  // Брутто (г)
 	NetWeight    int     `json:"netWeight"`    // Нетто (г)
@@ -35,8 +35,8 @@ type GeneratedRecipe struct {
 	RecipeYield  int     `json:"yield"`        // Выход (г)
 	Cost         float64 `json:"cost"`         // Себестоимость (PLN)
 	TokensReward int     `json:"tokensReward"` // ChefTokens награда
-	
-	ImageUrl    string              `json:"imageUrl,omitempty"`
+
+	ImageUrl string `json:"imageUrl,omitempty"`
 }
 
 // RecipeIngredient represents an ingredient in the recipe
@@ -73,7 +73,7 @@ func GenerateRecipeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Call Groq API
 	client := ai.NewGroqClient()
-	
+
 	messages := []ai.GroqMessage{
 		{
 			Role:    "system",
@@ -84,7 +84,7 @@ func GenerateRecipeHandler(w http.ResponseWriter, r *http.Request) {
 			Content: prompt,
 		},
 	}
-	
+
 	response, err := client.Chat(messages, 0.7, 2000)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate recipe: "+err.Error())
@@ -96,7 +96,7 @@ func GenerateRecipeHandler(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "No response from AI")
 		return
 	}
-	
+
 	aiContent := response.Choices[0].Message.Content
 
 	// Parse JSON response from AI

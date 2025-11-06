@@ -106,22 +106,22 @@ func (mc *MentorChat) getFallbackAnswer(question string) string {
 	// Простой pattern matching для популярных вопросов
 	fallbacks := map[string]map[string]string{
 		"pl": {
-			"ryż":      "Używaj proporcji 1:1.2 (ryż:woda). Gotuj 15 min, potem odstaw na 10 min.",
-			"sushi":    "Kluczem do dobrych sushi jest świeży ryż i dobrej jakości ryba. Ćwicz formowanie.",
-			"nóż":      "Trzymaj nóż pewnie, używaj ruchu kołysania. Ostrz nóż regularnie.",
-			"default":  "To ciekawe pytanie! Najlepiej skonsultuj się z doświadczonym szefem lub sprawdź w specjalistycznych źródłach.",
+			"ryż":     "Używaj proporcji 1:1.2 (ryż:woda). Gotuj 15 min, potem odstaw na 10 min.",
+			"sushi":   "Kluczem do dobrych sushi jest świeży ryż i dobrej jakości ryba. Ćwicz formowanie.",
+			"nóż":     "Trzymaj nóż pewnie, używaj ruchu kołysania. Ostrz nóż regularnie.",
+			"default": "To ciekawe pytanie! Najlepiej skonsultuj się z doświadczonym szefem lub sprawdź w specjalistycznych źródłach.",
 		},
 		"ua": {
-			"рис":      "Використовуй пропорцію 1:1.2 (рис:вода). Вари 15 хв, потім відстав на 10 хв.",
-			"суші":     "Ключ до хороших суші - свіжий рис і якісна риба. Практикуй формування.",
-			"ніж":      "Тримай ніж впевнено, використовуй рух гойдання. Гостри ніж регулярно.",
-			"default":  "Це цікаве питання! Найкраще проконсультуйся з досвідченим шефом або перевір у спеціалізованих джерелах.",
+			"рис":     "Використовуй пропорцію 1:1.2 (рис:вода). Вари 15 хв, потім відстав на 10 хв.",
+			"суші":    "Ключ до хороших суші - свіжий рис і якісна риба. Практикуй формування.",
+			"ніж":     "Тримай ніж впевнено, використовуй рух гойдання. Гостри ніж регулярно.",
+			"default": "Це цікаве питання! Найкраще проконсультуйся з досвідченим шефом або перевір у спеціалізованих джерелах.",
 		},
 		"en": {
-			"rice":     "Use 1:1.2 ratio (rice:water). Cook 15 min, then let stand 10 min.",
-			"sushi":    "The key to good sushi is fresh rice and quality fish. Practice shaping.",
-			"knife":    "Hold knife firmly, use rocking motion. Sharpen regularly.",
-			"default":  "That's an interesting question! Best to consult with an experienced chef or check specialized sources.",
+			"rice":    "Use 1:1.2 ratio (rice:water). Cook 15 min, then let stand 10 min.",
+			"sushi":   "The key to good sushi is fresh rice and quality fish. Practice shaping.",
+			"knife":   "Hold knife firmly, use rocking motion. Sharpen regularly.",
+			"default": "That's an interesting question! Best to consult with an experienced chef or check specialized sources.",
 		},
 	}
 
