@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/ai"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
@@ -112,14 +113,22 @@ func ChefMentorSessionHandler(w http.ResponseWriter, r *http.Request) {
 		Content: req.Message,
 	})
 
-	// Get AI response
-	response, err := client.Chat(messages, 0.7, 1000)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "AI service error")
-		return
+	// 🧠 Smart context detection: handle greetings & commands BEFORE AI
+	contextResponse := detectUserIntent(req.Message, currentRecipe, dbSession.Language)
+	var assistantMessage string
+	
+	if contextResponse != "" {
+		// Use pre-defined response for greetings/commands
+		assistantMessage = contextResponse
+	} else {
+		// Get AI response for recipe creation
+		response, err := client.Chat(messages, 0.7, 1000)
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "AI service error")
+			return
+		}
+		assistantMessage = response.Choices[0].Message.Content
 	}
-
-	assistantMessage := response.Choices[0].Message.Content
 
 	// Save messages to database
 	if err := chefMentorRepo.SaveMessage(dbSession.ID, "user", req.Message); err != nil {
@@ -624,6 +633,95 @@ func isRecipeComplete(recipe *RecipeDraft) bool {
 	hasIngredients := len(recipe.Ingredients) > 0
 	
 	return hasTitle && hasCategory && hasDifficulty && hasIngredients
+}
+
+// detectUserIntent handles greetings, commands, and context before AI processing
+func detectUserIntent(message string, recipe *RecipeDraft, language string) string {
+	lower := strings.ToLower(strings.TrimSpace(message))
+	
+	// 1. Greetings (don't treat as recipe name!)
+	greetings := []string{
+		"привіт", "привет", "вітаю", "hello", "hi", "hey", "здравствуй", "добрий день",
+		"доброго дня", "good morning", "good afternoon", "good evening", "hola", "cześć",
+	}
+	
+	for _, greeting := range greetings {
+		if lower == greeting || strings.HasPrefix(lower, greeting+" ") || strings.HasPrefix(lower, greeting+"!") {
+			responses := map[string]string{
+				"ua": "👋 Вітаю! Я — Шеф Діма, ваш кулінарний AI-помічник.\n\n🍣 Що будемо готувати сьогодні? Напишіть назву страви або інгредієнти, які у вас є!",
+				"en": "👋 Hello! I'm Chef Dima, your culinary AI assistant.\n\n🍣 What shall we cook today? Tell me the dish name or ingredients you have!",
+				"ru": "👋 Привет! Я — Шеф Дима, ваш кулинарный AI-помощник.\n\n🍣 Что будем готовить сегодня? Напишите название блюда или ингредиенты!",
+				"pl": "👋 Cześć! Jestem Szef Dima, twój kulinarny asystent AI.\n\n🍣 Co będziemy dziś gotować?",
+			}
+			if resp, ok := responses[language]; ok {
+				return resp
+			}
+			return responses["ua"]
+		}
+	}
+	
+	// 2. Help commands
+	helpKeywords := []string{"допомога", "help", "помощь", "допоможи", "как", "що можеш", "what can"}
+	for _, keyword := range helpKeywords {
+		if strings.Contains(lower, keyword) {
+			responses := map[string]string{
+				"ua": "🧑‍🍳 **Як я можу допомогти:**\n\n✅ Створити рецепт з ваших інгредієнтів\n✅ Порахувати калорії та вартість\n✅ Підібрати складність та час\n✅ Автоматично зберегти рецепт\n\n💬 Просто напишіть назву страви або інгредієнти!",
+				"en": "🧑‍🍳 **How I can help:**\n\n✅ Create recipe from your ingredients\n✅ Calculate calories and cost\n✅ Suggest difficulty and time\n✅ Auto-save your recipe\n\n💬 Just write dish name or ingredients!",
+				"ru": "🧑‍🍳 **Как я могу помочь:**\n\n✅ Создать рецепт из ваших ингредиентов\n✅ Посчитать калории и стоимость\n✅ Подобрать сложность и время\n✅ Автосохранение рецепта\n\n💬 Просто напишите название блюда!",
+			}
+			if resp, ok := responses[language]; ok {
+				return resp
+			}
+			return responses["ua"]
+		}
+	}
+	
+	// 3. Thank you / Goodbye
+	thanksKeywords := []string{"дякую", "спасибо", "thanks", "thank you", "dziękuję"}
+	for _, keyword := range thanksKeywords {
+		if strings.Contains(lower, keyword) {
+			responses := map[string]string{
+				"ua": "😊 Будь ласка! Смачного! Якщо потрібно ще щось — звертайтесь!",
+				"en": "😊 You're welcome! Enjoy your meal! Let me know if you need anything else!",
+				"ru": "😊 Пожалуйста! Приятного аппетита! Обращайтесь ещё!",
+			}
+			if resp, ok := responses[language]; ok {
+				return resp
+			}
+			return responses["ua"]
+		}
+	}
+	
+	goodbyeKeywords := []string{"бувай", "пока", "bye", "goodbye", "до побачення", "до свидания"}
+	for _, keyword := range goodbyeKeywords {
+		if strings.Contains(lower, keyword) {
+			responses := map[string]string{
+				"ua": "👋 До зустрічі! Приходьте ще за новими рецептами! 🍣",
+				"en": "👋 Goodbye! Come back for more recipes! 🍣",
+				"ru": "👋 До свидания! Приходите ещё за новыми рецептами! 🍣",
+			}
+			if resp, ok := responses[language]; ok {
+				return resp
+			}
+			return responses["ua"]
+		}
+	}
+	
+	// 4. Single letter or very short non-recipe input
+	if len(lower) <= 2 && !unicode.IsDigit(rune(lower[0])) {
+		responses := map[string]string{
+			"ua": "🤔 Вибачте, не зрозумів. Напишіть, будь ласка, назву страви або інгредієнти!",
+			"en": "🤔 Sorry, I didn't understand. Please write dish name or ingredients!",
+			"ru": "🤔 Извините, не понял. Напишите название блюда или ингредиенты!",
+		}
+		if resp, ok := responses[language]; ok {
+			return resp
+		}
+		return responses["ua"]
+	}
+	
+	// No special context detected - proceed with AI recipe logic
+	return ""
 }
 
 // isLikelyIngredient filters out common non-ingredient words
