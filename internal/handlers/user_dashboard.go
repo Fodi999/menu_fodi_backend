@@ -199,8 +199,35 @@ func GetUserWallet(w http.ResponseWriter, r *http.Request) {
 	// Получаем профиль для баланса
 	var profile models.UserProfile
 	if err := database.DB.Where("user_id = ?", userID).First(&profile).Error; err != nil {
-		utils.RespondError(w, http.StatusNotFound, "Profile not found", err.Error())
-		return
+		// Якщо профіль не знайдено, створюємо його автоматично
+		userUUID, parseErr := uuid.Parse(userID)
+		if parseErr != nil {
+			utils.RespondError(w, http.StatusBadRequest, "Invalid user ID", parseErr.Error())
+			return
+		}
+
+		// Отримуємо базову інформацію про користувача
+		var user models.User
+		if userErr := database.DB.Where("id = ?", userID).First(&user).Error; userErr != nil {
+			utils.RespondError(w, http.StatusNotFound, "User not found", userErr.Error())
+			return
+		}
+
+		// Створюємо новий профіль з початковим балансом 0
+		profile = models.UserProfile{
+			UserID:        userUUID,
+			Name:          user.Name,
+			Email:         user.Email,
+			WalletBalance: 0.00,
+			Level:         1,
+			Role:          "student",
+			Language:      "en",
+		}
+
+		if createErr := database.DB.Create(&profile).Error; createErr != nil {
+			utils.RespondError(w, http.StatusInternalServerError, "Failed to create profile", createErr.Error())
+			return
+		}
 	}
 
 	// Получаем последние транзакции
