@@ -554,3 +554,58 @@ func GetUserDashboard(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondJSON(w, http.StatusOK, response)
 }
+
+// GrantWelcomeTokensHandler нараховує вітальні 100 токенів користувачеві (для міграції старих користувачів)
+func GrantWelcomeTokensHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userId"]
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		utils.RespondError(w, http.StatusBadRequest, "Invalid user ID", err.Error())
+		return
+	}
+
+	// Перевірка чи існує профіль
+	var profile models.UserProfile
+	if err := database.DB.Where("user_id = ?", userUUID).First(&profile).Error; err != nil {
+		utils.RespondError(w, http.StatusNotFound, "Profile not found", err.Error())
+		return
+	}
+
+	// Перевірка чи вже отримував вітальні токени
+	var existingBonus models.WalletTransaction
+	if err := database.DB.Where("user_id = ? AND type = ? AND description LIKE ?", 
+		userUUID, "bonus", "%Вітальний бонус%").First(&existingBonus).Error; err == nil {
+		utils.RespondError(w, http.StatusConflict, "Welcome bonus already granted", "")
+		return
+	}
+
+	// Нараховуємо токени
+	profile.WalletBalance += 100.00
+	if err := database.DB.Save(&profile).Error; err != nil {
+		utils.RespondError(w, http.StatusInternalServerError, "Failed to update balance", err.Error())
+		return
+	}
+
+	// Створюємо транзакцію
+	transaction := models.WalletTransaction{
+		UserID:      userUUID,
+		Amount:      100.00,
+		Type:        "bonus",
+		Description: "🎁 Вітальний бонус! Ласкаво просимо до Chef Academy!",
+	}
+
+	if err := database.DB.Create(&transaction).Error; err != nil {
+		utils.RespondError(w, http.StatusInternalServerError, "Failed to create transaction", err.Error())
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusOK, map[string]interface{}{
+		"message":     "✅ Welcome bonus granted successfully",
+		"userId":      userID,
+		"amount":      100.00,
+		"newBalance":  profile.WalletBalance,
+		"transaction": transaction,
+	})
+}

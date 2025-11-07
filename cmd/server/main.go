@@ -196,6 +196,7 @@ func main() {
 	api.HandleFunc("/user/{userId}/recipes", handlers.CreateUserRecipe).Methods("POST", "OPTIONS")
 	api.HandleFunc("/user/{userId}/recipes/{recipeId}", handlers.DeleteUserRecipe).Methods("DELETE", "OPTIONS")
 	api.HandleFunc("/user/{userId}/wallet", handlers.GetUserWallet).Methods("GET", "OPTIONS")
+	api.HandleFunc("/user/{userId}/wallet/grant-welcome", handlers.GrantWelcomeTokensHandler).Methods("POST", "OPTIONS") // Manual welcome bonus
 	api.HandleFunc("/user/{userId}/market/purchases", handlers.GetMarketPurchases).Methods("GET", "OPTIONS")
 	api.HandleFunc("/user/{userId}/purchases", handlers.GetUserPurchasesHandler).Methods("GET", "OPTIONS")
 
