@@ -217,6 +217,7 @@ func main() {
 	// 📱 Recipe Feed routes (public recipe sharing)
 	api.HandleFunc("/posts", handlers.GetAllPosts).Methods("GET", "OPTIONS")                      // Main feed - all users' recipes
 	api.HandleFunc("/users/{id}/posts", handlers.GetUserPosts).Methods("GET", "OPTIONS")          // User profile - specific user's recipes
+	api.HandleFunc("/user/{id}/posts", handlers.GetUserPosts).Methods("GET", "OPTIONS")           // Alternative route (singular) for compatibility
 	protected.HandleFunc("/recipes", handlers.CreateRecipePost).Methods("POST", "OPTIONS")        // Create new recipe post (auth required)
 	protected.HandleFunc("/recipes/{id}", handlers.UpdateRecipePost).Methods("PUT", "OPTIONS")    // Update recipe (auth required)
 	protected.HandleFunc("/recipes/{id}", handlers.DeleteRecipePost).Methods("DELETE", "OPTIONS") // Delete recipe (auth required)
