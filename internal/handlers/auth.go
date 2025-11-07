@@ -54,6 +54,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 🎁 Нарахування початкових 100 токенів Chef при реєстрації
+	if err := grantWelcomeTokens(user.ID); err != nil {
+		// Логуємо помилку, але не блокуємо реєстрацію
+		// log.Printf("Warning: Failed to grant welcome tokens to user %s: %v", user.ID, err)
+	}
+
 	// Генерация JWT токена
 	token, err := auth.GenerateToken(user.ID, user.Email, user.Role)
 	if err != nil {
@@ -269,4 +275,43 @@ func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 		"email":      user.Email,
 		"updated_by": claims.UserID,
 	})
+}
+
+// grantWelcomeTokens нараховує початкові 100 токенів Chef новому користувачеві
+func grantWelcomeTokens(userID string) error {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return err
+	}
+
+	// Перевірка чи існує профіль користувача
+	var profile models.UserProfile
+	if err := database.DB.Where("user_id = ?", userUUID).First(&profile).Error; err != nil {
+		// Якщо профілю немає, створюємо його
+		profile = models.UserProfile{
+			UserID:        userUUID,
+			Name:          "", // буде оновлено пізніше
+			Email:         "", // буде оновлено пізніше
+			WalletBalance: 100.00,
+		}
+		if err := database.DB.Create(&profile).Error; err != nil {
+			return err
+		}
+	} else {
+		// Якщо профіль є, додаємо токени
+		profile.WalletBalance += 100.00
+		if err := database.DB.Save(&profile).Error; err != nil {
+			return err
+		}
+	}
+
+	// Створити транзакцію для історії
+	transaction := models.WalletTransaction{
+		UserID:      userUUID,
+		Amount:      100.00,
+		Type:        "bonus",
+		Description: "🎁 Вітальний бонус! Ласкаво просимо до Chef Academy!",
+	}
+
+	return database.DB.Create(&transaction).Error
 }
