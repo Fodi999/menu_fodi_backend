@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -55,9 +56,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 🎁 Нарахування початкових 100 токенів Chef при реєстрації
-	if err := grantWelcomeTokens(user.ID); err != nil {
+	log.Printf("🎁 Attempting to grant welcome tokens to user %s (%s)", user.ID, user.Email)
+	if err := grantWelcomeTokens(user); err != nil {
 		// Логуємо помилку, але не блокуємо реєстрацію
-		// log.Printf("Warning: Failed to grant welcome tokens to user %s: %v", user.ID, err)
+		log.Printf("❌ WARNING: Failed to grant welcome tokens to user %s: %v", user.ID, err)
+	} else {
+		log.Printf("✅ Successfully granted 100 welcome tokens to user %s", user.ID)
 	}
 
 	// Генерация JWT токена
@@ -278,20 +282,15 @@ func UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // grantWelcomeTokens нараховує початкові 100 токенів Chef новому користувачеві
-func grantWelcomeTokens(userID string) error {
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		return err
-	}
-
+func grantWelcomeTokens(user *models.User) error {
 	// Перевірка чи існує профіль користувача
 	var profile models.UserProfile
-	if err := database.DB.Where("user_id = ?", userUUID).First(&profile).Error; err != nil {
-		// Якщо профілю немає, створюємо його
+	if err := database.DB.Where("user_id = ?", user.ID).First(&profile).Error; err != nil {
+		// Якщо профілю немає, створюємо його з даними користувача
 		profile = models.UserProfile{
-			UserID:        userUUID,
-			Name:          "", // буде оновлено пізніше
-			Email:         "", // буде оновлено пізніше
+			UserID:        uuid.MustParse(user.ID),
+			Name:          user.Name,
+			Email:         user.Email,
 			WalletBalance: 100.00,
 		}
 		if err := database.DB.Create(&profile).Error; err != nil {
@@ -307,7 +306,7 @@ func grantWelcomeTokens(userID string) error {
 
 	// Створити транзакцію для історії
 	transaction := models.WalletTransaction{
-		UserID:      userUUID,
+		UserID:      uuid.MustParse(user.ID),
 		Amount:      100.00,
 		Type:        "bonus",
 		Description: "🎁 Вітальний бонус! Ласкаво просимо до Chef Academy!",
