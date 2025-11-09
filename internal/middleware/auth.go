@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/auth"
+	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
+	"github.com/google/uuid"
 )
 
 type contextKey string
@@ -32,7 +33,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		claims, err := auth.ValidateToken(tokenString)
+		claims, err := authservice.ValidateToken(tokenString)
 		if err != nil {
 			utils.WriteError(w, http.StatusUnauthorized, "Invalid or expired token")
 			return
@@ -47,7 +48,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // AdminMiddleware проверяет права администратора
 func AdminMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claims, ok := r.Context().Value(UserContextKey).(*auth.Claims)
+		claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)
 		if !ok {
 			utils.WriteError(w, http.StatusUnauthorized, "Unauthorized")
 			return
@@ -60,4 +61,20 @@ func AdminMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// GetUserID извлекает UUID пользователя из JWT claims в контексте
+func GetUserID(r *http.Request) *uuid.UUID {
+	claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)
+	if !ok || claims == nil {
+		return nil
+	}
+
+	// Parse UserID string to UUID
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		return nil
+	}
+
+	return &userID
 }

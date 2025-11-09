@@ -13,11 +13,10 @@ import (
 
 var DB *gorm.DB
 
-// Connect подключается к PostgreSQL базе данных
-func Connect() error {
-	dsn := os.Getenv("DATABASE_URL")
+// Init initializes database connection
+func Init(dsn string) error {
 	if dsn == "" {
-		log.Fatal("DATABASE_URL environment variable is not set")
+		log.Fatal("DATABASE_URL is required")
 	}
 
 	var err error
@@ -26,7 +25,7 @@ func Connect() error {
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   "",
 			SingularTable: false,
-			NoLowerCase:   false, // ✅ пусть GORM сам сопоставляет имена
+			NoLowerCase:   false,
 		},
 	})
 
@@ -34,15 +33,13 @@ func Connect() error {
 		return err
 	}
 
-	log.Println("✅ Connected to PostgreSQL database")
-
-	// Автомиграция моделей (опционально, так как у нас уже есть Prisma схема)
-	// err = DB.AutoMigrate(&models.User{})
-	// if err != nil {
-	// 	return err
-	// }
-
 	return nil
+}
+
+// Connect подключается к PostgreSQL базе данных (deprecated: use Init)
+func Connect() error {
+	dsn := os.Getenv("DATABASE_URL")
+	return Init(dsn)
 }
 
 // GetDB возвращает экземпляр базы данных
@@ -93,6 +90,13 @@ func AutoMigrate() error {
 		// AI Generated Recipes (Culinary OS)
 		&models.AIGeneratedRecipe{},
 		&models.RecipeLike{},
+		// Recipe Social Feed
+		&models.RecipePost{},
+		&models.PostComment{},
+		&models.PostLike{},
+		// User Fridge (ingredients management)
+		&models.UserFridge{},
+		&models.FridgeTransaction{},
 	)
 
 	if err != nil {
