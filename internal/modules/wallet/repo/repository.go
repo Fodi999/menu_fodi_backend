@@ -49,7 +49,7 @@ func NewWalletRepository() WalletRepository {
 // GetBalance retrieves user's wallet balance from UserProfile
 func (r *walletRepository) GetBalance(userID uuid.UUID) (int, error) {
 	var profile struct {
-		WalletBalance int
+		WalletBalance float64
 	}
 
 	err := r.db.Table("\"UserProfile\"").
@@ -64,7 +64,7 @@ func (r *walletRepository) GetBalance(userID uuid.UUID) (int, error) {
 		return 0, err
 	}
 
-	return profile.WalletBalance, nil
+	return int(profile.WalletBalance), nil
 }
 
 // UpdateBalance updates user's wallet balance
