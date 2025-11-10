@@ -41,7 +41,7 @@ func NewFridgeRepository(db *gorm.DB) FridgeRepository {
 func (r *fridgeRepository) GetUserFridge(userID uuid.UUID) ([]models.UserFridge, error) {
 	var items []models.UserFridge
 	err := r.db.Where("user_id = ?", userID).
-		Order("created_at DESC").
+		Order("added_at DESC").
 		Find(&items).Error
 	return items, err
 }
@@ -110,7 +110,7 @@ func (r *fridgeRepository) CountItems(userID uuid.UUID) (int, error) {
 func (r *fridgeRepository) GetAvailableItems(userID uuid.UUID) ([]models.UserFridge, error) {
 	var items []models.UserFridge
 	err := r.db.Where("user_id = ? AND available = ?", userID, true).
-		Order("created_at DESC").
+		Order("added_at DESC").
 		Find(&items).Error
 	return items, err
 }
