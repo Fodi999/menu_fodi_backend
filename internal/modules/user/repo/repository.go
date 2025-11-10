@@ -60,8 +60,16 @@ func (r *userRepository) GetProfile(userID uuid.UUID) (*models.UserProfile, erro
 }
 
 func (r *userRepository) CreateProfile(userID uuid.UUID) (*models.UserProfile, error) {
+	// First, get the user to extract name and email
+	var user models.User
+	if err := r.db.Where("id = ?", userID.String()).First(&user).Error; err != nil {
+		return nil, err
+	}
+
 	profile := &models.UserProfile{
 		UserID:        userID,
+		Name:          user.Name,
+		Email:         user.Email,
 		Level:         1,
 		Stars:         0,
 		XP:            0,
