@@ -106,3 +106,12 @@ type LeaderboardResponse struct {
 	Total   int                `json:"total"`
 	SortBy  string             `json:"sortBy"`
 }
+
+// UploadImageResponse represents image upload response
+type UploadImageResponse struct {
+	Success   bool   `json:"success"`
+	URL       string `json:"url"`
+	SecureURL string `json:"secureUrl"`
+	PublicID  string `json:"publicId"`
+	Message   string `json:"message,omitempty"`
+}

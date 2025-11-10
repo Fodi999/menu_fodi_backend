@@ -43,4 +43,12 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 			r.Get("/purchases", m.handlers.GetUserPurchases)
 		})
 	})
+
+	// Upload route (protected, requires auth)
+	r.Route("/upload", func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(jwtMiddleware)
+			r.Post("/image", m.handlers.UploadImage)
+		})
+	})
 }

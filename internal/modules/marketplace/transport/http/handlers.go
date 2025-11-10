@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -19,13 +20,18 @@ import (
 
 // MarketplaceHandlers contains marketplace HTTP handlers
 type MarketplaceHandlers struct {
-	service service.MarketplaceService
+	service           service.MarketplaceService
+	cloudinaryService *service.CloudinaryService
 }
 
 // NewMarketplaceHandlers creates new marketplace handlers
-func NewMarketplaceHandlers(service service.MarketplaceService) *MarketplaceHandlers {
-	return &MarketplaceHandlers{service: service}
+func NewMarketplaceHandlers(marketplace service.MarketplaceService) *MarketplaceHandlers {
+	return &MarketplaceHandlers{
+		service:           marketplace,
+		cloudinaryService: service.NewCloudinaryService(),
+	}
 }
+
 
 // GetMarketRecipes godoc
 // @Summary Get marketplace recipes
@@ -219,6 +225,101 @@ func (h *MarketplaceHandlers) GetLeaderboard(w http.ResponseWriter, r *http.Requ
 		logger.Error("failed to get leaderboard", zap.Error(err))
 		httpx.InternalError(w, "failed to fetch leaderboard")
 		return
+	}
+
+	httpx.Success(w, response)
+}
+
+// UploadImage godoc
+// @Summary Upload image
+// @Description Upload image file and get Cloudinary URL
+// @Tags marketplace
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param image formData file true "Image file to upload"
+// @Success 200 {object} dto.UploadImageResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/upload/image [post]
+func (h *MarketplaceHandlers) UploadImage(w http.ResponseWriter, r *http.Request) {
+	// Check authentication
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+
+	// Parse multipart form (max 10MB)
+	if err := r.ParseMultipartForm(10 * 1024 * 1024); err != nil {
+		logger.Error("failed to parse multipart form", zap.Error(err))
+		httpx.BadRequest(w, "failed to parse form data")
+		return
+	}
+
+	// Get image file from form
+	file, handler, err := r.FormFile("image")
+	if err != nil {
+		logger.Error("failed to get image file", zap.Error(err))
+		httpx.BadRequest(w, "image file is required")
+		return
+	}
+	defer file.Close()
+
+	// Validate file size (max 10MB)
+	if handler.Size > 10*1024*1024 {
+		httpx.BadRequest(w, "file size exceeds 10MB limit")
+		return
+	}
+
+	// Read file data
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		logger.Error("failed to read file data", zap.Error(err))
+		httpx.InternalError(w, "failed to read file")
+		return
+	}
+
+	// Validate file type (only images)
+	contentType := handler.Header.Get("Content-Type")
+	validTypes := map[string]bool{
+		"image/jpeg":       true,
+		"image/jpg":        true,
+		"image/png":        true,
+		"image/webp":       true,
+		"image/gif":        true,
+		"image/svg+xml":    true,
+	}
+
+	if !validTypes[contentType] {
+		httpx.BadRequest(w, "invalid file type - only JPEG, PNG, WebP, GIF, and SVG are allowed")
+		return
+	}
+
+	// Upload to Cloudinary
+	uploadResp, err := h.cloudinaryService.UploadImage(fileData, handler.Filename)
+	if err != nil {
+		logger.Error("failed to upload image to cloudinary",
+			zap.Error(err),
+			zap.String("user_id", userIDPtr.String()),
+			zap.String("filename", handler.Filename))
+		httpx.InternalError(w, "failed to upload image")
+		return
+	}
+
+	logger.Info("image uploaded successfully",
+		zap.String("user_id", userIDPtr.String()),
+		zap.String("filename", handler.Filename),
+		zap.String("cloudinary_url", uploadResp.SecureURL))
+
+	response := dto.UploadImageResponse{
+		Success:   true,
+		URL:       uploadResp.URL,
+		SecureURL: uploadResp.SecureURL,
+		PublicID:  uploadResp.PublicID,
+		Message:   "Image uploaded successfully",
 	}
 
 	httpx.Success(w, response)
