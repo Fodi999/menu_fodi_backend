@@ -1,5 +1,4 @@
 package api
-package api
 
 import (
 	"net/http"
@@ -11,7 +10,7 @@ import (
 
 // TestAICoreAPIExample tests AI Core API endpoints
 func TestAICoreAPIExample(t *testing.T) {
-	req, err := http.NewRequest("POST", "/api/ai-core/process", nil)
+	_, err := http.NewRequest("POST", "/api/ai-core/process", nil)
 	assert.NoError(t, err)
 
 	w := httptest.NewRecorder()

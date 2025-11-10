@@ -195,3 +195,64 @@ func (h *AIHandlers) GetFridgeRecommendations(w http.ResponseWriter, r *http.Req
 		"count":           len(recommendations),
 	})
 }
+
+// SaveRecipeIngredientsToFridge godoc
+// @Summary Save recipe ingredients to fridge
+// @Description Add all ingredients from a recipe to user's fridge
+// @Tags ai
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.SaveIngredientsRequest true "Save ingredients request"
+// @Success 200 {object} httpx.MessageResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/ai/save-ingredients [post]
+func (h *AIHandlers) SaveRecipeIngredientsToFridge(w http.ResponseWriter, r *http.Request) {
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+	userID := *userIDPtr
+
+	var req dto.SaveIngredientsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode request", zap.Error(err))
+		httpx.BadRequest(w, "invalid request body")
+		return
+	}
+
+	if len(req.Ingredients) == 0 {
+		httpx.BadRequest(w, "ingredients list cannot be empty")
+		return
+	}
+
+	// Save each ingredient to fridge
+	for _, ingredient := range req.Ingredients {
+		fridgeItem := &models.UserFridge{
+			UserID:    userID,
+			Product:   ingredient.Name,
+			Quantity:  ingredient.Amount,
+			Unit:      ingredient.Unit,
+			Available: true,
+		}
+
+		if err := h.db.Create(fridgeItem).Error; err != nil {
+			logger.Error("failed to save ingredient to fridge", 
+				zap.Error(err), 
+				zap.String("user_id", userID.String()),
+				zap.String("product", ingredient.Name))
+			httpx.InternalError(w, "failed to save ingredients")
+			return
+		}
+	}
+
+	httpx.Success(w, map[string]interface{}{
+		"success":  true,
+		"message":  "ingredients saved to fridge",
+		"count":    len(req.Ingredients),
+	})
+}

@@ -38,6 +38,7 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 
 			r.Post("/meal-plan", m.handlers.GenerateMealPlan)
 			r.Post("/fridge-recommendations", m.handlers.GetFridgeRecommendations)
+			r.Post("/save-ingredients", m.handlers.SaveRecipeIngredientsToFridge)
 		})
 	})
 }

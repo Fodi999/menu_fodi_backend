@@ -92,12 +92,23 @@ func (s *aiService) ChefMentor(req dto.ChefMentorRequest) (*dto.ChefMentorRespon
 
 	// Parse response and update recipe
 	// This is simplified - real implementation would parse JSON from AI
-	return &dto.ChefMentorResponse{
+	chefResponse := &dto.ChefMentorResponse{
 		Message:      response.Choices[0].Message.Content,
 		Recipe:       req.CurrentRecipe,
 		NextQuestion: generateNextQuestion(req.CurrentRecipe, req.Language),
 		IsComplete:   isRecipeComplete(req.CurrentRecipe),
-	}, nil
+	}
+
+	// Add suggested actions if recipe is complete
+	if chefResponse.IsComplete {
+		chefResponse.SuggestedActions = []string{
+			"save_recipe",
+			"save_ingredients_to_fridge",
+			"generate_meal_plan",
+		}
+	}
+
+	return chefResponse, nil
 }
 
 func (s *aiService) GenerateMealPlan(req dto.MealPlanRequest, userID *uuid.UUID, fridgeItems []models.UserFridge) (*dto.MealPlanResponse, error) {

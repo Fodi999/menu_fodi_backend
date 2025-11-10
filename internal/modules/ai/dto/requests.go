@@ -124,3 +124,8 @@ type FridgeRecommendation struct {
 	PrepTime        int      `json:"prepTime"`
 	Difficulty      string   `json:"difficulty"`
 }
+
+// SaveIngredientsRequest represents request to save ingredients to fridge
+type SaveIngredientsRequest struct {
+	Ingredients []RecipeIngredient `json:"ingredients"`
+}
