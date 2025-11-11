@@ -97,6 +97,8 @@ func AutoMigrate() error {
 		// User Fridge (ingredients management)
 		&models.UserFridge{},
 		&models.FridgeTransaction{},
+		// Token Bank (admin management)
+		&models.TokenBank{},
 	)
 
 	if err != nil {
