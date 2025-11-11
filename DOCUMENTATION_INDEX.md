@@ -30,9 +30,10 @@
 | Файл | Назначение | Для кого |
 |------|-----------|----------|
 | [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md) | ⭐ Быстрая справка с curl примерами | Все разработчики |
-| [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md) | Полная документация всех 9 эндпоинтов | Frontend & Backend |
+| [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md) | Полная документация всех 15 эндпоинтов | Frontend & Backend |
 | [ADMIN_API_QUICK_REF.md](ADMIN_API_QUICK_REF.md) | Таблица эндпоинтов | Быстрая справка |
 | [ADMIN_PROFILE_ENDPOINTS.md](ADMIN_PROFILE_ENDPOINTS.md) | Разделённые профиль-эндпоинты | Frontend разработчики |
+| [TOKEN_BANK_QUICK_REF.md](TOKEN_BANK_QUICK_REF.md) | Быстрая справка по Token Bank API | Frontend разработчики |
 
 ### 🏗️ Architecture & Design
 
@@ -47,6 +48,7 @@
 | Файл | Назначение | Для кого |
 |------|-----------|----------|
 | [PRODUCTION_DATABASE_SETUP.md](PRODUCTION_DATABASE_SETUP.md) | Setup production БД с тестовыми данными | DevOps & Backend |
+| [TOKEN_BANK_SETUP_GUIDE.md](TOKEN_BANK_SETUP_GUIDE.md) | Полное руководство по Token Bank | DevOps & Backend |
 | [FRONTEND_API_FIX.md](FRONTEND_API_FIX.md) | Исправление API endpoints на фронтенде | Frontend разработчики |
 | [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md) | Интеграция админ-панели с фронтендом | Frontend разработчики |
 
