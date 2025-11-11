@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/service"
 	httphandlers "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/transport/http"
 )
 
@@ -13,7 +14,13 @@ type Module struct {
 }
 
 func NewModule() *Module {
-	handlers := httphandlers.NewAdminHandlers()
+	// Создаём экземпляры сервиса и политики
+	adminService := service.NewAdminService()
+	adminPolicy := service.NewAdminPolicy()
+
+	// Инжектируем зависимости в handlers
+	handlers := httphandlers.NewAdminHandlers(adminService, adminPolicy)
+
 	return &Module{handlers: handlers}
 }
 

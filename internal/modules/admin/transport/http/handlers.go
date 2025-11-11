@@ -4,22 +4,26 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/go-chi/chi/v5"
 )
 
-type AdminHandlers struct{}
+type AdminHandlers struct {
+	service service.AdminService
+	policy  service.AdminPolicy
+}
 
-func NewAdminHandlers() *AdminHandlers {
-	return &AdminHandlers{}
+func NewAdminHandlers(svc service.AdminService, pol service.AdminPolicy) *AdminHandlers {
+	return &AdminHandlers{
+		service: svc,
+		policy:  pol,
+	}
 }
 
 func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	db := database.GetDB()
-	var users []models.User
-	if err := db.Find(&users).Error; err != nil {
+	users, err := h.service.GetAllUsers()
+	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch users")
 		return
 	}
@@ -28,13 +32,6 @@ func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 func (h *AdminHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
-	db := database.GetDB()
-
-	var user models.User
-	if err := db.First(&user, "id = ?", userID).Error; err != nil {
-		utils.RespondWithError(w, http.StatusNotFound, "User not found")
-		return
-	}
 
 	var req struct {
 		Name  string `json:"name"`
@@ -46,15 +43,13 @@ func (h *AdminHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name != "" {
-		user.Name = req.Name
-	}
-	if req.Email != "" {
-		user.Email = req.Email
-	}
-
-	if err := db.Save(&user).Error; err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update user")
+	user, err := h.service.UpdateUser(userID, req.Name, req.Email)
+	if err != nil {
+		if err.Error() == "user not found" {
+			utils.RespondWithError(w, http.StatusNotFound, "User not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update user")
+		}
 		return
 	}
 
@@ -63,10 +58,14 @@ func (h *AdminHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *AdminHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
-	db := database.GetDB()
 
-	if err := db.Delete(&models.User{}, "id = ?", userID).Error; err != nil {
-		utils.RespondWithError(w, http.StatusNotFound, "User not found")
+	err := h.service.DeleteUser(userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			utils.RespondWithError(w, http.StatusNotFound, "User not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to delete user")
+		}
 		return
 	}
 
@@ -84,9 +83,16 @@ func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := database.GetDB()
-	if err := db.Model(&models.User{}).Where("id = ?", req.UserID).Update("role", req.Role).Error; err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update role")
+	err := h.service.UpdateUserRole(req.UserID, req.Role)
+	if err != nil {
+		switch err.Error() {
+		case "user not found":
+			utils.RespondWithError(w, http.StatusNotFound, "User not found")
+		case "invalid role":
+			utils.RespondWithError(w, http.StatusBadRequest, "Invalid role")
+		default:
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update role")
+		}
 		return
 	}
 
@@ -94,9 +100,8 @@ func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AdminHandlers) GetAllOrders(w http.ResponseWriter, r *http.Request) {
-	db := database.GetDB()
-	var orders []models.Order
-	if err := db.Order("created_at DESC").Find(&orders).Error; err != nil {
+	orders, err := h.service.GetAllOrders()
+	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch orders")
 		return
 	}
@@ -104,9 +109,8 @@ func (h *AdminHandlers) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AdminHandlers) GetRecentOrders(w http.ResponseWriter, r *http.Request) {
-	db := database.GetDB()
-	var orders []models.Order
-	if err := db.Order("created_at DESC").Limit(10).Find(&orders).Error; err != nil {
+	orders, err := h.service.GetRecentOrders(10)
+	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch recent orders")
 		return
 	}
@@ -115,7 +119,6 @@ func (h *AdminHandlers) GetRecentOrders(w http.ResponseWriter, r *http.Request) 
 
 func (h *AdminHandlers) UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 	orderID := chi.URLParam(r, "id")
-	db := database.GetDB()
 
 	var req struct {
 		Status string `json:"status"`
@@ -126,9 +129,13 @@ func (h *AdminHandlers) UpdateOrderStatus(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var order models.Order
-	if err := db.Model(&order).Where("id = ?", orderID).Update("status", req.Status).Error; err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update order status")
+	err := h.service.UpdateOrderStatus(orderID, req.Status)
+	if err != nil {
+		if err.Error() == "order not found" {
+			utils.RespondWithError(w, http.StatusNotFound, "Order not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update order status")
+		}
 		return
 	}
 
@@ -136,15 +143,10 @@ func (h *AdminHandlers) UpdateOrderStatus(w http.ResponseWriter, r *http.Request
 }
 
 func (h *AdminHandlers) GetAdminStats(w http.ResponseWriter, r *http.Request) {
-	db := database.GetDB()
-
-	var userCount, orderCount int64
-	db.Model(&models.User{}).Count(&userCount)
-	db.Model(&models.Order{}).Count(&orderCount)
-
-	stats := map[string]interface{}{
-		"totalUsers":  userCount,
-		"totalOrders": orderCount,
+	stats, err := h.service.GetAdminStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch stats")
+		return
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, stats)
