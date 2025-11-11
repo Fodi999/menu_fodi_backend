@@ -469,7 +469,318 @@ interface AdminProfile {
 
 ---
 
-## 📊 Summary Table
+## 🏦 Token Bank Endpoints (Вкладка "Банк Токинов")
+
+### 1️⃣0️⃣ GET /api/admin/token-bank
+
+**Описание:** Получить все записи токин-банков всех пользователей
+
+**Метод:** GET  
+**Требует:** JWT токен + роль admin  
+**Возвращает:** Массив объектов TokenBank
+
+### Request
+
+```bash
+curl -X GET https://api.example.com/api/admin/token-bank \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### Response (200 OK)
+
+```json
+[
+  {
+    "id": "bank-id-001",
+    "user_id": "user-id-123",
+    "balance": 500,
+    "total_allocated": 1000,
+    "total_used": 500,
+    "created_at": "2024-11-01T10:00:00Z",
+    "updated_at": "2024-11-10T15:30:00Z",
+    "user": {
+      "id": "user-id-123",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "role": "user",
+      "createdAt": "2024-10-15T14:30:00Z"
+    }
+  },
+  {
+    "id": "bank-id-002",
+    "user_id": "user-id-456",
+    "balance": 250,
+    "total_allocated": 500,
+    "total_used": 250,
+    "created_at": "2024-11-02T10:00:00Z",
+    "updated_at": "2024-11-09T12:00:00Z",
+    "user": {
+      "id": "user-id-456",
+      "email": "another@example.com",
+      "name": "Jane Smith",
+      "role": "user",
+      "createdAt": "2024-10-20T08:15:00Z"
+    }
+  }
+]
+```
+
+### Data Structure
+
+```typescript
+interface TokenBank {
+  id: string;                // UUID записи токин-банка
+  user_id: string;           // UUID пользователя
+  balance: number;           // Текущий доступный баланс токинов
+  total_allocated: number;   // Всего токинов выделено админом
+  total_used: number;        // Всего токинов использовано пользователем
+  created_at: string;        // ISO 8601 дата создания записи
+  updated_at: string;        // ISO 8601 дата последнего обновления
+  user?: {                   // Информация о пользователе (опционально)
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    createdAt: string;
+  };
+}
+```
+
+---
+
+### 1️⃣1️⃣ GET /api/admin/token-bank/stats
+
+**Описание:** Получить статистику по токинам во всей системе
+
+**Метод:** GET  
+**Требует:** JWT токен + роль admin  
+**Возвращает:** Объект статистики TokenBankStats
+
+### Request
+
+```bash
+curl -X GET https://api.example.com/api/admin/token-bank/stats \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### Response (200 OK)
+
+```json
+{
+  "total_tokens_allocated": 10000,
+  "total_tokens_used": 3500,
+  "total_users_with_tokens": 156,
+  "average_balance_per_user": 41.67
+}
+```
+
+### Data Structure
+
+```typescript
+interface TokenBankStats {
+  total_tokens_allocated: number;  // Всего токинов выделено всем пользователям
+  total_tokens_used: number;       // Всего токинов использовано всеми пользователями
+  total_users_with_tokens: number; // Количество пользователей с токин-банком
+  average_balance_per_user: number; // Средний баланс на одного пользователя
+}
+```
+
+---
+
+### 1️⃣2️⃣ GET /api/admin/token-bank/{userID}
+
+**Описание:** Получить токин-банк конкретного пользователя
+
+**Метод:** GET  
+**Требует:** JWT токен + роль admin  
+**URL параметры:** `userID` - UUID пользователя  
+**Возвращает:** Объект TokenBank пользователя
+
+### Request
+
+```bash
+curl -X GET https://api.example.com/api/admin/token-bank/user-id-123 \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### Response (200 OK)
+
+```json
+{
+  "id": "bank-id-001",
+  "user_id": "user-id-123",
+  "balance": 500,
+  "total_allocated": 1000,
+  "total_used": 500,
+  "created_at": "2024-11-01T10:00:00Z",
+  "updated_at": "2024-11-10T15:30:00Z",
+  "user": {
+    "id": "user-id-123",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "user",
+    "createdAt": "2024-10-15T14:30:00Z"
+  }
+}
+```
+
+### Possible Errors
+
+- **404 Not Found** - Токин-банк для пользователя не найден
+- **401 Unauthorized** - Нет токена
+- **403 Forbidden** - Не админ
+
+---
+
+### 1️⃣3️⃣ POST /api/admin/token-bank/allocate
+
+**Описание:** Выделить токины пользователю (увеличить баланс)
+
+**Метод:** POST  
+**Требует:** JWT токен + роль admin  
+**Возвращает:** Сообщение об успехе
+
+### Request
+
+```bash
+curl -X POST https://api.example.com/api/admin/token-bank/allocate \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user-id-123",
+    "amount": 500,
+    "reason": "Monthly allocation"
+  }'
+```
+
+### Request Body
+
+```typescript
+interface AllocateTokensRequest {
+  user_id: string;      // UUID пользователя
+  amount: number;       // Количество токинов для выделения (must be positive)
+  reason?: string;      // Причина выделения (опционально)
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+  "message": "Tokens allocated successfully",
+  "user_id": "user-id-123",
+  "amount": 500
+}
+```
+
+### Possible Errors
+
+- **400 Bad Request** - Неверные данные (amount must be positive)
+- **404 Not Found** - Пользователь или токин-банк не найден
+- **401 Unauthorized** - Нет токена
+- **403 Forbidden** - Не админ
+
+---
+
+### 1️⃣4️⃣ POST /api/admin/token-bank/revoke
+
+**Описание:** Отозвать токины у пользователя (уменьшить баланс)
+
+**Метод:** POST  
+**Требует:** JWT токен + роль admin  
+**Возвращает:** Сообщение об успехе
+
+### Request
+
+```bash
+curl -X POST https://api.example.com/api/admin/token-bank/revoke \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user-id-123",
+    "amount": 100,
+    "reason": "Policy violation"
+  }'
+```
+
+### Request Body
+
+```typescript
+interface RevokeTokensRequest {
+  user_id: string;      // UUID пользователя
+  amount: number;       // Количество токинов для отзыва (must be positive)
+  reason?: string;      // Причина отзыва (опционально)
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+  "message": "Tokens revoked successfully",
+  "user_id": "user-id-123",
+  "amount": 100
+}
+```
+
+### Possible Errors
+
+- **400 Bad Request** - Неверные данные или недостаточно токинов
+- **404 Not Found** - Пользователь или токин-банк не найден
+- **401 Unauthorized** - Нет токена
+- **403 Forbidden** - Не админ
+
+---
+
+### 1️⃣5️⃣ PUT /api/admin/token-bank/balance
+
+**Описание:** Установить точное значение баланса токинов для пользователя
+
+**Метод:** PUT  
+**Требует:** JWT токен + роль admin  
+**Возвращает:** Сообщение об успехе
+
+### Request
+
+```bash
+curl -X PUT https://api.example.com/api/admin/token-bank/balance \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user-id-123",
+    "balance": 1000
+  }'
+```
+
+### Request Body
+
+```typescript
+interface UpdateTokenBalanceRequest {
+  user_id: string;   // UUID пользователя
+  balance: number;   // Новое значение баланса (must be non-negative)
+}
+```
+
+### Response (200 OK)
+
+```json
+{
+  "message": "Token balance set successfully",
+  "user_id": "user-id-123",
+  "balance": 1000
+}
+```
+
+### Possible Errors
+
+- **400 Bad Request** - Неверные данные (balance must be non-negative)
+- **404 Not Found** - Пользователь или токин-банк не найден
+- **401 Unauthorized** - Нет токена
+- **403 Forbidden** - Не админ
+
+---
+
+## 📊 Updated Summary Table
 
 | # | Endpoint | Method | Возвращает | Фильтры |
 |----|----------|--------|-----------|---------|
@@ -482,26 +793,39 @@ interface AdminProfile {
 | 7 | `/api/admin/orders/recent` | GET | 10 последних заказов | DESC по дате |
 | 8 | `/api/admin/orders/{id}/status` | PUT | Сообщение | По ID |
 | 9 | `/api/admin/profile` | GET | Профиль админа | По JWT |
+| 10 | `/api/admin/token-bank` | GET | Все токин-банки | Нет |
+| 11 | `/api/admin/token-bank/stats` | GET | Статистика токинов | Нет |
+| 12 | `/api/admin/token-bank/{userID}` | GET | Токин-банк пользователя | По userID |
+| 13 | `/api/admin/token-bank/allocate` | POST | Сообщение | - |
+| 14 | `/api/admin/token-bank/revoke` | POST | Сообщение | - |
+| 15 | `/api/admin/token-bank/balance` | PUT | Сообщение | - |
 
 ---
 
-## 🔐 Authorization Matrix
+## 🔐 Updated Authorization Matrix
 
 ```
-┌─────────────────────────────┬────────┬──────────┐
-│ Endpoint                    │ User   │ Admin    │
-├─────────────────────────────┼────────┼──────────┤
-│ /api/admin/users            │ ❌     │ ✅       │
-│ /api/admin/stats            │ ❌     │ ✅       │
-│ /api/admin/users/{id}       │ ❌     │ ✅       │
-│ /api/admin/users/update-role│ ❌     │ ✅       │
-│ /api/admin/orders           │ ❌     │ ✅       │
-│ /api/admin/orders/recent    │ ❌     │ ✅       │
-│ /api/admin/orders/{id}/status│ ❌     │ ✅       │
-│ /api/admin/profile          │ ❌     │ ✅       │
-│ /api/user/profile           │ ✅     │ ✅       │
-└─────────────────────────────┴────────┴──────────┘
+┌─────────────────────────────────────┬────────┬──────────┐
+│ Endpoint                            │ User   │ Admin    │
+├─────────────────────────────────────┼────────┼──────────┤
+│ /api/admin/users                    │ ❌     │ ✅       │
+│ /api/admin/stats                    │ ❌     │ ✅       │
+│ /api/admin/users/{id}               │ ❌     │ ✅       │
+│ /api/admin/users/update-role        │ ❌     │ ✅       │
+│ /api/admin/orders                   │ ❌     │ ✅       │
+│ /api/admin/orders/recent            │ ❌     │ ✅       │
+│ /api/admin/orders/{id}/status       │ ❌     │ ✅       │
+│ /api/admin/profile                  │ ❌     │ ✅       │
+│ /api/admin/token-bank               │ ❌     │ ✅       │
+│ /api/admin/token-bank/stats         │ ❌     │ ✅       │
+│ /api/admin/token-bank/{userID}      │ ❌     │ ✅       │
+│ /api/admin/token-bank/allocate      │ ❌     │ ✅       │
+│ /api/admin/token-bank/revoke        │ ❌     │ ✅       │
+│ /api/admin/token-bank/balance       │ ❌     │ ✅       │
+│ /api/user/profile                   │ ✅     │ ✅       │
+└─────────────────────────────────────┴────────┴──────────┘
 ```
+
 
 ---
 

@@ -45,5 +45,13 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 		// Admin Profile
 		r.Get("/profile", m.handlers.GetAdminProfile)
+
+		// Token Bank
+		r.Get("/token-bank", m.handlers.GetAllTokenBanks)
+		r.Get("/token-bank/stats", m.handlers.GetTokenBankStats)
+		r.Get("/token-bank/{userID}", m.handlers.GetUserTokenBank)
+		r.Post("/token-bank/allocate", m.handlers.AllocateTokens)
+		r.Post("/token-bank/revoke", m.handlers.RevokeTokens)
+		r.Put("/token-bank/balance", m.handlers.SetTokenBalance)
 	})
 }

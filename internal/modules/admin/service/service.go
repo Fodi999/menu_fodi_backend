@@ -26,6 +26,14 @@ type AdminService interface {
 
 	// Admin Profile
 	GetAdminProfile(adminID string) (map[string]interface{}, error)
+
+	// Token Bank
+	GetAllTokenBanks() ([]models.TokenBank, error)
+	GetTokenBankByUserID(userID string) (*models.TokenBank, error)
+	AllocateTokens(userID string, amount int64) error
+	RevokeTokens(userID string, amount int64) error
+	SetTokenBalance(userID string, balance int64) error
+	GetTokenBankStats() (*models.TokenBankStats, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -191,3 +199,40 @@ func (s *adminService) GetAdminProfile(adminID string) (map[string]interface{}, 
 		"totalStats":      map[string]interface{}{"users": userCount, "orders": orderCount},
 	}, nil
 }
+
+// GetAllTokenBanks возвращает все записи токин-банков
+func (s *adminService) GetAllTokenBanks() ([]models.TokenBank, error) {
+	repo := &database.TokenBankRepository{}
+	return repo.FindAll()
+}
+
+// GetTokenBankByUserID возвращает токин-банк пользователя
+func (s *adminService) GetTokenBankByUserID(userID string) (*models.TokenBank, error) {
+	repo := &database.TokenBankRepository{}
+	return repo.FindByUserID(userID)
+}
+
+// AllocateTokens выделяет токины пользователю
+func (s *adminService) AllocateTokens(userID string, amount int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.AllocateTokens(userID, amount)
+}
+
+// RevokeTokens отзывает токины у пользователя
+func (s *adminService) RevokeTokens(userID string, amount int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.RevokeTokens(userID, amount)
+}
+
+// SetTokenBalance устанавливает точное значение баланса токинов
+func (s *adminService) SetTokenBalance(userID string, balance int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.SetBalance(userID, balance)
+}
+
+// GetTokenBankStats возвращает статистику по токинам
+func (s *adminService) GetTokenBankStats() (*models.TokenBankStats, error) {
+	repo := &database.TokenBankRepository{}
+	return repo.GetTokenBankStats()
+}
+

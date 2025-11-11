@@ -179,3 +179,138 @@ func (h *AdminHandlers) GetAdminProfile(w http.ResponseWriter, r *http.Request) 
 
 	utils.RespondWithJSON(w, http.StatusOK, profile)
 }
+
+// Token Bank Handlers
+
+// GetAllTokenBanks возвращает все записи токин-банков пользователей
+func (h *AdminHandlers) GetAllTokenBanks(w http.ResponseWriter, r *http.Request) {
+	tokenBanks, err := h.service.GetAllTokenBanks()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch token banks")
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, tokenBanks)
+}
+
+// GetTokenBankStats возвращает статистику по токинам
+func (h *AdminHandlers) GetTokenBankStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.GetTokenBankStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch token bank stats")
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
+
+// GetUserTokenBank возвращает токин-банк конкретного пользователя
+func (h *AdminHandlers) GetUserTokenBank(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "userID")
+
+	tokenBank, err := h.service.GetTokenBankByUserID(userID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Token bank not found")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, tokenBank)
+}
+
+// AllocateTokens выделяет токины пользователю
+func (h *AdminHandlers) AllocateTokens(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UserID string `json:"user_id"`
+		Amount int64  `json:"amount"`
+		Reason string `json:"reason,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	if req.UserID == "" || req.Amount <= 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "user_id and amount are required; amount must be positive")
+		return
+	}
+
+	err := h.service.AllocateTokens(req.UserID, req.Amount)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to allocate tokens: "+err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Tokens allocated successfully",
+		"user_id": req.UserID,
+		"amount":  req.Amount,
+	})
+}
+
+// RevokeTokens отзывает токины у пользователя
+func (h *AdminHandlers) RevokeTokens(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UserID string `json:"user_id"`
+		Amount int64  `json:"amount"`
+		Reason string `json:"reason,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	if req.UserID == "" || req.Amount <= 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "user_id and amount are required; amount must be positive")
+		return
+	}
+
+	err := h.service.RevokeTokens(req.UserID, req.Amount)
+	if err != nil {
+		switch err.Error() {
+		case "insufficient tokens":
+			utils.RespondWithError(w, http.StatusBadRequest, "Insufficient tokens to revoke")
+		case "token bank not found for user":
+			utils.RespondWithError(w, http.StatusNotFound, "Token bank not found for user")
+		default:
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to revoke tokens: "+err.Error())
+		}
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Tokens revoked successfully",
+		"user_id": req.UserID,
+		"amount":  req.Amount,
+	})
+}
+
+// SetTokenBalance устанавливает точное значение баланса токинов
+func (h *AdminHandlers) SetTokenBalance(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UserID  string `json:"user_id"`
+		Balance int64  `json:"balance"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	if req.UserID == "" || req.Balance < 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "user_id is required and balance must be non-negative")
+		return
+	}
+
+	err := h.service.SetTokenBalance(req.UserID, req.Balance)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to set token balance: "+err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Token balance set successfully",
+		"user_id": req.UserID,
+		"balance": req.Balance,
+	})
+}
+
