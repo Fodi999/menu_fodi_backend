@@ -78,7 +78,34 @@ func TestAdminRBACWithJWT(t *testing.T) {
 		)
 	})
 
-	// Тест 4: Request без токена → 401 Unauthorized
+	// Тест 4: GET /api/admin/profile от обычного пользователя → 403 Forbidden
+	t.Run("User cannot access /api/admin/profile", func(t *testing.T) {
+		req := createTestRequest(t, "GET", "/api/admin/profile", "", userToken)
+		w := httptest.NewRecorder()
+
+		handler := createTestRouter(t)
+		handler.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code, "Expected 403 Forbidden for non-admin user accessing admin profile")
+	})
+
+	// Тест 5: GET /api/admin/profile от администратора → 200 OK
+	t.Run("Admin can access /api/admin/profile", func(t *testing.T) {
+		req := createTestRequest(t, "GET", "/api/admin/profile", "", adminToken)
+		w := httptest.NewRecorder()
+
+		handler := createTestRouter(t)
+		handler.ServeHTTP(w, req)
+
+		// Должно быть 200 (успех) или 500 (ошибка БД), но не 403
+		assert.NotEqual(t, http.StatusForbidden, w.Code, "Admin should be able to access admin profile")
+		assert.True(t,
+			w.Code == http.StatusOK || w.Code == http.StatusInternalServerError,
+			"Expected 200 or 500, got %d", w.Code,
+		)
+	})
+
+	// Тест 6: Request без токена → 401 Unauthorized
 	t.Run("Request without token returns 401", func(t *testing.T) {
 		req := createTestRequest(t, "GET", "/api/admin/stats", "", "")
 		w := httptest.NewRecorder()
@@ -326,6 +353,29 @@ func createSimpleTestRouter() http.Handler {
 				"id":    claims.UserID,
 				"email": claims.Email,
 				"role":  claims.Role,
+				"name":  "Test User",
+				"level": 1,
+			})
+			return
+		}
+
+		// Admin profile доступен только админам
+		if r.URL.Path == "/api/admin/profile" {
+			if claims.Role != "admin" {
+				w.WriteHeader(http.StatusForbidden)
+				json.NewEncoder(w).Encode(map[string]string{"error": "Forbidden: admin role required"})
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"id":            claims.UserID,
+				"email":         claims.Email,
+				"role":          claims.Role,
+				"name":          "Admin",
+				"managedUsers":  42,
+				"managedOrders": 100,
 			})
 			return
 		}

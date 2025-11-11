@@ -23,6 +23,9 @@ type AdminService interface {
 
 	// Statistics
 	GetAdminStats() (map[string]interface{}, error)
+
+	// Admin Profile
+	GetAdminProfile(adminID string) (map[string]interface{}, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -152,5 +155,39 @@ func (s *adminService) GetAdminStats() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"totalUsers":  userCount,
 		"totalOrders": orderCount,
+	}, nil
+}
+
+// GetAdminProfile возвращает профиль администратора с информацией о пользователе
+func (s *adminService) GetAdminProfile(adminID string) (map[string]interface{}, error) {
+	var user models.User
+	if err := s.db.First(&user, "id = ?", adminID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("admin not found")
+		}
+		return nil, err
+	}
+
+	// Подсчитаем количество управляемых пользователей (всех пользователей в системе)
+	var userCount int64
+	if err := s.db.Model(&models.User{}).Count(&userCount).Error; err != nil {
+		return nil, err
+	}
+
+	// Подсчитаем количество управляемых заказов
+	var orderCount int64
+	if err := s.db.Model(&models.Order{}).Count(&orderCount).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"id":              user.ID,
+		"name":            user.Name,
+		"email":           user.Email,
+		"role":            user.Role,
+		"createdAt":       user.CreatedAt,
+		"managedUsers":    userCount,
+		"managedOrders":   orderCount,
+		"totalStats":      map[string]interface{}{"users": userCount, "orders": orderCount},
 	}, nil
 }

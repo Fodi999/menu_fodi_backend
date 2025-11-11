@@ -42,5 +42,8 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 		// Stats
 		r.Get("/stats", m.handlers.GetAdminStats)
+
+		// Admin Profile
+		r.Get("/profile", m.handlers.GetAdminProfile)
 	})
 }

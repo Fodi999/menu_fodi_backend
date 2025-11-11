@@ -151,3 +151,31 @@ func (h *AdminHandlers) GetAdminStats(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondWithJSON(w, http.StatusOK, stats)
 }
+
+// GetAdminProfile возвращает профиль текущего администратора с управляемыми ресурсами
+func (h *AdminHandlers) GetAdminProfile(w http.ResponseWriter, r *http.Request) {
+	// Извлекаем adminID из контекста (устанавливается middleware)
+	adminID := r.Context().Value("user_id")
+	if adminID == nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	adminIDStr, ok := adminID.(string)
+	if !ok {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Invalid user ID format")
+		return
+	}
+
+	profile, err := h.service.GetAdminProfile(adminIDStr)
+	if err != nil {
+		if err.Error() == "admin not found" {
+			utils.RespondWithError(w, http.StatusNotFound, "Admin not found")
+		} else {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch admin profile")
+		}
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, profile)
+}
