@@ -203,7 +203,15 @@ func (s *adminService) GetAdminProfile(adminID string) (map[string]interface{}, 
 // GetAllTokenBanks возвращает все записи токин-банков
 func (s *adminService) GetAllTokenBanks() ([]models.TokenBank, error) {
 	repo := &database.TokenBankRepository{}
-	return repo.FindAll()
+	tokenBanks, err := repo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+	// Если нет данных, возвращаем пустой массив вместо nil
+	if len(tokenBanks) == 0 {
+		return []models.TokenBank{}, nil
+	}
+	return tokenBanks, nil
 }
 
 // GetTokenBankByUserID возвращает токин-банк пользователя
@@ -233,6 +241,16 @@ func (s *adminService) SetTokenBalance(userID string, balance int64) error {
 // GetTokenBankStats возвращает статистику по токинам
 func (s *adminService) GetTokenBankStats() (*models.TokenBankStats, error) {
 	repo := &database.TokenBankRepository{}
-	return repo.GetTokenBankStats()
+	stats, err := repo.GetTokenBankStats()
+	if err != nil {
+		// Если ошибка, возвращаем пустую статистику вместо ошибки
+		return &models.TokenBankStats{
+			TotalTokensAllocated: 0,
+			TotalTokensUsed:      0,
+			TotalUsersWithTokens: 0,
+			AverageBalancePerUser: 0,
+		}, nil
+	}
+	return stats, nil
 }
 
