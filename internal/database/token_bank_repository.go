@@ -36,7 +36,7 @@ func (r *TokenBankRepository) FindByID(id string) (*models.TokenBank, error) {
 // FindAll возвращает все записи токин-банка с информацией о пользователях
 func (r *TokenBankRepository) FindAll() ([]models.TokenBank, error) {
 	var tokenBanks []models.TokenBank
-	result := DB.Preload("User").Find(&tokenBanks)
+	result := DB.Find(&tokenBanks)
 	if result.Error != nil {
 		return nil, result.Error
 	}
