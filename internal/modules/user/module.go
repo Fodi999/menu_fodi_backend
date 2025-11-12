@@ -43,5 +43,8 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 
 		// Achievements
 		r.Get("/achievements", m.handlers.GetAchievements)
+
+		// Wallet
+		r.Get("/wallet", m.handlers.GetWallet)
 	})
 }

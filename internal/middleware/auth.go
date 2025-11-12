@@ -26,8 +26,11 @@ func Logger(next http.Handler) http.Handler {
 // AuthMiddleware проверяет JWT токен
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("🔐 AuthMiddleware: %s %s", r.Method, r.URL.Path)
+		
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
+			log.Printf("❌ No Authorization header for %s %s", r.Method, r.URL.Path)
 			utils.WriteError(w, http.StatusUnauthorized, "Authorization header required")
 			return
 		}
@@ -35,9 +38,12 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := authservice.ValidateToken(tokenString)
 		if err != nil {
+			log.Printf("❌ Invalid token for %s %s: %v", r.Method, r.URL.Path, err)
 			utils.WriteError(w, http.StatusUnauthorized, "Invalid or expired token")
 			return
 		}
+
+		log.Printf("✅ Auth OK for user %s: %s %s", claims.UserID, r.Method, r.URL.Path)
 
 		// Добавляем данные пользователя в контекст
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)

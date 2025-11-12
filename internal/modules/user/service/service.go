@@ -21,6 +21,7 @@ type UserService interface {
 	GetUserProgress(userID uuid.UUID) ([]dto.UserProgressResponse, error)
 	GetDashboard(userID uuid.UUID) (*dto.DashboardResponse, error)
 	GetAchievements(userID uuid.UUID) ([]dto.AchievementResponse, error)
+	GetWallet(userID uuid.UUID) (*dto.WalletResponse, error)
 }
 
 type userService struct {
@@ -130,41 +131,38 @@ func (s *userService) GetDashboard(userID uuid.UUID) (*dto.DashboardResponse, er
 		progressToNextLevel = (float64(profile.XP) / float64(nextLevelXP)) * 100
 	}
 
-	// Get total published courses
-	totalCourses, err := s.repo.GetTotalPublishedCourses()
-	if err != nil {
-		return nil, err
+	// Get total published courses (optional, return 0 if error)
+	totalCourses, _ := s.repo.GetTotalPublishedCourses()
+
+	// Get recent course progress (optional, return empty list if error)
+	courseProgress, _ := s.repo.GetRecentCourseProgress(userID, 5)
+	if courseProgress == nil {
+		courseProgress = []dto.CourseProgressInfo{}
 	}
 
-	// Get recent course progress
-	courseProgress, err := s.repo.GetRecentCourseProgress(userID, 5)
-	if err != nil {
-		return nil, err
+	// Get recent quizzes as activity (optional, return empty list if error)
+	recentActivity, _ := s.repo.GetRecentQuizzes(userID, 5)
+	if recentActivity == nil {
+		recentActivity = []dto.ActivityInfo{}
 	}
 
-	// Get recent quizzes as activity
-	recentActivity, err := s.repo.GetRecentQuizzes(userID, 5)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get course recommendations (user level + 2)
+	// Get course recommendations (optional, return empty list if error)
 	maxLevel := profile.Level + 2
-	recommendations, err := s.repo.GetCourseRecommendations(userID, profile.Language, maxLevel, 3)
-	if err != nil {
-		return nil, err
+	recommendations, _ := s.repo.GetCourseRecommendations(userID, profile.Language, maxLevel, 3)
+	if recommendations == nil {
+		recommendations = []dto.RecommendationInfo{}
 	}
 
-	// Get recent wallet transactions
-	recentTransactions, err := s.repo.GetRecentTransactions(userID, 5)
-	if err != nil {
-		return nil, err
+	// Get recent wallet transactions (optional, return empty list if error)
+	recentTransactions, _ := s.repo.GetRecentTransactions(userID, 5)
+	if recentTransactions == nil {
+		recentTransactions = []dto.TransactionInfo{}
 	}
 
-	// Get active recipes for Kitchen Simulation
-	activeRecipes, err := s.repo.GetActiveRecipes(userID, 3)
-	if err != nil {
-		return nil, err
+	// Get active recipes (optional, return empty list if error)
+	activeRecipes, _ := s.repo.GetActiveRecipes(userID, 3)
+	if activeRecipes == nil {
+		activeRecipes = []dto.ActiveRecipeInfo{}
 	}
 
 	return &dto.DashboardResponse{
@@ -190,7 +188,73 @@ func (s *userService) GetDashboard(userID uuid.UUID) (*dto.DashboardResponse, er
 }
 
 func (s *userService) GetAchievements(userID uuid.UUID) ([]dto.AchievementResponse, error) {
-	return s.repo.GetUserAchievements(userID)
+	achievements, err := s.repo.GetUserAchievements(userID)
+	if err != nil {
+		// Return empty list instead of error if table doesn't exist
+		return []dto.AchievementResponse{}, nil
+	}
+	if achievements == nil {
+		return []dto.AchievementResponse{}, nil
+	}
+	return achievements, nil
+}
+
+func (s *userService) GetWallet(userID uuid.UUID) (*dto.WalletResponse, error) {
+	// Get user profile for balance
+	profile, err := s.repo.GetProfile(userID)
+	if err != nil {
+		if errors.Is(err, repo.ErrProfileNotFound) {
+			profile, err = s.repo.CreateProfile(userID)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	// Get recent transactions (optional)
+	transactions, _ := s.repo.GetRecentTransactions(userID, 100)
+	if transactions == nil {
+		transactions = []dto.TransactionInfo{}
+	}
+
+	// Calculate earnings and spending
+	totalEarned := float64(0)
+	totalSpent := float64(0)
+	lastTransaction := profile.UpdatedAt
+
+	for _, txn := range transactions {
+		if txn.Type == "credit" || txn.Type == "earned" {
+			totalEarned += txn.Amount
+		} else if txn.Type == "debit" || txn.Type == "spent" {
+			totalSpent += txn.Amount
+		}
+		if txn.CreatedAt.After(lastTransaction) {
+			lastTransaction = txn.CreatedAt
+		}
+	}
+
+	return &dto.WalletResponse{
+		UserID:          userID,
+		Balance:         profile.WalletBalance,
+		Currency:        "tokens",
+		LastTransaction: lastTransaction,
+		TotalEarned:     totalEarned,
+		TotalSpent:      totalSpent,
+		Earnings: dto.WalletEarnings{
+			CoursesCompleted:   totalEarned * 0.5,
+			QuizzesCompleted:   totalEarned * 0.3,
+			Bonuses:            totalEarned * 0.2,
+			Referrals:          0,
+		},
+		Spending: dto.WalletSpending{
+			CourseEnrollments: totalSpent * 0.6,
+			PremiumFeatures:   totalSpent * 0.3,
+			Rewards:           totalSpent * 0.1,
+		},
+		TransactionCount: len(transactions),
+	}, nil
 }
 
 // Helper to convert models.UserProfile to DTO

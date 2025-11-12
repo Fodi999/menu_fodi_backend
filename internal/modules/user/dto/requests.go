@@ -119,3 +119,31 @@ type AchievementResponse struct {
 	Category    string    `json:"category"`
 	UnlockedAt  time.Time `json:"unlockedAt"`
 }
+
+// WalletResponse represents user wallet information
+type WalletResponse struct {
+	UserID           uuid.UUID         `json:"userId"`
+	Balance          float64           `json:"balance"`
+	Currency         string            `json:"currency"`
+	LastTransaction  time.Time         `json:"lastTransaction"`
+	TotalEarned      float64           `json:"totalEarned"`
+	TotalSpent       float64           `json:"totalSpent"`
+	Earnings         WalletEarnings    `json:"earnings"`
+	Spending         WalletSpending    `json:"spending"`
+	TransactionCount int               `json:"transactionCount"`
+}
+
+// WalletEarnings breakdown
+type WalletEarnings struct {
+	CoursesCompleted   float64 `json:"coursesCompleted"`
+	QuizzesCompleted   float64 `json:"quizzesCompleted"`
+	Bonuses            float64 `json:"bonuses"`
+	Referrals          float64 `json:"referrals"`
+}
+
+// WalletSpending breakdown
+type WalletSpending struct {
+	CourseEnrollments  float64 `json:"courseEnrollments"`
+	PremiumFeatures    float64 `json:"premiumFeatures"`
+	Rewards            float64 `json:"rewards"`
+}

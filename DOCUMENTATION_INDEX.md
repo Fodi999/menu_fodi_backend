@@ -21,9 +21,7 @@
 | Файл | Назначение | Для кого |
 |------|-----------|----------|
 | [HOW_ADMIN_LOGIN_WORKS.md](HOW_ADMIN_LOGIN_WORKS.md) | Полный поток аутентификации админа | Backend разработчики |
-| [ADMIN_LOGIN_EXPLANATION.md](ADMIN_LOGIN_EXPLANATION.md) | Объяснение системы логина и ролей | Все разработчики |
 | [ADMIN_ROLE_GUIDE.md](ADMIN_ROLE_GUIDE.md) | Система ролей и прав доступа | Backend разработчики |
-| [LOGIN_401_TROUBLESHOOTING.md](LOGIN_401_TROUBLESHOOTING.md) | Решение проблем с 401 ошибками | DevOps & Backend |
 
 ### 📚 API Reference
 
@@ -31,8 +29,6 @@
 |------|-----------|----------|
 | [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md) | ⭐ Быстрая справка с curl примерами | Все разработчики |
 | [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md) | Полная документация всех 15 эндпоинтов | Frontend & Backend |
-| [ADMIN_API_QUICK_REF.md](ADMIN_API_QUICK_REF.md) | Таблица эндпоинтов | Быстрая справка |
-| [ADMIN_PROFILE_ENDPOINTS.md](ADMIN_PROFILE_ENDPOINTS.md) | Разделённые профиль-эндпоинты | Frontend разработчики |
 | [TOKEN_BANK_QUICK_REF.md](TOKEN_BANK_QUICK_REF.md) | Быстрая справка по Token Bank API | Frontend разработчики |
 
 ### 🏗️ Architecture & Design
@@ -40,8 +36,6 @@
 | Файл | Назначение | Для кого |
 |------|-----------|----------|
 | [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md) | Полное описание архитектуры админ-панели | Все разработчики |
-| [REFACTOR_COMPLETE_REPORT.md](REFACTOR_COMPLETE_REPORT.md) | Отчет о рефакторинге Clean Architecture | Senior разработчики |
-| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Краткое резюме реализации | Все разработчики |
 
 ### 🚀 Deployment & Setup
 
@@ -49,7 +43,6 @@
 |------|-----------|----------|
 | [PRODUCTION_DATABASE_SETUP.md](PRODUCTION_DATABASE_SETUP.md) | Setup production БД с тестовыми данными | DevOps & Backend |
 | [TOKEN_BANK_SETUP_GUIDE.md](TOKEN_BANK_SETUP_GUIDE.md) | Полное руководство по Token Bank | DevOps & Backend |
-| [FRONTEND_API_FIX.md](FRONTEND_API_FIX.md) | Исправление API endpoints на фронтенде | Frontend разработчики |
 | [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md) | Интеграция админ-панели с фронтендом | Frontend разработчики |
 
 ### 🧪 Testing & Verification
@@ -77,8 +70,8 @@
 4. ADMIN_ENDPOINTS_DATA_STRUCTURE.md (45 мин)
    └─ Детали всех эндпоинтов
 
-5. REFACTOR_COMPLETE_REPORT.md      (20 мин)
-   └─ Clean Architecture паттерны
+5. TOKEN_BANK_SETUP_GUIDE.md        (20 мин)
+   └─ Token Bank API & deployment
 ```
 
 ### Путь 2️⃣: Для Frontend разработчика
@@ -90,14 +83,11 @@
 2. ADMIN_ENDPOINTS_DATA_STRUCTURE.md (40 мин)
    └─ Структура данных и ответы
 
-3. ADMIN_PROFILE_ENDPOINTS.md       (20 мин)
-   └─ Как выбрать правильный эндпоинт
+3. TOKEN_BANK_QUICK_REF.md          (20 мин)
+   └─ Token Bank API reference
 
 4. FRONTEND_INTEGRATION_GUIDE.md    (30 мин)
    └─ Интеграция в приложение
-
-5. FRONTEND_API_FIX.md              (10 мин)
-   └─ Правильные URL эндпоинтов
 ```
 
 ### Путь 3️⃣: Для DevOps/Production
@@ -106,25 +96,25 @@
 1. PRODUCTION_DATABASE_SETUP.md     (30 мин)
    └─ Инициализация БД
 
-2. ADMIN_API_CHEAT_SHEET.md         (15 мин)
-   └─ Проверка эндпоинтов
+2. TOKEN_BANK_SETUP_GUIDE.md        (30 мин)
+   └─ Развёртывание Token Bank
 
-3. FRONTEND_API_FIX.md              (10 мин)
-   └─ Проверка конфигурации
+3. ADMIN_API_CHEAT_SHEET.md         (15 мин)
+   └─ Проверка эндпоинтов
 ```
 
 ---
 
 ## 🎯 Find What You Need
 
+### "Как выделить токины пользователю?"
+👉 [TOKEN_BANK_QUICK_REF.md](TOKEN_BANK_QUICK_REF.md) → Раздел "Allocate Tokens"
+
+### "Какие данные приходят от /api/admin/token-bank?"
+👉 [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md) → Раздел "Token Bank Endpoints"
+
 ### "Как отправить заказ админу?"
-👉 [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md) → Раздел "Orders Endpoints" → "Изменить статус заказа"
-
-### "Какие данные приходят от /api/admin/profile?"
-👉 [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md) → Раздел "9️⃣ GET /api/admin/profile"
-
-### "Почему я получаю 401 при входе?"
-👉 [LOGIN_401_TROUBLESHOOTING.md](LOGIN_401_TROUBLESHOOTING.md)
+👉 [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md) → Раздел "Orders Endpoints"
 
 ### "Как работает аутентификация админа?"
 👉 [HOW_ADMIN_LOGIN_WORKS.md](HOW_ADMIN_LOGIN_WORKS.md)
@@ -132,11 +122,11 @@
 ### "Как интегрировать админ-панель в фронтенд?"
 👉 [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md)
 
-### "Какой Frontend URL для /api/login?"
-👉 [FRONTEND_API_FIX.md](FRONTEND_API_FIX.md)
-
 ### "Архитектура админ модуля?"
-👉 [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md) или [REFACTOR_COMPLETE_REPORT.md](REFACTOR_COMPLETE_REPORT.md)
+👉 [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md)
+
+### "Как развернуть Token Bank в production?"
+👉 [TOKEN_BANK_SETUP_GUIDE.md](TOKEN_BANK_SETUP_GUIDE.md)
 
 ### "Как создать тестового админа в production?"
 👉 [PRODUCTION_DATABASE_SETUP.md](PRODUCTION_DATABASE_SETUP.md)
@@ -147,11 +137,11 @@
 
 | Категория | Файлов | Строк | Назначение |
 |-----------|--------|-------|-----------|
-| Authentication | 4 | 1,500+ | Логин, роли, проблемы |
-| API Reference | 4 | 2,000+ | Эндпоинты, данные |
-| Architecture | 3 | 1,200+ | Дизайн, рефакторинг |
-| Deployment | 3 | 800+ | Setup, integration |
-| **ВСЕГО** | **14** | **5,500+** | Полное описание |
+| Authentication | 2 | 800+ | Логин, роли |
+| API Reference | 3 | 2,000+ | Эндпоинты, данные |
+| Architecture | 1 | 500+ | Дизайн |
+| Deployment | 3 | 1,500+ | Setup, integration, token bank |
+| **ВСЕГО** | **11** | **4,800+** | Полное описание |
 
 ---
 
@@ -176,6 +166,17 @@
 ```
 ✅ GET    /api/user/profile             - Профиль пользователя
 ✅ GET    /api/admin/profile            - Профиль админа
+```
+
+### 6 Token Bank Endpoints
+
+```
+✅ GET    /api/admin/token-bank         - Все токин-банки
+✅ GET    /api/admin/token-bank/stats   - Статистика токинов
+✅ GET    /api/admin/token-bank/{uid}   - Токин-банк пользователя
+✅ POST   /api/admin/token-bank/allocate - Выделить токины
+✅ POST   /api/admin/token-bank/revoke   - Отозвать токины
+✅ PUT    /api/admin/token-bank/balance  - Установить баланс
 ```
 
 ---
@@ -212,8 +213,8 @@ Success Rate:         100%
 ## 📞 Getting Help
 
 1. **Быстрый старт?** → [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md)
-2. **Ошибка 401?** → [LOGIN_401_TROUBLESHOOTING.md](LOGIN_401_TROUBLESHOOTING.md)
-3. **API детали?** → [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md)
+2. **Какие эндпоинты?** → [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md)
+3. **Token Bank?** → [TOKEN_BANK_QUICK_REF.md](TOKEN_BANK_QUICK_REF.md)
 4. **Интеграция?** → [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md)
 5. **Архитектура?** → [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md)
 
@@ -222,8 +223,7 @@ Success Rate:         100%
 ## ✅ Checklist Before Deployment
 
 - [ ] Прочитал [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md)
-- [ ] Проверил [FRONTEND_API_FIX.md](FRONTEND_API_FIX.md)
-- [ ] Запустил тесты: `bash test_admin_api.sh`
+- [ ] Запустил тесты: `bash test_token_bank_api.sh`
 - [ ] Создал админ-пользователя: [PRODUCTION_DATABASE_SETUP.md](PRODUCTION_DATABASE_SETUP.md)
 - [ ] Интегрировал фронтенд: [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md)
 - [ ] Протестировал все эндпоинты
@@ -235,11 +235,10 @@ Success Rate:         100%
 
 | Дата | Описание | Файл |
 |------|---------|------|
-| 2024-11-11 | Clean Architecture рефакторинг | REFACTOR_COMPLETE_REPORT.md |
-| 2024-11-11 | Разделённые профиль-эндпоинты | ADMIN_PROFILE_ENDPOINTS.md |
-| 2024-11-11 | RBAC JWT тесты | admin_rbac_test.go |
-| 2024-11-11 | Полная документация эндпоинтов | ADMIN_ENDPOINTS_DATA_STRUCTURE.md |
-| 2024-11-11 | Quick cheat sheet | ADMIN_API_CHEAT_SHEET.md |
+| 2024-11-11 | Token Bank admin panel feature | TOKEN_BANK_SETUP_GUIDE.md |
+| 2024-11-11 | Token Bank API quick reference | TOKEN_BANK_QUICK_REF.md |
+| 2024-11-11 | Полная документация всех 15 эндпоинтов | ADMIN_ENDPOINTS_DATA_STRUCTURE.md |
+| 2024-11-11 | Quick cheat sheet с примерами curl | ADMIN_API_CHEAT_SHEET.md |
 
 ---
 
@@ -248,17 +247,17 @@ Success Rate:         100%
 ### Core Concepts
 - JWT Authentication: [HOW_ADMIN_LOGIN_WORKS.md](HOW_ADMIN_LOGIN_WORKS.md)
 - RBAC System: [ADMIN_ROLE_GUIDE.md](ADMIN_ROLE_GUIDE.md)
-- Clean Architecture: [REFACTOR_COMPLETE_REPORT.md](REFACTOR_COMPLETE_REPORT.md)
+- Admin Panel Architecture: [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md)
 
 ### Practical Guides
 - Frontend Integration: [FRONTEND_INTEGRATION_GUIDE.md](FRONTEND_INTEGRATION_GUIDE.md)
 - API Examples: [ADMIN_API_CHEAT_SHEET.md](ADMIN_API_CHEAT_SHEET.md)
 - Data Structures: [ADMIN_ENDPOINTS_DATA_STRUCTURE.md](ADMIN_ENDPOINTS_DATA_STRUCTURE.md)
+- Token Bank API: [TOKEN_BANK_QUICK_REF.md](TOKEN_BANK_QUICK_REF.md)
 
-### Troubleshooting
-- 401 Errors: [LOGIN_401_TROUBLESHOOTING.md](LOGIN_401_TROUBLESHOOTING.md)
-- Frontend Issues: [FRONTEND_API_FIX.md](FRONTEND_API_FIX.md)
+### Deployment
 - Production Setup: [PRODUCTION_DATABASE_SETUP.md](PRODUCTION_DATABASE_SETUP.md)
+- Token Bank Deployment: [TOKEN_BANK_SETUP_GUIDE.md](TOKEN_BANK_SETUP_GUIDE.md)
 
 ---
 
