@@ -154,6 +154,52 @@ func (h *AdminHandlers) GetAdminStats(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, stats)
 }
 
+// GetAdminDashboard возвращает aggregated dashboard data для админ панели
+func (h *AdminHandlers) GetAdminDashboard(w http.ResponseWriter, r *http.Request) {
+	// Извлекаем claims из контекста
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
+	if !ok || claims == nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	// Получаем профиль админа
+	profile, err := h.service.GetAdminProfile(claims.UserID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch admin profile")
+		return
+	}
+
+	// Получаем статистику
+	stats, err := h.service.GetAdminStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch stats")
+		return
+	}
+
+	// Получаем последние заказы (graceful degradation если ошибка)
+	var recentOrders interface{} = []interface{}{}
+	if orders, err := h.service.GetRecentOrders(5); err == nil {
+		recentOrders = orders
+	}
+
+	// Получаем информацию о токенах (graceful degradation если ошибка)
+	var tokenStats interface{} = nil
+	if ts, err := h.service.GetTokenBankStats(); err == nil {
+		tokenStats = ts
+	}
+
+	// Формируем dashboard response
+	dashboard := map[string]interface{}{
+		"admin":        profile,
+		"stats":        stats,
+		"recentOrders": recentOrders,
+		"tokenStats":   tokenStats,
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, dashboard)
+}
+
 // GetAdminProfile возвращает профиль текущего администратора с управляемыми ресурсами
 func (h *AdminHandlers) GetAdminProfile(w http.ResponseWriter, r *http.Request) {
 	// Извлекаем claims из контекста (устанавливается AuthMiddleware)
