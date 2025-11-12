@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/service"
+	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/go-chi/chi/v5"
 )
@@ -154,20 +156,14 @@ func (h *AdminHandlers) GetAdminStats(w http.ResponseWriter, r *http.Request) {
 
 // GetAdminProfile возвращает профиль текущего администратора с управляемыми ресурсами
 func (h *AdminHandlers) GetAdminProfile(w http.ResponseWriter, r *http.Request) {
-	// Извлекаем adminID из контекста (устанавливается middleware)
-	adminID := r.Context().Value("user_id")
-	if adminID == nil {
+	// Извлекаем claims из контекста (устанавливается AuthMiddleware)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
+	if !ok || claims == nil {
 		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	adminIDStr, ok := adminID.(string)
-	if !ok {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Invalid user ID format")
-		return
-	}
-
-	profile, err := h.service.GetAdminProfile(adminIDStr)
+	profile, err := h.service.GetAdminProfile(claims.UserID)
 	if err != nil {
 		if err.Error() == "admin not found" {
 			utils.RespondWithError(w, http.StatusNotFound, "Admin not found")
