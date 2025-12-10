@@ -34,6 +34,13 @@ type AdminService interface {
 	RevokeTokens(userID string, amount int64) error
 	SetTokenBalance(userID string, balance int64) error
 	GetTokenBankStats() (*models.TokenBankStats, error)
+	
+	// Treasury
+	GetTreasuryInfo() (*models.TokenBank, error)
+	AllocateFromTreasury(userID string, amount int64) error
+	AllocateWelcomeBonus(userID string) error
+	AllocateQuestReward(userID string, questID string, rewardAmount int64) error
+	AllocateAchievementReward(userID string, achievementID string, rewardAmount int64) error
 }
 
 // adminService реализация интерфейса AdminService
@@ -254,3 +261,32 @@ func (s *adminService) GetTokenBankStats() (*models.TokenBankStats, error) {
 	return stats, nil
 }
 
+// GetTreasuryInfo возвращает информацию о казначействе
+func (s *adminService) GetTreasuryInfo() (*models.TokenBank, error) {
+	repo := &database.TokenBankRepository{}
+	return repo.GetTreasuryInfo()
+}
+
+// AllocateFromTreasury выделяет токены из казначейства пользователю
+func (s *adminService) AllocateFromTreasury(userID string, amount int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.AllocateFromTreasury(userID, amount)
+}
+
+// AllocateWelcomeBonus выделяет приветственный бонус новому пользователю (по умолчанию 100 токенов)
+func (s *adminService) AllocateWelcomeBonus(userID string) error {
+	repo := &database.TokenBankRepository{}
+	return repo.AllocateWelcomeBonus(userID, 100)
+}
+
+// AllocateQuestReward выделяет награду за выполнение квеста
+func (s *adminService) AllocateQuestReward(userID string, questID string, rewardAmount int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.AllocateQuestReward(userID, questID, rewardAmount)
+}
+
+// AllocateAchievementReward выделяет награду за достижение
+func (s *adminService) AllocateAchievementReward(userID string, achievementID string, rewardAmount int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.AllocateAchievementReward(userID, achievementID, rewardAmount)
+}

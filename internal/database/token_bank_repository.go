@@ -7,6 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// TreasuryUserID константа для ID системного казначейства
+const TreasuryUserID = "TREASURY"
+
 // TokenBankRepository репозиторий для работы с банком токинов
 type TokenBankRepository struct{}
 
@@ -197,4 +200,102 @@ func (r *TokenBankRepository) InitializeTokenBankForUser(userID string) error {
 func (r *TokenBankRepository) Delete(id string) error {
 	result := DB.Delete(&models.TokenBank{}, "id = ?", id)
 	return result.Error
+}
+
+// GetTreasuryBalance возвращает баланс казначейства
+func (r *TokenBankRepository) GetTreasuryBalance() (int64, error) {
+	var treasury models.TokenBank
+	result := DB.Where("user_id = ?", TreasuryUserID).First(&treasury)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return 0, errors.New("treasury not found")
+		}
+		return 0, result.Error
+	}
+	return treasury.Balance, nil
+}
+
+// AllocateFromTreasury выделяет токены из казначейства пользователю
+func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) error {
+	if amount <= 0 {
+		return errors.New("amount must be positive")
+	}
+
+	// Начинаем транзакцию
+	return DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Проверяем баланс казначейства
+		var treasury models.TokenBank
+		if err := tx.Where("user_id = ?", TreasuryUserID).First(&treasury).Error; err != nil {
+			return errors.New("treasury not found")
+		}
+
+		if treasury.Balance < amount {
+			return errors.New("insufficient treasury balance")
+		}
+
+		// 2. Уменьшаем баланс казначейства и увеличиваем total_used
+		if err := tx.Model(&models.TokenBank{}).
+			Where("user_id = ?", TreasuryUserID).
+			Updates(map[string]interface{}{
+				"balance":    gorm.Expr("balance - ?", amount),
+				"total_used": gorm.Expr("total_used + ?", amount),
+			}).Error; err != nil {
+			return err
+		}
+
+		// 3. Увеличиваем баланс пользователя
+		result := tx.Model(&models.TokenBank{}).
+			Where("user_id = ?", userID).
+			Updates(map[string]interface{}{
+				"balance":         gorm.Expr("balance + ?", amount),
+				"total_allocated": gorm.Expr("total_allocated + ?", amount),
+			})
+
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errors.New("user token bank not found")
+		}
+
+		return nil
+	})
+}
+
+// GetTreasuryInfo возвращает полную информацию о казначействе
+func (r *TokenBankRepository) GetTreasuryInfo() (*models.TokenBank, error) {
+	return r.FindByUserID(TreasuryUserID)
+}
+
+// AllocateWelcomeBonus автоматически выделяет приветственный бонус новому пользователю из казначейства
+func (r *TokenBankRepository) AllocateWelcomeBonus(userID string, bonusAmount int64) error {
+	if bonusAmount <= 0 {
+		bonusAmount = 100 // Дефолтный приветственный бонус
+	}
+	return r.AllocateFromTreasury(userID, bonusAmount)
+}
+
+// AllocateQuestReward выделяет награду за выполнение квеста из казначейства
+func (r *TokenBankRepository) AllocateQuestReward(userID string, questID string, rewardAmount int64) error {
+	if rewardAmount <= 0 {
+		return errors.New("reward amount must be positive")
+	}
+	return r.AllocateFromTreasury(userID, rewardAmount)
+}
+
+// AllocateAchievementReward выделяет награду за достижение из казначейства
+func (r *TokenBankRepository) AllocateAchievementReward(userID string, achievementID string, rewardAmount int64) error {
+	if rewardAmount <= 0 {
+		return errors.New("reward amount must be positive")
+	}
+	return r.AllocateFromTreasury(userID, rewardAmount)
+}
+
+// CheckTreasuryBalance проверяет, достаточно ли токенов в казначействе
+func (r *TokenBankRepository) CheckTreasuryBalance(requiredAmount int64) (bool, error) {
+	balance, err := r.GetTreasuryBalance()
+	if err != nil {
+		return false, err
+	}
+	return balance >= requiredAmount, nil
 }

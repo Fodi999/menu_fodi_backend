@@ -356,3 +356,76 @@ func (h *AdminHandlers) SetTokenBalance(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// Treasury Handlers
+
+// GetTreasuryInfo возвращает информацию о казначействе (treasury)
+func (h *AdminHandlers) GetTreasuryInfo(w http.ResponseWriter, r *http.Request) {
+	treasury, err := h.service.GetTreasuryInfo()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Treasury not found")
+		return
+	}
+
+	// Добавляем вычисляемые поля
+	response := map[string]interface{}{
+		"id":              treasury.ID,
+		"user_id":         treasury.UserID,
+		"balance":         treasury.Balance,
+		"total_allocated": treasury.TotalAllocated,
+		"total_used":      treasury.TotalUsed,
+		"total_supply":    treasury.TotalAllocated, // Начальный supply
+		"distributed":     treasury.TotalUsed,
+		"remaining":       treasury.Balance,
+		"created_at":      treasury.CreatedAt,
+		"updated_at":      treasury.UpdatedAt,
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, response)
+}
+
+// AllocateFromTreasury выделяет токены из казначейства пользователю
+func (h *AdminHandlers) AllocateFromTreasury(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		UserID string `json:"user_id"`
+		Amount int64  `json:"amount"`
+		Reason string `json:"reason,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	if req.UserID == "" || req.Amount <= 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "user_id and amount are required; amount must be positive")
+		return
+	}
+
+	// Не позволяем выделять токены казначейству из казначейства
+	if req.UserID == "TREASURY" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Cannot allocate tokens to treasury from itself")
+		return
+	}
+
+	err := h.service.AllocateFromTreasury(req.UserID, req.Amount)
+	if err != nil {
+		switch err.Error() {
+		case "insufficient treasury balance":
+			utils.RespondWithError(w, http.StatusBadRequest, "Insufficient treasury balance")
+		case "user token bank not found":
+			utils.RespondWithError(w, http.StatusNotFound, "User token bank not found")
+		case "treasury not found":
+			utils.RespondWithError(w, http.StatusInternalServerError, "Treasury not initialized")
+		default:
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to allocate from treasury: "+err.Error())
+		}
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Tokens allocated from treasury successfully",
+		"user_id": req.UserID,
+		"amount":  req.Amount,
+		"source":  "TREASURY",
+	})
+}

@@ -56,5 +56,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Post("/token-bank/allocate", m.handlers.AllocateTokens)
 		r.Post("/token-bank/revoke", m.handlers.RevokeTokens)
 		r.Put("/token-bank/balance", m.handlers.SetTokenBalance)
+
+		// Treasury
+		r.Get("/treasury", m.handlers.GetTreasuryInfo)
+		r.Post("/treasury/allocate", m.handlers.AllocateFromTreasury)
 	})
 }
