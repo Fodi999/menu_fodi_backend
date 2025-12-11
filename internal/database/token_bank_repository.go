@@ -203,7 +203,7 @@ func (r *TokenBankRepository) InitializeTokenBankForUser(userID string) error {
 
 	// Автоматически выдаём приветственный бонус 100 токенов из Treasury
 	welcomeBonus := int64(100)
-	if err := r.AllocateFromTreasury(userID, welcomeBonus); err != nil {
+	if err := r.AllocateWelcomeBonus(userID, welcomeBonus); err != nil {
 		// Логируем ошибку, но не блокируем создание пользователя
 		// Токин-банк создан, но бонус не выдан - администратор может выдать вручную
 		return nil
