@@ -18,7 +18,9 @@ internal/
 │   ├── marketplace/  # Recipe marketplace
 │   ├── nutrition/    # Nutrition calculation
 │   ├── recipes/      # Social recipe features
-│   └── [16 more...]
+│   ├── task/         # Task system with token rewards
+│   ├── websocket/    # Real-time event broadcasting
+│   └── [15 more...]
 ├── app/              # Application setup
 ├── middleware/       # HTTP middleware (Auth, Admin)
 ├── database/         # Database layer & repositories
@@ -60,7 +62,29 @@ internal/
 
 Server runs on `http://localhost:8080`
 
-## 📚 API Documentation
+## � WebSocket Real-Time Events
+
+The backend includes a **WebSocket system** for real-time updates of token transactions, Treasury balance, and task completions.
+
+**WebSocket Endpoints:**
+- `ws://localhost:8080/ws` - General connection
+- `ws://localhost:8080/ws/treasury` - Treasury updates (admin)
+- `ws://localhost:8080/ws/tokens/{userID}` - User token updates
+
+**Event Types:**
+- `treasury_update`, `treasury_allocate`, `treasury_spend`
+- `token_balance_update`, `token_earn`, `token_spend`
+- `task_completed`, `task_reward_claimed`
+
+**Test WebSocket:**
+```bash
+go run cmd/test_ws/main.go
+# Open http://localhost:8080 for interactive test page
+```
+
+📖 See [WEBSOCKET_GUIDE.md](./WEBSOCKET_GUIDE.md) for complete WebSocket documentation.
+
+## �📚 API Documentation
 
 See [ROUTES_DOCUMENTATION.md](./ROUTES_DOCUMENTATION.md) for complete API route reference.
 
