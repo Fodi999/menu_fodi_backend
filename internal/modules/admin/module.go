@@ -25,6 +25,12 @@ func NewModule() *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler, adminMiddleware func(http.Handler) http.Handler) {
+	// Public SSE endpoint (outside /admin for easier access)
+	r.Route("/treasury", func(r chi.Router) {
+		r.Use(authMiddleware) // Требуем аутентификации, но не admin
+		r.Get("/stream", m.handlers.StreamTreasury) // SSE stream
+	})
+
 	r.Route("/admin", func(r chi.Router) {
 		r.Use(authMiddleware)
 		r.Use(adminMiddleware)
