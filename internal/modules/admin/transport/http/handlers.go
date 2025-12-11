@@ -443,6 +443,25 @@ func (h *AdminHandlers) GetTreasuryBalance(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+// GetTreasuryStats возвращает полную статистику Treasury
+func (h *AdminHandlers) GetTreasuryStats(w http.ResponseWriter, r *http.Request) {
+	treasury, err := h.service.GetTreasuryInfo()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Treasury not found")
+		return
+	}
+
+	stats := map[string]int64{
+		"totalIssued": treasury.TotalAllocated,                        // Всего выпущено
+		"circulating": treasury.TotalUsed,                             // В обращении (использовано)
+		"locked":      0,                                              // Заблокировано (пока 0)
+		"available":   treasury.Balance,                               // Доступно
+		"balance":     treasury.Balance,                               // Текущий баланс
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
+
 // StreamTreasury предоставляет SSE stream для real-time обновлений баланса Treasury
 func (h *AdminHandlers) StreamTreasury(w http.ResponseWriter, r *http.Request) {
 	// Устанавливаем SSE headers
