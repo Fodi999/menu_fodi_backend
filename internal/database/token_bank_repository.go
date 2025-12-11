@@ -231,6 +231,19 @@ func (r *TokenBankRepository) GetTreasuryBalance() (int64, error) {
 	return treasury.Balance, nil
 }
 
+// GetTreasury возвращает полную запись казначейства
+func (r *TokenBankRepository) GetTreasury() (*models.TokenBank, error) {
+	var treasury models.TokenBank
+	result := DB.Where("user_id = ?", TreasuryUserID).First(&treasury)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("treasury not found")
+		}
+		return nil, result.Error
+	}
+	return &treasury, nil
+}
+
 // AllocateFromTreasury выделяет токены из казначейства пользователю
 func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) error {
 	if amount <= 0 {

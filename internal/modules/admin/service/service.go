@@ -37,6 +37,7 @@ type AdminService interface {
 	
 	// Treasury
 	GetTreasuryInfo() (*models.TokenBank, error)
+	GetTreasuryBalance() (int64, error)
 	AllocateFromTreasury(userID string, amount int64) error
 	AllocateWelcomeBonus(userID string) error
 	AllocateQuestReward(userID string, questID string, rewardAmount int64) error
@@ -269,6 +270,16 @@ func (s *adminService) GetTokenBankStats() (*models.TokenBankStats, error) {
 func (s *adminService) GetTreasuryInfo() (*models.TokenBank, error) {
 	repo := &database.TokenBankRepository{}
 	return repo.GetTreasuryInfo()
+}
+
+// GetTreasuryBalance возвращает баланс казначейства
+func (s *adminService) GetTreasuryBalance() (int64, error) {
+	repo := &database.TokenBankRepository{}
+	treasury, err := repo.GetTreasury()
+	if err != nil {
+		return 0, err
+	}
+	return treasury.Balance, nil
 }
 
 // AllocateFromTreasury выделяет токены из казначейства пользователю

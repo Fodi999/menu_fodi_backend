@@ -59,6 +59,8 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 		// Treasury
 		r.Get("/treasury", m.handlers.GetTreasuryInfo)
+		r.Get("/token-bank/treasury", m.handlers.GetTreasuryBalance) // Simplified endpoint
+		r.Get("/treasury/stream", m.handlers.StreamTreasury)         // SSE stream
 		r.Post("/treasury/allocate", m.handlers.AllocateFromTreasury)
 	})
 }

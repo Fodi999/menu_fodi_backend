@@ -429,3 +429,49 @@ func (h *AdminHandlers) AllocateFromTreasury(w http.ResponseWriter, r *http.Requ
 		"source":  "TREASURY",
 	})
 }
+
+// GetTreasuryBalance возвращает только баланс казначейства (упрощённый endpoint)
+func (h *AdminHandlers) GetTreasuryBalance(w http.ResponseWriter, r *http.Request) {
+	balance, err := h.service.GetTreasuryBalance()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Treasury not found")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]int64{
+		"balance": balance,
+	})
+}
+
+// StreamTreasury предоставляет SSE stream для real-time обновлений баланса Treasury
+func (h *AdminHandlers) StreamTreasury(w http.ResponseWriter, r *http.Request) {
+	// Устанавливаем SSE headers
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Отправляем текущий баланс сразу
+	balance, err := h.service.GetTreasuryBalance()
+	if err != nil {
+		http.Error(w, "Failed to get treasury balance", http.StatusInternalServerError)
+		return
+	}
+
+	initialData := map[string]interface{}{
+		"balance": balance,
+		"type":    "initial",
+	}
+	dataJSON, _ := json.Marshal(initialData)
+	w.Write([]byte("data: "))
+	w.Write(dataJSON)
+	w.Write([]byte("\n\n"))
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+
+	// TODO: Интеграция с WebSocket EventBus для real-time обновлений
+	// Пока держим соединение открытым
+	<-r.Context().Done()
+}
+
