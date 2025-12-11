@@ -23,6 +23,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/semi_finished"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/stats"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/task"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/wallet"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
@@ -82,6 +83,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	recipesModule := recipes.NewModule()
 	semiFinishedModule := semi_finished.NewModule(a.db)
 	statsModule := stats.NewModule(a.db)
+	taskModule := task.NewModule() // Task system with treasury integration
 
 	// Register health module early (before /api routes)
 	healthModule.RegisterRoutes(r, middleware.AuthMiddleware)
@@ -146,6 +148,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register stats module routes
 		statsModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register task module routes (quests and missions with token rewards)
+		taskModule.RegisterRoutes(r)
 	})
 
 	return r

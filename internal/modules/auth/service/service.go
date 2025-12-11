@@ -2,8 +2,10 @@ package service
 
 import (
 	"errors"
+	"log"
 	"time"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/repo"
@@ -63,6 +65,14 @@ func (s *AuthService) Register(req dto.RegisterRequest) (*dto.AuthResponse, erro
 	// Save to database
 	if err := s.repo.Create(user); err != nil {
 		return nil, err
+	}
+
+	// Initialize token bank for new user with 100 tokens welcome bonus
+	tokenRepo := &database.TokenBankRepository{}
+	if err := tokenRepo.InitializeTokenBankForUser(user.ID); err != nil {
+		// Log error but don't block registration
+		// User can still use the app, tokens can be allocated manually later
+		log.Printf("Warning: Failed to initialize token bank for user %s: %v", user.ID, err)
 	}
 
 	// Generate JWT token

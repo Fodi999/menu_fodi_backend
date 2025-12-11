@@ -41,6 +41,10 @@ type AdminService interface {
 	AllocateWelcomeBonus(userID string) error
 	AllocateQuestReward(userID string, questID string, rewardAmount int64) error
 	AllocateAchievementReward(userID string, achievementID string, rewardAmount int64) error
+	
+	// Token Spending (for AI, marketplace, etc.)
+	SpendTokens(userID string, amount int64) error
+	CheckUserBalance(userID string, requiredAmount int64) (bool, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -289,4 +293,17 @@ func (s *adminService) AllocateQuestReward(userID string, questID string, reward
 func (s *adminService) AllocateAchievementReward(userID string, achievementID string, rewardAmount int64) error {
 	repo := &database.TokenBankRepository{}
 	return repo.AllocateAchievementReward(userID, achievementID, rewardAmount)
+}
+
+// SpendTokens списывает токены у пользователя и возвращает их в казначейство
+// Используется для оплаты AI-запросов, покупок в маркетплейсе и других расходов
+func (s *adminService) SpendTokens(userID string, amount int64) error {
+	repo := &database.TokenBankRepository{}
+	return repo.SpendTokens(userID, amount)
+}
+
+// CheckUserBalance проверяет, достаточно ли токенов у пользователя
+func (s *adminService) CheckUserBalance(userID string, requiredAmount int64) (bool, error) {
+	repo := &database.TokenBankRepository{}
+	return repo.CheckUserBalance(userID, requiredAmount)
 }
