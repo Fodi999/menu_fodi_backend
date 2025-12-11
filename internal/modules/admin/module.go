@@ -25,10 +25,9 @@ func NewModule() *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler, adminMiddleware func(http.Handler) http.Handler) {
-	// Public SSE endpoint (outside /admin for easier access)
+	// PUBLIC SSE ENDPOINT — БЕЗ АВТОРИЗАЦИИ (EventSource не может отправлять headers)
 	r.Route("/treasury", func(r chi.Router) {
-		r.Use(authMiddleware) // Требуем аутентификации, но не admin
-		r.Get("/stream", m.handlers.StreamTreasury) // SSE stream
+		r.Get("/stream", m.handlers.StreamTreasury) // SSE stream - публичный доступ
 	})
 
 	r.Route("/admin", func(r chi.Router) {
@@ -66,7 +65,6 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		// Treasury
 		r.Get("/treasury", m.handlers.GetTreasuryInfo)
 		r.Get("/token-bank/treasury", m.handlers.GetTreasuryBalance) // Simplified endpoint
-		r.Get("/treasury/stream", m.handlers.StreamTreasury)         // SSE stream
 		r.Post("/treasury/allocate", m.handlers.AllocateFromTreasury)
 	})
 }
