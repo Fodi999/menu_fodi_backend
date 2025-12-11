@@ -26,6 +26,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/task"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/wallet"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/websocket"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
@@ -84,6 +85,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	semiFinishedModule := semi_finished.NewModule(a.db)
 	statsModule := stats.NewModule(a.db)
 	taskModule := task.NewModule() // Task system with treasury integration
+	websocketModule := websocket.NewModule() // WebSocket real-time events
 
 	// Register health module early (before /api routes)
 	healthModule.RegisterRoutes(r, middleware.AuthMiddleware)
@@ -152,6 +154,9 @@ func (a *App) setupModularRoutes() http.Handler {
 		// Register task module routes (quests and missions with token rewards)
 		taskModule.RegisterRoutes(r)
 	})
+
+	// WebSocket routes (outside /api, they don't need JSON structure)
+	websocketModule.RegisterRoutes(r)
 
 	return r
 }

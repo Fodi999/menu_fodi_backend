@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	wsservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/websocket/service"
 	"gorm.io/gorm"
 )
 
@@ -237,7 +238,7 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 	}
 
 	// Начинаем транзакцию
-	return DB.Transaction(func(tx *gorm.DB) error {
+	err := DB.Transaction(func(tx *gorm.DB) error {
 		// 1. Проверяем баланс казначейства
 		var treasury models.TokenBank
 		if err := tx.Where("user_id = ?", TreasuryUserID).First(&treasury).Error; err != nil {
@@ -275,6 +276,42 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 
 		return nil
 	})
+	
+	if err != nil {
+		return err
+	}
+	
+	// ============================================
+	// WebSocket: Публикуем события после успешной транзакции
+	// ============================================
+	eventBus := wsservice.GetEventBus()
+	
+	// 1. Treasury update event (для админов)
+	treasuryAfter, _ := r.GetTreasuryBalance()
+	eventBus.Publish(wsservice.TreasuryAllocateEvent, map[string]interface{}{
+		"balance":   treasuryAfter,
+		"amount":    amount,
+		"user_id":   userID,
+		"operation": "allocate",
+	})
+	
+	// 2. User token balance event (для конкретного пользователя)
+	userBank, _ := r.FindByUserID(userID)
+	balanceBefore := userBank.Balance - amount
+	eventBus.PublishUserEvent(
+		wsservice.TokenBalanceUpdateEvent,
+		userID,
+		map[string]interface{}{
+			"user_id":        userID,
+			"balance_before": balanceBefore,
+			"balance_after":  userBank.Balance,
+			"amount":         amount,
+			"reason":         "allocated_from_treasury",
+			"type":           "earn",
+		},
+	)
+	
+	return nil
 }
 
 // GetTreasuryInfo возвращает полную информацию о казначействе
@@ -323,8 +360,15 @@ func (r *TokenBankRepository) SpendTokens(userID string, amount int64) error {
 		return errors.New("amount must be positive")
 	}
 
+	// Сохраняем начальный баланс для события
+	var balanceBefore int64
+	userBankBefore, err := r.FindByUserID(userID)
+	if err == nil {
+		balanceBefore = userBankBefore.Balance
+	}
+
 	// Атомарная транзакция для безопасного списания токенов
-	return DB.Transaction(func(tx *gorm.DB) error {
+	err = DB.Transaction(func(tx *gorm.DB) error {
 		// 1. Получаем токен-банк пользователя
 		var userBank models.TokenBank
 		if err := tx.Where("user_id = ?", userID).First(&userBank).Error; err != nil {
@@ -368,6 +412,41 @@ func (r *TokenBankRepository) SpendTokens(userID string, amount int64) error {
 
 		return nil
 	})
+	
+	if err != nil {
+		return err
+	}
+	
+	// ============================================
+	// WebSocket: Публикуем события после успешной транзакции
+	// ============================================
+	eventBus := wsservice.GetEventBus()
+	
+	// 1. User token spend event (для конкретного пользователя)
+	balanceAfter := balanceBefore - amount
+	eventBus.PublishUserEvent(
+		wsservice.TokenSpendEvent,
+		userID,
+		map[string]interface{}{
+			"user_id":        userID,
+			"balance_before": balanceBefore,
+			"balance_after":  balanceAfter,
+			"amount":         amount,
+			"reason":         "tokens_spent",
+			"type":           "spend",
+		},
+	)
+	
+	// 2. Treasury update event (баланс увеличился)
+	treasuryAfter, _ := r.GetTreasuryBalance()
+	eventBus.Publish(wsservice.TreasurySpendEvent, map[string]interface{}{
+		"balance":   treasuryAfter,
+		"amount":    amount,
+		"user_id":   userID,
+		"operation": "return",
+	})
+	
+	return nil
 }
 
 // CheckUserBalance проверяет, достаточно ли токенов у пользователя для расхода
