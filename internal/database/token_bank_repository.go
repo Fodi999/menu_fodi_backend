@@ -287,6 +287,18 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 			return errors.New("user token bank not found")
 		}
 
+		// 4. Логируем транзакцию в историю
+		txRepo := &TokenTransactionRepository{}
+		if err := txRepo.LogTreasuryAllocation(
+			userID,
+			amount,
+			models.TransactionTypeAdminAllocation, // Тип по умолчанию
+			"Token allocation from Treasury",
+			nil, // metadata
+		); err != nil {
+			return err
+		}
+
 		return nil
 	})
 	
@@ -327,6 +339,104 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 	return nil
 }
 
+// AllocateFromTreasuryWithReason выделяет токены из Treasury с указанием причины и метаданных
+func (r *TokenBankRepository) AllocateFromTreasuryWithReason(
+	userID string,
+	amount int64,
+	txType string,
+	description string,
+	metadata map[string]interface{},
+) error {
+	if amount <= 0 {
+		return errors.New("amount must be positive")
+	}
+
+	// Начинаем транзакцию
+	err := DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Проверяем баланс казначейства
+		var treasury models.TokenBank
+		if err := tx.Where("user_id = ?", TreasuryUserID).First(&treasury).Error; err != nil {
+			return errors.New("treasury not found")
+		}
+
+		if treasury.Balance < amount {
+			return errors.New("insufficient treasury balance")
+		}
+
+		// 2. Уменьшаем баланс казначейства и увеличиваем total_used
+		if err := tx.Model(&models.TokenBank{}).
+			Where("user_id = ?", TreasuryUserID).
+			Updates(map[string]interface{}{
+				"balance":    gorm.Expr("balance - ?", amount),
+				"total_used": gorm.Expr("total_used + ?", amount),
+			}).Error; err != nil {
+			return err
+		}
+
+		// 3. Увеличиваем баланс пользователя
+		result := tx.Model(&models.TokenBank{}).
+			Where("user_id = ?", userID).
+			Updates(map[string]interface{}{
+				"balance":         gorm.Expr("balance + ?", amount),
+				"total_allocated": gorm.Expr("total_allocated + ?", amount),
+			})
+
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errors.New("user token bank not found")
+		}
+
+		// 4. Логируем транзакцию с указанием причины
+		txRepo := &TokenTransactionRepository{}
+		if err := txRepo.LogTreasuryAllocation(
+			userID,
+			amount,
+			txType,
+			description,
+			metadata,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	
+	if err != nil {
+		return err
+	}
+	
+	// WebSocket события
+	eventBus := wsservice.GetEventBus()
+	
+	treasuryAfter, _ := r.GetTreasuryBalance()
+	eventBus.Publish(wsservice.TreasuryAllocateEvent, map[string]interface{}{
+		"balance":   treasuryAfter,
+		"amount":    amount,
+		"user_id":   userID,
+		"operation": "allocate",
+		"type":      txType,
+	})
+	
+	userBank, _ := r.FindByUserID(userID)
+	balanceBefore := userBank.Balance - amount
+	eventBus.PublishUserEvent(
+		wsservice.TokenBalanceUpdateEvent,
+		userID,
+		map[string]interface{}{
+			"user_id":        userID,
+			"balance_before": balanceBefore,
+			"balance_after":  userBank.Balance,
+			"amount":         amount,
+			"reason":         txType,
+			"type":           "earn",
+		},
+	)
+	
+	return nil
+}
+
 // GetTreasuryInfo возвращает полную информацию о казначействе
 func (r *TokenBankRepository) GetTreasuryInfo() (*models.TokenBank, error) {
 	return r.FindByUserID(TreasuryUserID)
@@ -337,7 +447,13 @@ func (r *TokenBankRepository) AllocateWelcomeBonus(userID string, bonusAmount in
 	if bonusAmount <= 0 {
 		bonusAmount = 100 // Дефолтный приветственный бонус
 	}
-	return r.AllocateFromTreasury(userID, bonusAmount)
+	return r.AllocateFromTreasuryWithReason(
+		userID,
+		bonusAmount,
+		models.TransactionTypeWelcomeBonus,
+		"Welcome bonus for new user",
+		nil,
+	)
 }
 
 // AllocateQuestReward выделяет награду за выполнение квеста из казначейства
@@ -345,7 +461,13 @@ func (r *TokenBankRepository) AllocateQuestReward(userID string, questID string,
 	if rewardAmount <= 0 {
 		return errors.New("reward amount must be positive")
 	}
-	return r.AllocateFromTreasury(userID, rewardAmount)
+	return r.AllocateFromTreasuryWithReason(
+		userID,
+		rewardAmount,
+		models.TransactionTypeQuestReward,
+		"Quest reward",
+		map[string]interface{}{"quest_id": questID},
+	)
 }
 
 // AllocateAchievementReward выделяет награду за достижение из казначейства

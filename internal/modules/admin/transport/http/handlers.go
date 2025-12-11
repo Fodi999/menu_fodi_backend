@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
@@ -494,3 +495,101 @@ func (h *AdminHandlers) StreamTreasury(w http.ResponseWriter, r *http.Request) {
 	<-r.Context().Done()
 }
 
+// ============================================
+// Token Transactions History Handlers
+// ============================================
+
+// GetAllTransactions возвращает все транзакции токенов
+func (h *AdminHandlers) GetAllTransactions(w http.ResponseWriter, r *http.Request) {
+	// Параметры пагинации
+	limit := 50
+	offset := 0
+	
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		fmt.Sscanf(limitStr, "%d", &limit)
+	}
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		fmt.Sscanf(offsetStr, "%d", &offset)
+	}
+
+	transactions, err := h.service.GetAllTransactions(limit, offset)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch transactions")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, transactions)
+}
+
+// GetUserTransactions возвращает транзакции конкретного пользователя
+func (h *AdminHandlers) GetUserTransactions(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "userID")
+	
+	limit := 50
+	offset := 0
+	
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		fmt.Sscanf(limitStr, "%d", &limit)
+	}
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		fmt.Sscanf(offsetStr, "%d", &offset)
+	}
+
+	transactions, err := h.service.GetUserTransactions(userID, limit, offset)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch user transactions")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, transactions)
+}
+
+// GetTransactionsByType возвращает транзакции по типу с фильтрами
+func (h *AdminHandlers) GetTransactionsByType(w http.ResponseWriter, r *http.Request) {
+	txType := r.URL.Query().Get("type")
+	
+	limit := 50
+	offset := 0
+	
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		fmt.Sscanf(limitStr, "%d", &limit)
+	}
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		fmt.Sscanf(offsetStr, "%d", &offset)
+	}
+
+	var transactions []interface{}
+	var err error
+
+	if txType != "" {
+		txs, e := h.service.GetTransactionsByType(txType, limit, offset)
+		err = e
+		for _, tx := range txs {
+			transactions = append(transactions, tx)
+		}
+	} else {
+		txs, e := h.service.GetAllTransactions(limit, offset)
+		err = e
+		for _, tx := range txs {
+			transactions = append(transactions, tx)
+		}
+	}
+
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch transactions")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, transactions)
+}
+
+// GetTransactionStats возвращает статистику транзакций
+func (h *AdminHandlers) GetTransactionStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.GetTransactionStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch transaction stats")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, stats)
+}

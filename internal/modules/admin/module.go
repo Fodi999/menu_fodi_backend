@@ -62,6 +62,12 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Post("/token-bank/revoke", m.handlers.RevokeTokens)
 		r.Put("/token-bank/balance", m.handlers.SetTokenBalance)
 
+		// Token Transactions History
+		r.Get("/token-bank/transactions", m.handlers.GetAllTransactions)           // All transactions
+		r.Get("/token-bank/transactions/{userID}", m.handlers.GetUserTransactions) // User-specific
+		r.Get("/token-bank/transactions/filter", m.handlers.GetTransactionsByType) // With filters
+		r.Get("/token-bank/transactions/stats", m.handlers.GetTransactionStats)    // Statistics
+
 		// Treasury
 		r.Get("/treasury", m.handlers.GetTreasuryInfo)
 		r.Get("/treasury/stats", m.handlers.GetTreasuryStats)          // Detailed Treasury statistics

@@ -46,6 +46,12 @@ type AdminService interface {
 	// Token Spending (for AI, marketplace, etc.)
 	SpendTokens(userID string, amount int64) error
 	CheckUserBalance(userID string, requiredAmount int64) (bool, error)
+	
+	// Token Transactions History
+	GetAllTransactions(limit, offset int) ([]models.TokenTransaction, error)
+	GetUserTransactions(userID string, limit, offset int) ([]models.TokenTransaction, error)
+	GetTransactionsByType(txType string, limit, offset int) ([]models.TokenTransaction, error)
+	GetTransactionStats() (map[string]interface{}, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -317,4 +323,32 @@ func (s *adminService) SpendTokens(userID string, amount int64) error {
 func (s *adminService) CheckUserBalance(userID string, requiredAmount int64) (bool, error) {
 	repo := &database.TokenBankRepository{}
 	return repo.CheckUserBalance(userID, requiredAmount)
+}
+
+// ============================================
+// Token Transactions History
+// ============================================
+
+// GetAllTransactions получает все транзакции с пагинацией
+func (s *adminService) GetAllTransactions(limit, offset int) ([]models.TokenTransaction, error) {
+	repo := &database.TokenTransactionRepository{}
+	return repo.GetAllTransactions(limit, offset)
+}
+
+// GetUserTransactions получает транзакции конкретного пользователя
+func (s *adminService) GetUserTransactions(userID string, limit, offset int) ([]models.TokenTransaction, error) {
+	repo := &database.TokenTransactionRepository{}
+	return repo.GetUserTransactions(userID, limit, offset)
+}
+
+// GetTransactionsByType получает транзакции по типу
+func (s *adminService) GetTransactionsByType(txType string, limit, offset int) ([]models.TokenTransaction, error) {
+	repo := &database.TokenTransactionRepository{}
+	return repo.GetTransactionsByType(txType, limit, offset)
+}
+
+// GetTransactionStats получает статистику транзакций
+func (s *adminService) GetTransactionStats() (map[string]interface{}, error) {
+	repo := &database.TokenTransactionRepository{}
+	return repo.GetTransactionStats()
 }
