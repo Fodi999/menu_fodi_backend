@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -93,7 +94,7 @@ func (h *AIHandlers) GenerateMealPlan(w http.ResponseWriter, r *http.Request) {
 	var fridgeItemsDTO []dto.AvailableIngredientDTO
 	if req.UseFridge && userIDPtr != nil {
 		var fridgeItems []models.UserFridgeItem
-		if err := h.db.Where(`"userId" = ?`, userIDPtr.String()).
+		if err := h.db.Preload("Ingredient").Where("user_id = ?", userIDPtr.String()).
 			Find(&fridgeItems).Error; err != nil {
 			logger.Error("failed to get fridge items", zap.Error(err))
 		}
@@ -101,7 +102,12 @@ func (h *AIHandlers) GenerateMealPlan(w http.ResponseWriter, r *http.Request) {
 		// Конвертируем модели в DTO для AI слоя
 		fridgeItemsDTO = make([]dto.AvailableIngredientDTO, len(fridgeItems))
 		for i, item := range fridgeItems {
-			fridgeItemsDTO[i] = dto.NewAvailableIngredientDTO(item.Name, item.Quantity, item.ExpiryDate)
+			name := ""
+			if item.Ingredient != nil {
+				name = item.Ingredient.Name
+			}
+			quantityStr := fmt.Sprintf("%.0f %s", item.Quantity, item.Unit)
+			fridgeItemsDTO[i] = dto.NewAvailableIngredientDTO(name, quantityStr, &item.ExpiresAt)
 		}
 	}
 
@@ -184,7 +190,7 @@ func (h *AIHandlers) GetFridgeRecommendations(w http.ResponseWriter, r *http.Req
 
 	// Get user's fridge items
 	var fridgeItems []models.UserFridgeItem
-	if err := h.db.Where(`"userId" = ?`, userID.String()).
+	if err := h.db.Preload("Ingredient").Where("user_id = ?", userID.String()).
 		Find(&fridgeItems).Error; err != nil {
 		logger.Error("failed to get fridge items", zap.Error(err), zap.String("user_id", userID.String()))
 		httpx.InternalError(w, "failed to get fridge items")
@@ -194,7 +200,12 @@ func (h *AIHandlers) GetFridgeRecommendations(w http.ResponseWriter, r *http.Req
 	// Конвертируем модели в DTO для AI слоя
 	fridgeItemsDTO := make([]dto.AvailableIngredientDTO, len(fridgeItems))
 	for i, item := range fridgeItems {
-		fridgeItemsDTO[i] = dto.NewAvailableIngredientDTO(item.Name, item.Quantity, item.ExpiryDate)
+		name := ""
+		if item.Ingredient != nil {
+			name = item.Ingredient.Name
+		}
+		quantityStr := fmt.Sprintf("%.0f %s", item.Quantity, item.Unit)
+		fridgeItemsDTO[i] = dto.NewAvailableIngredientDTO(name, quantityStr, &item.ExpiresAt)
 	}
 
 	recommendations, err := h.service.GetFridgeRecommendations(req, fridgeItemsDTO)
@@ -247,14 +258,13 @@ func (h *AIHandlers) SaveRecipeIngredientsToFridge(w http.ResponseWriter, r *htt
 
 	// Save each ingredient to fridge
 	for _, ingredient := range req.Ingredients {
-		// Формируем quantity в строковом формате
-		quantityStr := fmt.Sprintf("%.2f %s", ingredient.Amount, ingredient.Unit)
-
 		fridgeItem := &models.UserFridgeItem{
-			ID:       uuid.New().String(),
-			UserID:   userID.String(),
-			Name:     ingredient.Name,
-			Quantity: quantityStr,
+			ID:           uuid.New().String(),
+			UserID:       userID.String(),
+			IngredientID: ingredient.Name, // TODO: нужно найти ID по имени из каталога
+			Quantity:     ingredient.Amount,
+			Unit:         ingredient.Unit,
+			ExpiresAt:    time.Now().AddDate(0, 0, 7), // По умолчанию 7 дней
 		}
 
 		if err := h.db.Create(fridgeItem).Error; err != nil {

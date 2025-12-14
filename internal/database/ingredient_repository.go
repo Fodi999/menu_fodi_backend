@@ -168,3 +168,13 @@ func (r *IngredientRepository) GetByCategory(category string) ([]models.Ingredie
 
 	return ingredients, nil
 }
+
+// GetIngredientByID возвращает ингредиент из каталога по ID
+func (r *IngredientRepository) GetIngredientByID(id string) (*models.Ingredient, error) {
+	var ingredient models.Ingredient
+	result := DB.Where("id = ?", id).First(&ingredient)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &ingredient, nil
+}

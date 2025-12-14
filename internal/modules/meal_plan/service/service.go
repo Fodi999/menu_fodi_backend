@@ -123,7 +123,12 @@ func (s *MealPlanService) buildMealPlanPrompt(req *dto.MealPlanRequest, fridgeIt
 	if len(fridgeItems) > 0 {
 		sb.WriteString("Available ingredients in fridge:\n")
 		for _, item := range fridgeItems {
-			sb.WriteString(fmt.Sprintf("- %s (%s)\n", item.Name, item.Quantity))
+			name := ""
+			if item.Ingredient != nil {
+				name = item.Ingredient.Name
+			}
+			quantityStr := fmt.Sprintf("%.0f %s", item.Quantity, item.Unit)
+			sb.WriteString(fmt.Sprintf("- %s (%s)\n", name, quantityStr))
 		}
 		sb.WriteString("\nTry to use these ingredients when creating meals.\n\n")
 	}

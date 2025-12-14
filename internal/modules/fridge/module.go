@@ -6,22 +6,28 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/repo"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/service"
 	fridgehttp "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/transport/http"
 )
 
-// Module represents fridge module - для HOME_CHEF пользователей
+// Module представляет модуль холодильника для HOME_CHEF пользователей
 type Module struct {
 	handlers *fridgehttp.FridgeHandlers
 }
 
-// NewModule creates new fridge module
+// NewModule создает новый модуль холодильника
 func NewModule(db *gorm.DB) *Module {
-	repository := repo.NewFridgeRepository(db)
-	svc := service.NewFridgeService(repository)
+	// Инициализируем репозитории
+	fridgeRepo := database.NewUserFridgeRepository(db)
+	ingredientRepo := &database.IngredientRepository{}
+
+	// Инициализируем сервис
+	svc := service.NewFridgeService(fridgeRepo, ingredientRepo)
+
+	// Инициализируем handlers
 	handlers := fridgehttp.NewFridgeHandlers(svc)
 
 	return &Module{
@@ -29,20 +35,16 @@ func NewModule(db *gorm.DB) *Module {
 	}
 }
 
-// RegisterRoutes registers fridge routes - только для HOME_CHEF
+// RegisterRoutes регистрирует маршруты холодильника
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) http.Handler) {
 	r.Route("/fridge", func(r chi.Router) {
 		// Требуется аутентификация + роль HOME_CHEF
 		r.Use(jwtMiddleware)
 		r.Use(middleware.RequireRole(models.RoleHomeChef))
 
-		// Fridge item operations
-		r.Get("/", m.handlers.GetUserFridge)
-		r.Post("/", m.handlers.AddFridgeItem)
-		r.Get("/available", m.handlers.GetAvailableItems)
-
-		// Item-specific operations (with ID)
-		r.Put("/{id}", m.handlers.UpdateFridgeItem)
-		r.Delete("/{id}", m.handlers.DeleteFridgeItem)
+		// Операции с продуктами
+		r.Get("/items", m.handlers.GetUserItems)      // GET /api/fridge/items - список продуктов
+		r.Post("/items", m.handlers.AddItem)          // POST /api/fridge/items - добавить продукт
+		r.Delete("/items/{id}", m.handlers.DeleteItem) // DELETE /api/fridge/items/{id} - удалить продукт
 	})
 }
