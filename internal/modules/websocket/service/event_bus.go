@@ -12,22 +12,22 @@ type EventType string
 
 const (
 	// Treasury Events
-	TreasuryUpdateEvent    EventType = "treasury_update"
-	TreasuryAllocateEvent  EventType = "treasury_allocate"
-	TreasurySpendEvent     EventType = "treasury_spend"
-	
+	TreasuryUpdateEvent   EventType = "treasury_update"
+	TreasuryAllocateEvent EventType = "treasury_allocate"
+	TreasurySpendEvent    EventType = "treasury_spend"
+
 	// Token Bank Events
 	TokenBalanceUpdateEvent EventType = "token_balance_update"
 	TokenEarnEvent          EventType = "token_earn"
 	TokenSpendEvent         EventType = "token_spend"
-	
+
 	// Task Events
-	TaskCompletedEvent      EventType = "task_completed"
-	TaskRewardClaimedEvent  EventType = "task_reward_claimed"
-	
+	TaskCompletedEvent     EventType = "task_completed"
+	TaskRewardClaimedEvent EventType = "task_reward_claimed"
+
 	// User Events
-	UserRegisteredEvent     EventType = "user_registered"
-	UserWelcomeBonusEvent   EventType = "user_welcome_bonus"
+	UserRegisteredEvent   EventType = "user_registered"
+	UserWelcomeBonusEvent EventType = "user_welcome_bonus"
 )
 
 // Event представляет событие в системе
@@ -68,7 +68,7 @@ func GetEventBus() *EventBus {
 func (eb *EventBus) Subscribe(eventType EventType, subscriber Subscriber) {
 	eb.mu.Lock()
 	defer eb.mu.Unlock()
-	
+
 	eb.subscribers[eventType] = append(eb.subscribers[eventType], subscriber)
 	log.Printf("📡 New subscriber for event: %s (total: %d)", eventType, len(eb.subscribers[eventType]))
 }
@@ -84,7 +84,7 @@ func (eb *EventBus) SubscribeMultiple(eventTypes []EventType, subscriber Subscri
 func (eb *EventBus) Unsubscribe(eventType EventType, subscriber Subscriber) {
 	eb.mu.Lock()
 	defer eb.mu.Unlock()
-	
+
 	subscribers := eb.subscribers[eventType]
 	for i, sub := range subscribers {
 		// Сравнение функций в Go невозможно напрямую, используем workaround
@@ -100,24 +100,24 @@ func (eb *EventBus) Publish(eventType EventType, data map[string]interface{}) {
 	eb.mu.RLock()
 	subscribers := eb.subscribers[eventType]
 	eb.mu.RUnlock()
-	
+
 	if len(subscribers) == 0 {
 		return
 	}
-	
+
 	event := Event{
 		Type:      eventType,
 		Timestamp: time.Now(),
 		Data:      data,
 	}
-	
+
 	// Извлекаем userID из data, если есть
 	if userID, ok := data["user_id"].(string); ok {
 		event.UserID = userID
 	}
-	
+
 	log.Printf("📢 Publishing event: %s (subscribers: %d)", eventType, len(subscribers))
-	
+
 	// Асинхронно уведомляем всех подписчиков
 	for _, subscriber := range subscribers {
 		go func(sub Subscriber) {
@@ -168,9 +168,9 @@ func NewTreasuryUpdateEvent(balance, totalUsed, remaining int64) Event {
 		Type:      TreasuryUpdateEvent,
 		Timestamp: time.Now(),
 		Data: map[string]interface{}{
-			"balance":   balance,
+			"balance":    balance,
 			"total_used": totalUsed,
-			"remaining": remaining,
+			"remaining":  remaining,
 		},
 	}
 }

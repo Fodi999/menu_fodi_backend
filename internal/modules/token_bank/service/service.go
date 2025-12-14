@@ -12,16 +12,16 @@ type TokenBankService interface {
 	// Balance Operations
 	GetUserBalance(userID string) (int64, error)
 	CheckBalance(userID string, requiredAmount int64) (bool, error)
-	
+
 	// Spending Operations (tokens go back to Treasury)
 	SpendTokens(userID string, amount int64) error
 	SpendTokensForAIRequest(userID string, cost int64) error
 	SpendTokensForMarketplace(userID string, productPrice int64) error
 	SpendTokensForPremiumFeature(userID string, featureCost int64) error
-	
+
 	// Earning Operations (tokens come from Treasury)
 	EarnTokens(userID string, amount int64, reason string) error
-	
+
 	// Info Operations
 	GetTokenBank(userID string) (*models.TokenBank, error)
 	GetAllTokenBanks() ([]models.TokenBank, error)

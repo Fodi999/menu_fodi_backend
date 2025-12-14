@@ -1,6 +1,8 @@
 package database
 
 import (
+	"strings"
+
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 )
 
@@ -87,4 +89,82 @@ func (r *IngredientRepository) DeleteStockItem(id string) error {
 	}
 
 	return tx.Commit().Error
+}
+
+// Search ищет ингредиенты по имени (для автокомплита)
+// Используется ВСЕМИ пользователями: home_chef, pro_chef, admin
+func (r *IngredientRepository) Search(query string) ([]models.Ingredient, error) {
+	var ingredients []models.Ingredient
+
+	// Поиск по началу имени (регистронезависимый)
+	searchPattern := strings.ToLower(query) + "%"
+
+	result := DB.
+		Where("LOWER(name) LIKE ?", searchPattern).
+		Order("name ASC").
+		Limit(20).
+		Find(&ingredients)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return ingredients, nil
+}
+
+// GetAllIngredients возвращает все ингредиенты из каталога
+func (r *IngredientRepository) GetAllIngredients() ([]models.Ingredient, error) {
+	var ingredients []models.Ingredient
+	result := DB.Order("name ASC").Find(&ingredients)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return ingredients, nil
+}
+
+// List возвращает ингредиенты с фильтрацией по категории и поиском
+// Используется для просмотра каталога с фильтрами
+func (r *IngredientRepository) List(category, search string) ([]models.Ingredient, error) {
+	var ingredients []models.Ingredient
+
+	query := DB.Model(&models.Ingredient{})
+
+	// Фильтр по категории
+	if category != "" {
+		query = query.Where("category = ?", category)
+	}
+
+	// Поиск по префиксу имени (регистронезависимый)
+	if search != "" {
+		searchPattern := strings.ToLower(search) + "%"
+		query = query.Where("LOWER(name) LIKE ?", searchPattern)
+	}
+
+	result := query.
+		Order("name ASC").
+		Limit(250).
+		Find(&ingredients)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return ingredients, nil
+}
+
+// GetByCategory возвращает ингредиенты по категории
+func (r *IngredientRepository) GetByCategory(category string) ([]models.Ingredient, error) {
+	var ingredients []models.Ingredient
+
+	result := DB.
+		Where("category = ?", category).
+		Order("name ASC").
+		Limit(250).
+		Find(&ingredients)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return ingredients, nil
 }

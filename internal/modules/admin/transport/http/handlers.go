@@ -453,11 +453,11 @@ func (h *AdminHandlers) GetTreasuryStats(w http.ResponseWriter, r *http.Request)
 	}
 
 	stats := map[string]int64{
-		"totalIssued": treasury.TotalAllocated,                        // Всего выпущено
-		"circulating": treasury.TotalUsed,                             // В обращении (использовано)
-		"locked":      0,                                              // Заблокировано (пока 0)
-		"available":   treasury.Balance,                               // Доступно
-		"balance":     treasury.Balance,                               // Текущий баланс
+		"totalIssued": treasury.TotalAllocated, // Всего выпущено
+		"circulating": treasury.TotalUsed,      // В обращении (использовано)
+		"locked":      0,                       // Заблокировано (пока 0)
+		"available":   treasury.Balance,        // Доступно
+		"balance":     treasury.Balance,        // Текущий баланс
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, stats)
@@ -504,7 +504,7 @@ func (h *AdminHandlers) GetAllTransactions(w http.ResponseWriter, r *http.Reques
 	// Параметры пагинации
 	limit := 50
 	offset := 0
-	
+
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		fmt.Sscanf(limitStr, "%d", &limit)
 	}
@@ -524,10 +524,10 @@ func (h *AdminHandlers) GetAllTransactions(w http.ResponseWriter, r *http.Reques
 // GetUserTransactions возвращает транзакции конкретного пользователя
 func (h *AdminHandlers) GetUserTransactions(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "userID")
-	
+
 	limit := 50
 	offset := 0
-	
+
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		fmt.Sscanf(limitStr, "%d", &limit)
 	}
@@ -547,10 +547,10 @@ func (h *AdminHandlers) GetUserTransactions(w http.ResponseWriter, r *http.Reque
 // GetTransactionsByType возвращает транзакции по типу с фильтрами
 func (h *AdminHandlers) GetTransactionsByType(w http.ResponseWriter, r *http.Request) {
 	txType := r.URL.Query().Get("type")
-	
+
 	limit := 50
 	offset := 0
-	
+
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		fmt.Sscanf(limitStr, "%d", &limit)
 	}
@@ -592,4 +592,62 @@ func (h *AdminHandlers) GetTransactionStats(w http.ResponseWriter, r *http.Reque
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
+
+// ImportIngredients handles bulk import of ingredient catalog items
+func (h *AdminHandlers) ImportIngredients(w http.ResponseWriter, r *http.Request) {
+	var payload []struct {
+		Name                 string   `json:"name"`
+		Unit                 string   `json:"unit"`
+		Category             string   `json:"category"`
+		DefaultShelfLifeDays *int     `json:"defaultShelfLifeDays,omitempty"`
+		DefaultPricePerUnit  *float64 `json:"defaultPricePerUnit,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid JSON payload")
+		return
+	}
+
+	if len(payload) == 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "Empty ingredients array")
+		return
+	}
+
+	// Convert payload to service format
+	req := make([]struct {
+		Name                 string
+		Unit                 string
+		Category             string
+		DefaultShelfLifeDays *int
+		DefaultPricePerUnit  *float64
+	}, len(payload))
+
+	for i, item := range payload {
+		req[i] = struct {
+			Name                 string
+			Unit                 string
+			Category             string
+			DefaultShelfLifeDays *int
+			DefaultPricePerUnit  *float64
+		}{
+			Name:                 item.Name,
+			Unit:                 item.Unit,
+			Category:             item.Category,
+			DefaultShelfLifeDays: item.DefaultShelfLifeDays,
+			DefaultPricePerUnit:  item.DefaultPricePerUnit,
+		}
+	}
+
+	imported, err := h.service.BulkImportIngredients(req)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Import failed: %v", err))
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success":  true,
+		"imported": imported,
+		"total":    len(req),
+	})
 }

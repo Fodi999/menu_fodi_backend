@@ -26,18 +26,18 @@ func main() {
 	// Check if Treasury already exists
 	repo := &database.TokenBankRepository{}
 	treasury, err := repo.GetTreasury()
-	
+
 	if err == nil && treasury != nil {
 		fmt.Println("ℹ️  Treasury already exists:")
 		fmt.Printf("   💰 Balance: %d\n", treasury.Balance)
 		fmt.Printf("   � Total Allocated: %d\n", treasury.TotalAllocated)
 		fmt.Printf("   📉 Total Used: %d\n", treasury.TotalUsed)
-		
+
 		// Ask if user wants to reset
 		fmt.Print("\n❓ Treasury exists. Reset to initial values? (yes/no): ")
 		var response string
 		fmt.Scanln(&response)
-		
+
 		if response != "yes" && response != "y" {
 			fmt.Println("⏭️  Skipping initialization")
 			return
@@ -46,10 +46,10 @@ func main() {
 
 	// Initialize Treasury with starting balance
 	initialBalance := int64(1000000) // 1 million tokens
-	
+
 	fmt.Println("\n🚀 Initializing Treasury...")
 	fmt.Printf("   Initial balance: %d tokens\n", initialBalance)
-	
+
 	// Direct SQL insert/update
 	query := `
 		INSERT INTO token_bank (user_id, balance, total_allocated, total_used, created_at, updated_at)
@@ -61,17 +61,17 @@ func main() {
 			total_used = $4,
 			updated_at = NOW()
 	`
-	
+
 	// Use special Treasury user_id (empty string or special UUID)
 	treasuryUserID := "00000000-0000-0000-0000-000000000000"
-	
+
 	result := database.DB.Exec(query, treasuryUserID, initialBalance, int64(0), int64(0))
 	if result.Error != nil {
 		log.Fatal("❌ Failed to initialize Treasury:", result.Error)
 	}
 
 	fmt.Println("✅ Treasury initialized successfully!")
-	
+
 	// Verify initialization
 	treasury, err = repo.GetTreasury()
 	if err != nil {

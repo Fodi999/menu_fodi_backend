@@ -1,4 +1,4 @@
-package service
+  package service
 
 import (
 	"errors"
@@ -130,15 +130,16 @@ func validateAddItemRequest(req dto.AddFridgeItemRequest) error {
 	return nil
 }
 
-func modelToDTO(item *models.UserFridge) dto.FridgeItemResponse {
+func modelToDTO(item *models.UserFridgeItem) dto.FridgeItemResponse {
 	return dto.FridgeItemResponse{
-		ID:        item.ID,
-		UserID:    item.UserID,
-		Product:   item.Product,
-		Quantity:  item.Quantity,
-		Unit:      item.Unit,
-		Available: item.Available,
-		CreatedAt: item.AddedAt,
-		UpdatedAt: item.UpdatedAt,
+		ID:          item.ID,
+		UserID:      item.UserID,
+		Name:        item.Name,
+		Quantity:    item.Quantity,
+		Price:       item.Price,
+		PurchasedAt: item.PurchasedAt,
+		ExpiryDate:  item.ExpiryDate,
+		CreatedAt:   item.CreatedAt,
+		UpdatedAt:   item.UpdatedAt,
 	}
 }

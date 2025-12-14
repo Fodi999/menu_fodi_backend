@@ -2,12 +2,27 @@ package models
 
 import "time"
 
-// Ingredient модель ингредиента (соответствует Prisma схеме)
+// Ingredient category constants - категории продуктов
+const (
+	CategoryProtein   = "protein"   // Белки: мясо, рыба, яйца
+	CategoryVegetable = "vegetable" // Овощи и фрукты
+	CategoryDairy     = "dairy"     // Молочные продукты
+	CategoryGrain     = "grain"     // Крупы, макароны, хлеб
+	CategoryCondiment = "condiment" // Специи, соусы, масла
+	CategoryOther     = "other"     // Прочее
+)
+
+// Ingredient модель ингредиента - ОБЩИЙ КАТАЛОГ для всех пользователей
+// Не содержит информации о пользователе, складе, партии или количестве
+// Используется для автокомплита и как справочник
 type Ingredient struct {
-	ID        string    `gorm:"primaryKey;column:id" json:"id"`
-	Name      string    `gorm:"column:name" json:"name"`
-	Unit      string    `gorm:"column:unit" json:"unit"` // "g", "ml", "pcs"
-	CreatedAt time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
+	ID                   string    `gorm:"primaryKey;column:id" json:"id"`
+	Name                 string    `gorm:"column:name;not null" json:"name"`
+	Unit                 string    `gorm:"column:unit;not null" json:"unit"` // "g", "ml", "pcs"
+	Category             string    `gorm:"column:category;not null" json:"category"`
+	DefaultShelfLifeDays *int      `gorm:"column:defaultShelfLifeDays" json:"defaultShelfLifeDays,omitempty"`
+	DefaultPricePerUnit  *float64  `gorm:"column:defaultPricePerUnit" json:"defaultPricePerUnit,omitempty"`
+	CreatedAt            time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
 
 // TableName указывает имя таблицы для GORM
@@ -15,7 +30,8 @@ func (Ingredient) TableName() string {
 	return "Ingredient"
 }
 
-// StockItem модель складских остатков (соответствует Prisma схеме)
+// StockItem модель складских остатков - ДЛЯ PRO_CHEF (рестораны/бизнес)
+// Содержит детальную информацию о партиях, поставщиках, ценах
 type StockItem struct {
 	ID              string      `gorm:"primaryKey;column:id" json:"id"`
 	IngredientID    string      `gorm:"column:ingredientId" json:"ingredientId"`

@@ -48,7 +48,7 @@ func main() {
 	log.Println("  curl -X POST http://localhost:8080/api/test/allocate")
 	log.Println("  curl -X POST http://localhost:8080/api/test/spend")
 	log.Println("  curl -X POST http://localhost:8080/api/test/task-complete")
-	
+
 	http.ListenAndServe(":8080", r)
 }
 
@@ -114,7 +114,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 func broadcast(event Event) {
 	log.Printf("📤 Broadcasting event: %s to %d clients", event.Type, len(clients))
-	
+
 	eventJSON, _ := json.Marshal(event)
 	for conn := range clients {
 		err := conn.WriteMessage(websocket.TextMessage, eventJSON)

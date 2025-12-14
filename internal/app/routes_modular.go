@@ -84,7 +84,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	recipesModule := recipes.NewModule()
 	semiFinishedModule := semi_finished.NewModule(a.db)
 	statsModule := stats.NewModule(a.db)
-	taskModule := task.NewModule() // Task system with treasury integration
+	taskModule := task.NewModule()           // Task system with treasury integration
 	websocketModule := websocket.NewModule() // WebSocket real-time events
 
 	// Register health module early (before /api routes)

@@ -277,10 +277,10 @@ func (h *TaskHandlers) ApproveTaskCompletion(w http.ResponseWriter, r *http.Requ
 // или с JSON body: {"user_id": "xxx"}
 func (h *TaskHandlers) ApproveTaskCompletionByPath(w http.ResponseWriter, r *http.Request) {
 	taskID := chi.URLParam(r, "taskID")
-	
+
 	// Пробуем получить user_id из query параметра
 	userID := r.URL.Query().Get("user_id")
-	
+
 	// Если не в query, пробуем из body
 	if userID == "" {
 		var req struct {
@@ -290,7 +290,7 @@ func (h *TaskHandlers) ApproveTaskCompletionByPath(w http.ResponseWriter, r *htt
 			userID = req.UserID
 		}
 	}
-	
+
 	if userID == "" {
 		http.Error(w, "user_id is required (in query or body)", http.StatusBadRequest)
 		return

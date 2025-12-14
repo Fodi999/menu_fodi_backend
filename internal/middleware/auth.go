@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
@@ -27,7 +28,7 @@ func Logger(next http.Handler) http.Handler {
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("🔐 AuthMiddleware: %s %s", r.Method, r.URL.Path)
-		
+
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			log.Printf("❌ No Authorization header for %s %s", r.Method, r.URL.Path)
@@ -60,7 +61,7 @@ func AdminMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if claims.Role != "admin" {
+		if claims.Role != models.RoleAdmin {
 			utils.WriteError(w, http.StatusForbidden, "Admin access required")
 			return
 		}
@@ -83,4 +84,37 @@ func GetUserID(r *http.Request) *uuid.UUID {
 	}
 
 	return &userID
+}
+
+// RequireRole создаёт middleware для проверки конкретной роли пользователя
+// Используется для разделения доступа: home_chef, pro_chef, admin
+func RequireRole(role string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)
+			if !ok {
+				log.Printf("❌ RequireRole(%s): No user in context", role)
+				utils.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+				return
+			}
+
+			if claims.Role != role {
+				log.Printf("❌ RequireRole(%s): User has role '%s', access denied", role, claims.Role)
+				utils.WriteError(w, http.StatusForbidden, "Access denied: insufficient permissions")
+				return
+			}
+
+			log.Printf("✅ RequireRole(%s): Access granted for user %s", role, claims.UserID)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// GetUserFromContext извлекает Claims пользователя из контекста
+func GetUserFromContext(r *http.Request) *authservice.Claims {
+	claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)
+	if !ok {
+		return nil
+	}
+	return claims
 }

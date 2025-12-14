@@ -32,7 +32,6 @@ func NewMarketplaceHandlers(marketplace service.MarketplaceService) *Marketplace
 	}
 }
 
-
 // GetMarketRecipes godoc
 // @Summary Get marketplace recipes
 // @Description Get all public recipes from marketplace with filters
@@ -285,12 +284,12 @@ func (h *MarketplaceHandlers) UploadImage(w http.ResponseWriter, r *http.Request
 	// Validate file type (only images)
 	contentType := handler.Header.Get("Content-Type")
 	validTypes := map[string]bool{
-		"image/jpeg":       true,
-		"image/jpg":        true,
-		"image/png":        true,
-		"image/webp":       true,
-		"image/gif":        true,
-		"image/svg+xml":    true,
+		"image/jpeg":    true,
+		"image/jpg":     true,
+		"image/png":     true,
+		"image/webp":    true,
+		"image/gif":     true,
+		"image/svg+xml": true,
 	}
 
 	if !validTypes[contentType] {

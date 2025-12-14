@@ -2,13 +2,20 @@ package models
 
 import "time"
 
+// User roles constants - используй ТОЛЬКО эти константы для избежания опечаток
+const (
+	RoleHomeChef = "home_chef" // Домашний повар
+	RoleProChef  = "pro_chef"  // Профессиональный повар / ресторан
+	RoleAdmin    = "admin"     // Администратор
+)
+
 // User модель пользователя (соответствует Prisma схеме)
 type User struct {
 	ID        string    `gorm:"primaryKey;column:id" json:"id"`
 	Email     string    `gorm:"unique;column:email" json:"email"`
 	Name      string    `gorm:"column:name" json:"name"`
-	Password  string    `gorm:"column:password" json:"-"`             // не возвращается в JSON
-	Role      string    `gorm:"column:role;default:user" json:"role"` // "user" или "admin"
+	Password  string    `gorm:"column:password" json:"-"`                  // не возвращается в JSON
+	Role      string    `gorm:"column:role;default:home_chef" json:"role"` // home_chef | pro_chef | admin
 	CreatedAt time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
 

@@ -35,7 +35,7 @@ func NewUserHandlers(service service.UserService) *UserHandlers {
 // @Router /api/user/profile [get]
 func (h *UserHandlers) GetProfile(w http.ResponseWriter, r *http.Request) {
 	logger.Info("📋 GetProfile handler called")
-	
+
 	userIDPtr := middleware.GetUserID(r)
 	if userIDPtr == nil {
 		logger.Error("user ID not found in context")

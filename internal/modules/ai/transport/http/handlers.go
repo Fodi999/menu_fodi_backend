@@ -2,8 +2,10 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -88,15 +90,22 @@ func (h *AIHandlers) GenerateMealPlan(w http.ResponseWriter, r *http.Request) {
 	userIDPtr := middleware.GetUserID(r)
 
 	// Get fridge items if requested and user is authenticated
-	var fridgeItems []models.UserFridge
+	var fridgeItemsDTO []dto.AvailableIngredientDTO
 	if req.UseFridge && userIDPtr != nil {
-		if err := h.db.Where("user_id = ? AND available = ?", *userIDPtr, true).
+		var fridgeItems []models.UserFridgeItem
+		if err := h.db.Where(`"userId" = ?`, userIDPtr.String()).
 			Find(&fridgeItems).Error; err != nil {
 			logger.Error("failed to get fridge items", zap.Error(err))
 		}
+
+		// Конвертируем модели в DTO для AI слоя
+		fridgeItemsDTO = make([]dto.AvailableIngredientDTO, len(fridgeItems))
+		for i, item := range fridgeItems {
+			fridgeItemsDTO[i] = dto.NewAvailableIngredientDTO(item.Name, item.Quantity, item.ExpiryDate)
+		}
 	}
 
-	response, err := h.service.GenerateMealPlan(req, userIDPtr, fridgeItems)
+	response, err := h.service.GenerateMealPlan(req, userIDPtr, fridgeItemsDTO)
 	if err != nil {
 		switch err {
 		case service.ErrInvalidDays, service.ErrInvalidCalories:
@@ -174,15 +183,21 @@ func (h *AIHandlers) GetFridgeRecommendations(w http.ResponseWriter, r *http.Req
 	}
 
 	// Get user's fridge items
-	var fridgeItems []models.UserFridge
-	if err := h.db.Where("user_id = ? AND available = ?", userID, true).
+	var fridgeItems []models.UserFridgeItem
+	if err := h.db.Where(`"userId" = ?`, userID.String()).
 		Find(&fridgeItems).Error; err != nil {
 		logger.Error("failed to get fridge items", zap.Error(err), zap.String("user_id", userID.String()))
 		httpx.InternalError(w, "failed to get fridge items")
 		return
 	}
 
-	recommendations, err := h.service.GetFridgeRecommendations(req, fridgeItems)
+	// Конвертируем модели в DTO для AI слоя
+	fridgeItemsDTO := make([]dto.AvailableIngredientDTO, len(fridgeItems))
+	for i, item := range fridgeItems {
+		fridgeItemsDTO[i] = dto.NewAvailableIngredientDTO(item.Name, item.Quantity, item.ExpiryDate)
+	}
+
+	recommendations, err := h.service.GetFridgeRecommendations(req, fridgeItemsDTO)
 	if err != nil {
 		logger.Error("fridge recommendations error", zap.Error(err), zap.String("user_id", userID.String()))
 		httpx.InternalError(w, "failed to get recommendations")
@@ -232,17 +247,19 @@ func (h *AIHandlers) SaveRecipeIngredientsToFridge(w http.ResponseWriter, r *htt
 
 	// Save each ingredient to fridge
 	for _, ingredient := range req.Ingredients {
-		fridgeItem := &models.UserFridge{
-			UserID:    userID,
-			Product:   ingredient.Name,
-			Quantity:  ingredient.Amount,
-			Unit:      ingredient.Unit,
-			Available: true,
+		// Формируем quantity в строковом формате
+		quantityStr := fmt.Sprintf("%.2f %s", ingredient.Amount, ingredient.Unit)
+
+		fridgeItem := &models.UserFridgeItem{
+			ID:       uuid.New().String(),
+			UserID:   userID.String(),
+			Name:     ingredient.Name,
+			Quantity: quantityStr,
 		}
 
 		if err := h.db.Create(fridgeItem).Error; err != nil {
-			logger.Error("failed to save ingredient to fridge", 
-				zap.Error(err), 
+			logger.Error("failed to save ingredient to fridge",
+				zap.Error(err),
 				zap.String("user_id", userID.String()),
 				zap.String("product", ingredient.Name))
 			httpx.InternalError(w, "failed to save ingredients")
@@ -251,8 +268,8 @@ func (h *AIHandlers) SaveRecipeIngredientsToFridge(w http.ResponseWriter, r *htt
 	}
 
 	httpx.Success(w, map[string]interface{}{
-		"success":  true,
-		"message":  "ingredients saved to fridge",
-		"count":    len(req.Ingredients),
+		"success": true,
+		"message": "ingredients saved to fridge",
+		"count":   len(req.Ingredients),
 	})
 }

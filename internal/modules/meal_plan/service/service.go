@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	ai_core "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	ai_core "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/meal_plan/dto"
 	nutritionservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/nutrition/service"
 )
@@ -40,7 +40,7 @@ func (s *MealPlanService) GenerateMealPlan(req *dto.MealPlanRequest, userID stri
 	}
 
 	// Get fridge items if useFridge is true
-	var fridgeItems []models.UserFridge
+	var fridgeItems []models.UserFridgeItem
 	if req.UseFridge && userID != "" {
 		db := database.GetDB()
 		if err := db.Where("user_id = ? AND available = ?", userID, true).Find(&fridgeItems).Error; err != nil {
@@ -100,7 +100,7 @@ func (s *MealPlanService) GenerateMealPlan(req *dto.MealPlanRequest, userID stri
 }
 
 // buildMealPlanPrompt creates the AI prompt for meal plan generation
-func (s *MealPlanService) buildMealPlanPrompt(req *dto.MealPlanRequest, fridgeItems []models.UserFridge) string {
+func (s *MealPlanService) buildMealPlanPrompt(req *dto.MealPlanRequest, fridgeItems []models.UserFridgeItem) string {
 	var sb strings.Builder
 
 	sb.WriteString(fmt.Sprintf("Create a %d-day meal plan with approximately %d calories per day.\n\n", req.Days, req.TargetCalories))
@@ -123,7 +123,7 @@ func (s *MealPlanService) buildMealPlanPrompt(req *dto.MealPlanRequest, fridgeIt
 	if len(fridgeItems) > 0 {
 		sb.WriteString("Available ingredients in fridge:\n")
 		for _, item := range fridgeItems {
-			sb.WriteString(fmt.Sprintf("- %s (%.1f %s)\n", item.Product, item.Quantity, item.Unit))
+			sb.WriteString(fmt.Sprintf("- %s (%s)\n", item.Name, item.Quantity))
 		}
 		sb.WriteString("\nTry to use these ingredients when creating meals.\n\n")
 	}
@@ -265,42 +265,42 @@ func (s *MealPlanService) estimateMealCalories(mealName string) float64 {
 	// Simple calorie estimation based on meal types
 	calorieMap := map[string]float64{
 		// Breakfast
-		"омлет":        300,
-		"каша":         250,
-		"вівсянка":     280,
-		"сирники":      350,
-		"млинці":       400,
-		"яєчня":        250,
-		"мюслі":        300,
-		"тості":        200,
+		"омлет":    300,
+		"каша":     250,
+		"вівсянка": 280,
+		"сирники":  350,
+		"млинці":   400,
+		"яєчня":    250,
+		"мюслі":    300,
+		"тості":    200,
 
 		// Lunch
-		"борщ":         400,
-		"суп":          300,
-		"курка":        450,
-		"м'ясо":        500,
-		"риба":         350,
-		"стейк":        600,
-		"котлета":      450,
-		"плов":         550,
-		"паста":        500,
-		"макарони":     480,
-		"рис":          400,
+		"борщ":     400,
+		"суп":      300,
+		"курка":    450,
+		"м'ясо":    500,
+		"риба":     350,
+		"стейк":    600,
+		"котлета":  450,
+		"плов":     550,
+		"паста":    500,
+		"макарони": 480,
+		"рис":      400,
 
 		// Dinner
-		"салат":        200,
-		"овочі":        150,
-		"гриль":        400,
-		"запіканка":    450,
-		"піца":         650,
-		"бургер":       700,
+		"салат":     200,
+		"овочі":     150,
+		"гриль":     400,
+		"запіканка": 450,
+		"піца":      650,
+		"бургер":    700,
 
 		// Snacks
-		"фрукти":       100,
-		"йогурт":       150,
-		"горіхи":       200,
-		"сир":          120,
-		"батончик":    180,
+		"фрукти":   100,
+		"йогурт":   150,
+		"горіхи":   200,
+		"сир":      120,
+		"батончик": 180,
 	}
 
 	// Check for keywords in meal name

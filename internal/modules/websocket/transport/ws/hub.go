@@ -17,7 +17,7 @@ type Client struct {
 	Hub    *Hub
 	Conn   *websocket.Conn
 	Send   chan []byte
-	
+
 	// Subscription filters
 	SubscribedEvents map[service.EventType]bool
 	mu               sync.RWMutex
@@ -27,22 +27,22 @@ type Client struct {
 type Hub struct {
 	// Зарегистрированные клиенты
 	clients map[*Client]bool
-	
+
 	// Клиенты по userID для таргетированных сообщений
 	userClients map[string][]*Client
-	
+
 	// Канал для регистрации клиентов
 	register chan *Client
-	
+
 	// Канал для отключения клиентов
 	unregister chan *Client
-	
+
 	// Канал для broadcast сообщений
 	broadcast chan []byte
-	
+
 	// EventBus интеграция
 	eventBus *service.EventBus
-	
+
 	mu sync.RWMutex
 }
 
@@ -56,25 +56,25 @@ func NewHub() *Hub {
 		broadcast:   make(chan []byte, 256),
 		eventBus:    service.GetEventBus(),
 	}
-	
+
 	// Подписываемся на все события EventBus
 	hub.subscribeToEvents()
-	
+
 	return hub
 }
 
 // Run запускает Hub (должен быть запущен в горутине)
 func (h *Hub) Run() {
 	log.Println("🚀 WebSocket Hub started")
-	
+
 	for {
 		select {
 		case client := <-h.register:
 			h.registerClient(client)
-			
+
 		case client := <-h.unregister:
 			h.unregisterClient(client)
-			
+
 		case message := <-h.broadcast:
 			h.broadcastToAll(message)
 		}
@@ -85,9 +85,9 @@ func (h *Hub) Run() {
 func (h *Hub) registerClient(client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	
+
 	h.clients[client] = true
-	
+
 	// Добавляем в map по userID
 	if client.UserID != "" {
 		h.userClients[client.UserID] = append(h.userClients[client.UserID], client)
@@ -95,12 +95,12 @@ func (h *Hub) registerClient(client *Client) {
 	} else {
 		log.Printf("✅ Anonymous client registered: %s (total: %d)", client.ID, len(h.clients))
 	}
-	
+
 	// Отправляем welcome сообщение
 	welcome := map[string]interface{}{
-		"type":    "connection",
-		"status":  "connected",
-		"message": "WebSocket connection established",
+		"type":      "connection",
+		"status":    "connected",
+		"message":   "WebSocket connection established",
 		"client_id": client.ID,
 	}
 	welcomeJSON, _ := json.Marshal(welcome)
@@ -111,11 +111,11 @@ func (h *Hub) registerClient(client *Client) {
 func (h *Hub) unregisterClient(client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	
+
 	if _, ok := h.clients[client]; ok {
 		delete(h.clients, client)
 		close(client.Send)
-		
+
 		// Удаляем из userClients
 		if client.UserID != "" {
 			clients := h.userClients[client.UserID]
@@ -129,7 +129,7 @@ func (h *Hub) unregisterClient(client *Client) {
 				delete(h.userClients, client.UserID)
 			}
 		}
-		
+
 		log.Printf("❌ Client unregistered: %s (total: %d)", client.ID, len(h.clients))
 	}
 }
@@ -138,7 +138,7 @@ func (h *Hub) unregisterClient(client *Client) {
 func (h *Hub) broadcastToAll(message []byte) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	for client := range h.clients {
 		select {
 		case client.Send <- message:
@@ -154,7 +154,7 @@ func (h *Hub) BroadcastToUser(userID string, message []byte) {
 	h.mu.RLock()
 	clients := h.userClients[userID]
 	h.mu.RUnlock()
-	
+
 	for _, client := range clients {
 		select {
 		case client.Send <- message:
@@ -171,10 +171,10 @@ func (h *Hub) BroadcastEvent(event service.Event) {
 		log.Printf("❌ Failed to serialize event: %v", err)
 		return
 	}
-	
+
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	// Если событие для конкретного пользователя, отправляем только ему
 	if event.UserID != "" {
 		clients := h.userClients[event.UserID]
@@ -189,7 +189,7 @@ func (h *Hub) BroadcastEvent(event service.Event) {
 		}
 		return
 	}
-	
+
 	// Иначе broadcast всем подписанным клиентам
 	for client := range h.clients {
 		if client.isSubscribedTo(event.Type) {
@@ -216,13 +216,13 @@ func (h *Hub) subscribeToEvents() {
 		service.UserRegisteredEvent,
 		service.UserWelcomeBonusEvent,
 	}
-	
+
 	for _, eventType := range allEvents {
 		h.eventBus.Subscribe(eventType, func(event service.Event) {
 			h.BroadcastEvent(event)
 		})
 	}
-	
+
 	log.Printf("📡 Hub subscribed to %d event types", len(allEvents))
 }
 
@@ -230,7 +230,7 @@ func (h *Hub) subscribeToEvents() {
 func (h *Hub) GetStats() map[string]interface{} {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	return map[string]interface{}{
 		"total_clients":       len(h.clients),
 		"authenticated_users": len(h.userClients),
@@ -259,13 +259,13 @@ func (c *Client) ReadPump() {
 		c.Hub.unregister <- c
 		c.Conn.Close()
 	}()
-	
+
 	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.Conn.SetPongHandler(func(string) error {
 		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		return nil
 	})
-	
+
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
@@ -274,7 +274,7 @@ func (c *Client) ReadPump() {
 			}
 			break
 		}
-		
+
 		// Обработка команд от клиента
 		c.handleMessage(message)
 	}
@@ -287,7 +287,7 @@ func (c *Client) WritePump() {
 		ticker.Stop()
 		c.Conn.Close()
 	}()
-	
+
 	for {
 		select {
 		case message, ok := <-c.Send:
@@ -296,17 +296,17 @@ func (c *Client) WritePump() {
 				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			
+
 			w, err := c.Conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
 			w.Write(message)
-			
+
 			if err := w.Close(); err != nil {
 				return
 			}
-			
+
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -323,12 +323,12 @@ func (c *Client) handleMessage(message []byte) {
 		log.Printf("Invalid message from client %s: %v", c.ID, err)
 		return
 	}
-	
+
 	action, ok := cmd["action"].(string)
 	if !ok {
 		return
 	}
-	
+
 	switch action {
 	case "subscribe":
 		// Подписка на события
@@ -339,7 +339,7 @@ func (c *Client) handleMessage(message []byte) {
 				}
 			}
 		}
-		
+
 	case "unsubscribe":
 		// Отписка от событий
 		if events, ok := cmd["events"].([]interface{}); ok {
@@ -349,11 +349,11 @@ func (c *Client) handleMessage(message []byte) {
 				}
 			}
 		}
-		
+
 	case "ping":
 		// Ответ на ping
 		pong := map[string]interface{}{
-			"type": "pong",
+			"type":      "pong",
 			"timestamp": time.Now().Unix(),
 		}
 		pongJSON, _ := json.Marshal(pong)
@@ -381,12 +381,12 @@ func (c *Client) unsubscribeFrom(eventType service.EventType) {
 func (c *Client) isSubscribedTo(eventType service.EventType) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	// Если не подписан ни на что, получает всё
 	if len(c.SubscribedEvents) == 0 {
 		return true
 	}
-	
+
 	return c.SubscribedEvents[eventType]
 }
 

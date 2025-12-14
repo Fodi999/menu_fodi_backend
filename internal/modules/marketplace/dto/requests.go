@@ -18,27 +18,27 @@ type MarketplaceFilters struct {
 
 // RecipeWithAuthor represents a marketplace recipe with author info
 type RecipeWithAuthor struct {
-	ID           uuid.UUID `json:"id"`
-	UserID       uuid.UUID `json:"userId"`
-	Title        string    `json:"title"`
-	Description  string    `json:"description"`
-	Category     string    `json:"category"`
-	Difficulty   string    `json:"difficulty"`
-	Price        float64   `json:"price"`
-	Rating       float64   `json:"rating"`
-	Purchases    int       `json:"purchases"`
-	ImageURL     string    `json:"imageUrl"`
-	IsPublic     bool      `json:"isPublic"`
-	CreatedAt    time.Time `json:"createdAt"`
-	
+	ID          uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"userId"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Category    string    `json:"category"`
+	Difficulty  string    `json:"difficulty"`
+	Price       float64   `json:"price"`
+	Rating      float64   `json:"rating"`
+	Purchases   int       `json:"purchases"`
+	ImageURL    string    `json:"imageUrl"`
+	IsPublic    bool      `json:"isPublic"`
+	CreatedAt   time.Time `json:"createdAt"`
+
 	// Author info
-	AuthorName   string  `json:"authorName"`
-	AuthorLevel  int     `json:"authorLevel"`
-	AuthorAvatar string  `json:"authorAvatar"`
-	
+	AuthorName   string `json:"authorName"`
+	AuthorLevel  int    `json:"authorLevel"`
+	AuthorAvatar string `json:"authorAvatar"`
+
 	// Review info
-	ReviewCount  int     `json:"reviewCount"`
-	AvgReview    float64 `json:"avgReview"`
+	ReviewCount int     `json:"reviewCount"`
+	AvgReview   float64 `json:"avgReview"`
 }
 
 // MarketplaceResponse represents marketplace recipes list
@@ -55,12 +55,12 @@ type PurchaseRequest struct {
 
 // PurchaseResponse represents purchase result
 type PurchaseResponse struct {
-	PurchaseID      string  `json:"purchaseId"`
-	Recipe          string  `json:"recipe"`
-	Price           float64 `json:"price"`
-	Commission      float64 `json:"commission"`
-	SellerReceived  float64 `json:"sellerReceived"`
-	BuyerBalance    float64 `json:"buyerBalance"`
+	PurchaseID     string  `json:"purchaseId"`
+	Recipe         string  `json:"recipe"`
+	Price          float64 `json:"price"`
+	Commission     float64 `json:"commission"`
+	SellerReceived float64 `json:"sellerReceived"`
+	BuyerBalance   float64 `json:"buyerBalance"`
 }
 
 // UserPurchase represents a user's recipe purchase

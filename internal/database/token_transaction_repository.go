@@ -168,10 +168,10 @@ func (r *TokenTransactionRepository) GetTreasurySpending(limit, offset int) ([]m
 // GetTransactionStats получает статистику транзакций
 func (r *TokenTransactionRepository) GetTransactionStats() (map[string]interface{}, error) {
 	var stats struct {
-		TotalTransactions  int64
-		TotalAllocated     int64
-		TotalSpent         int64
-		UniqueUsers        int64
+		TotalTransactions int64
+		TotalAllocated    int64
+		TotalSpent        int64
+		UniqueUsers       int64
 	}
 
 	// Общее количество транзакций

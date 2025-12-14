@@ -243,10 +243,10 @@ func (s *userService) GetWallet(userID uuid.UUID) (*dto.WalletResponse, error) {
 		TotalEarned:     totalEarned,
 		TotalSpent:      totalSpent,
 		Earnings: dto.WalletEarnings{
-			CoursesCompleted:   totalEarned * 0.5,
-			QuizzesCompleted:   totalEarned * 0.3,
-			Bonuses:            totalEarned * 0.2,
-			Referrals:          0,
+			CoursesCompleted: totalEarned * 0.5,
+			QuizzesCompleted: totalEarned * 0.3,
+			Bonuses:          totalEarned * 0.2,
+			Referrals:        0,
 		},
 		Spending: dto.WalletSpending{
 			CourseEnrollments: totalSpent * 0.6,

@@ -6,9 +6,9 @@ import "time"
 type TokenBank struct {
 	ID             string    `gorm:"primaryKey;column:id;type:uuid" json:"id"`
 	UserID         string    `gorm:"uniqueIndex;column:user_id;type:uuid" json:"user_id"`
-	Balance        int64     `gorm:"column:balance;default:0" json:"balance"`           // Текущий доступный баланс
+	Balance        int64     `gorm:"column:balance;default:0" json:"balance"`                 // Текущий доступный баланс
 	TotalAllocated int64     `gorm:"column:total_allocated;default:0" json:"total_allocated"` // Всего выдано админом
-	TotalUsed      int64     `gorm:"column:total_used;default:0" json:"total_used"`     // Всего использовано
+	TotalUsed      int64     `gorm:"column:total_used;default:0" json:"total_used"`           // Всего использовано
 	UpdatedAt      time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
 	CreatedAt      time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 
@@ -44,8 +44,8 @@ type UpdateTokenBalanceRequest struct {
 
 // TokenBankStats статистика по токинам
 type TokenBankStats struct {
-	TotalTokensAllocated int64 `json:"total_tokens_allocated"`
-	TotalTokensUsed      int64 `json:"total_tokens_used"`
-	TotalUsersWithTokens int64 `json:"total_users_with_tokens"`
+	TotalTokensAllocated  int64   `json:"total_tokens_allocated"`
+	TotalTokensUsed       int64   `json:"total_tokens_used"`
+	TotalUsersWithTokens  int64   `json:"total_users_with_tokens"`
 	AverageBalancePerUser float64 `json:"average_balance_per_user"`
 }

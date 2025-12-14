@@ -7,9 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	ai_core "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai/dto"
+	ai_core "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
 )
 
 var (
@@ -24,14 +23,14 @@ type AIService interface {
 	// Chef Mentor
 	ChefMentor(req dto.ChefMentorRequest) (*dto.ChefMentorResponse, error)
 
-	// Meal Planning
-	GenerateMealPlan(req dto.MealPlanRequest, userID *uuid.UUID, fridgeItems []models.UserFridge) (*dto.MealPlanResponse, error)
+	// Meal Planning - использует DTO вместо моделей
+	GenerateMealPlan(req dto.MealPlanRequest, userID *uuid.UUID, fridgeItems []dto.AvailableIngredientDTO) (*dto.MealPlanResponse, error)
 
 	// Recipe Generation
 	GenerateRecipe(req dto.RecipeGenerationRequest) (*dto.GeneratedRecipe, error)
 
-	// Fridge Recommendations
-	GetFridgeRecommendations(req dto.FridgeRecommendationsRequest, fridgeItems []models.UserFridge) ([]dto.FridgeRecommendation, error)
+	// Fridge Recommendations - использует DTO вместо моделей
+	GetFridgeRecommendations(req dto.FridgeRecommendationsRequest, fridgeItems []dto.AvailableIngredientDTO) ([]dto.FridgeRecommendation, error)
 }
 
 type aiService struct {
@@ -111,7 +110,7 @@ func (s *aiService) ChefMentor(req dto.ChefMentorRequest) (*dto.ChefMentorRespon
 	return chefResponse, nil
 }
 
-func (s *aiService) GenerateMealPlan(req dto.MealPlanRequest, userID *uuid.UUID, fridgeItems []models.UserFridge) (*dto.MealPlanResponse, error) {
+func (s *aiService) GenerateMealPlan(req dto.MealPlanRequest, userID *uuid.UUID, fridgeItems []dto.AvailableIngredientDTO) (*dto.MealPlanResponse, error) {
 	// Validate
 	if req.Days < 1 || req.Days > 14 {
 		return nil, ErrInvalidDays
@@ -181,7 +180,7 @@ func (s *aiService) GenerateRecipe(req dto.RecipeGenerationRequest) (*dto.Genera
 	return recipe, nil
 }
 
-func (s *aiService) GetFridgeRecommendations(req dto.FridgeRecommendationsRequest, fridgeItems []models.UserFridge) ([]dto.FridgeRecommendation, error) {
+func (s *aiService) GetFridgeRecommendations(req dto.FridgeRecommendationsRequest, fridgeItems []dto.AvailableIngredientDTO) ([]dto.FridgeRecommendation, error) {
 	if len(fridgeItems) == 0 {
 		return []dto.FridgeRecommendation{}, nil
 	}
@@ -249,14 +248,14 @@ func isRecipeComplete(recipe *dto.RecipeDraft) bool {
 		len(recipe.Steps) > 0
 }
 
-func buildMealPlanPrompt(req dto.MealPlanRequest, fridgeItems []models.UserFridge) string {
+func buildMealPlanPrompt(req dto.MealPlanRequest, fridgeItems []dto.AvailableIngredientDTO) string {
 	prompt := fmt.Sprintf("Generate a %d-day meal plan with %d calories per day.",
 		req.Days, req.TargetCalories)
 
 	if len(fridgeItems) > 0 {
 		items := make([]string, len(fridgeItems))
 		for i, item := range fridgeItems {
-			items[i] = fmt.Sprintf("%s (%.1f %s)", item.Product, item.Quantity, item.Unit)
+			items[i] = fmt.Sprintf("%s (%s)", item.Name, item.Quantity)
 		}
 		prompt += "\n\nAvailable ingredients: " + strings.Join(items, ", ")
 	}
@@ -309,10 +308,10 @@ func parseRecipeJSON(response string) (*dto.GeneratedRecipe, error) {
 	}, nil
 }
 
-func buildFridgeRecommendationsPrompt(req dto.FridgeRecommendationsRequest, fridgeItems []models.UserFridge) string {
+func buildFridgeRecommendationsPrompt(req dto.FridgeRecommendationsRequest, fridgeItems []dto.AvailableIngredientDTO) string {
 	items := make([]string, len(fridgeItems))
 	for i, item := range fridgeItems {
-		items[i] = fmt.Sprintf("%s (%.1f %s)", item.Product, item.Quantity, item.Unit)
+		items[i] = fmt.Sprintf("%s (%s)", item.Name, item.Quantity)
 	}
 
 	prompt := "Suggest recipes using these ingredients: " + strings.Join(items, ", ")

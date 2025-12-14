@@ -6,12 +6,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/repo"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/service"
 	fridgehttp "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/transport/http"
 )
 
-// Module represents fridge module
+// Module represents fridge module - для HOME_CHEF пользователей
 type Module struct {
 	handlers *fridgehttp.FridgeHandlers
 }
@@ -27,11 +29,12 @@ func NewModule(db *gorm.DB) *Module {
 	}
 }
 
-// RegisterRoutes registers fridge routes
+// RegisterRoutes registers fridge routes - только для HOME_CHEF
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) http.Handler) {
 	r.Route("/fridge", func(r chi.Router) {
-		// All fridge routes require authentication
+		// Требуется аутентификация + роль HOME_CHEF
 		r.Use(jwtMiddleware)
+		r.Use(middleware.RequireRole(models.RoleHomeChef))
 
 		// Fridge item operations
 		r.Get("/", m.handlers.GetUserFridge)

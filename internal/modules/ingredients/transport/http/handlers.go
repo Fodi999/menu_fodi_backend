@@ -161,3 +161,63 @@ func (h *IngredientsHandlers) GetStockMovements(w http.ResponseWriter, r *http.R
 
 	httpx.Success(w, movements)
 }
+
+// Search поиск ингредиентов по имени (АВТОКОМПЛИТ)
+// @Summary Search ingredients (autocomplete)
+// @Description Search ingredients by name - используется ВСЕМИ пользователями
+// @Tags Ingredients
+// @Produce json
+// @Param query query string true "Search query (min 1 char)"
+// @Success 200 {array} models.Ingredient
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Security BearerAuth
+// @Router /api/ingredients/search [get]
+func (h *IngredientsHandlers) Search(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+
+	// Валидация: минимум 1 символ
+	if len(query) < 1 {
+		httpx.BadRequest(w, "Query parameter must be at least 1 character")
+		return
+	}
+
+	ingredients, err := h.service.Search(query)
+	if err != nil {
+		httpx.InternalError(w, "Failed to search ingredients")
+		return
+	}
+
+	// Унифицированный формат ответа
+	httpx.Success(w, map[string]interface{}{
+		"items": ingredients,
+		"count": len(ingredients),
+	})
+}
+
+// ListIngredients список ингредиентов с фильтрацией
+// @Summary List ingredients catalog
+// @Description Get ingredients list with optional category filter and search
+// @Tags Ingredients
+// @Produce json
+// @Param category query string false "Category filter: protein, vegetable, dairy, grain, condiment, other"
+// @Param search query string false "Search by name prefix"
+// @Success 200 {array} models.Ingredient
+// @Failure 500 {object} httpx.ErrorResponse
+// @Security BearerAuth
+// @Router /api/ingredients [get]
+func (h *IngredientsHandlers) ListIngredients(w http.ResponseWriter, r *http.Request) {
+	category := r.URL.Query().Get("category")
+	search := r.URL.Query().Get("search")
+
+	ingredients, err := h.service.List(category, search)
+	if err != nil {
+		httpx.InternalError(w, "Failed to list ingredients")
+		return
+	}
+
+	httpx.Success(w, map[string]interface{}{
+		"items": ingredients,
+		"count": len(ingredients),
+	})
+}

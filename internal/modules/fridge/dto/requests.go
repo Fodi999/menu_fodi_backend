@@ -2,8 +2,6 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // AddFridgeItemRequest represents request to add fridge item
@@ -19,16 +17,17 @@ type UpdateFridgeItemRequest struct {
 	Available *bool   `json:"available,omitempty"`
 }
 
-// FridgeItemResponse represents a fridge item
+// FridgeItemResponse represents a fridge item (HOME_CHEF model)
 type FridgeItemResponse struct {
-	ID        uuid.UUID `json:"id"`
-	UserID    uuid.UUID `json:"userId"`
-	Product   string    `json:"product"`
-	Quantity  float64   `json:"quantity"`
-	Unit      string    `json:"unit"`
-	Available bool      `json:"available"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID          string     `json:"id"`
+	UserID      string     `json:"userId"`
+	Name        string     `json:"name"`     // Было: Product
+	Quantity    string     `json:"quantity"` // Теперь string формат: "500 g"
+	Price       *float64   `json:"price,omitempty"`
+	PurchasedAt *time.Time `json:"purchasedAt,omitempty"`
+	ExpiryDate  *time.Time `json:"expiryDate,omitempty"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 // FridgeListResponse represents list of fridge items

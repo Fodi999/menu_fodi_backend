@@ -45,18 +45,18 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 	r.Route("/admin/tasks", func(r chi.Router) {
 		// TODO: r.Use(authMiddleware)
 		// TODO: r.Use(adminMiddleware)
-		
+
 		// Task management
-		r.Post("/", m.handlers.CreateTask)                      // POST /api/admin/tasks
+		r.Post("/", m.handlers.CreateTask) // POST /api/admin/tasks
 		r.Put("/{taskID}", m.handlers.UpdateTask)
 		r.Delete("/{taskID}", m.handlers.DeleteTask)
-		
+
 		// User tasks monitoring
 		r.Get("/users", m.handlers.GetAllUserTasks)
 		r.Get("/{taskID}/stats", m.handlers.GetTaskStats)
-		
+
 		// Main admin endpoints: Approve task completion and pay reward
-		r.Post("/approve", m.handlers.ApproveTaskCompletion)           // POST /api/admin/tasks/approve (JSON body)
+		r.Post("/approve", m.handlers.ApproveTaskCompletion)                // POST /api/admin/tasks/approve (JSON body)
 		r.Post("/{taskID}/approve", m.handlers.ApproveTaskCompletionByPath) // POST /api/admin/tasks/{taskID}/approve
 	})
 }

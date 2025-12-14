@@ -94,9 +94,8 @@ func AutoMigrate() error {
 		&models.RecipePost{},
 		&models.PostComment{},
 		&models.PostLike{},
-		// User Fridge (ingredients management)
-		&models.UserFridge{},
-		&models.FridgeTransaction{},
+		// User Fridge (HOME_CHEF ingredients management)
+		&models.UserFridgeItem{},
 		// Token Bank (admin management)
 		&models.TokenBank{},
 	)

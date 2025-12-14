@@ -34,7 +34,7 @@ type AdminService interface {
 	RevokeTokens(userID string, amount int64) error
 	SetTokenBalance(userID string, balance int64) error
 	GetTokenBankStats() (*models.TokenBankStats, error)
-	
+
 	// Treasury
 	GetTreasuryInfo() (*models.TokenBank, error)
 	GetTreasuryBalance() (int64, error)
@@ -42,16 +42,25 @@ type AdminService interface {
 	AllocateWelcomeBonus(userID string) error
 	AllocateQuestReward(userID string, questID string, rewardAmount int64) error
 	AllocateAchievementReward(userID string, achievementID string, rewardAmount int64) error
-	
+
 	// Token Spending (for AI, marketplace, etc.)
 	SpendTokens(userID string, amount int64) error
 	CheckUserBalance(userID string, requiredAmount int64) (bool, error)
-	
+
 	// Token Transactions History
 	GetAllTransactions(limit, offset int) ([]models.TokenTransaction, error)
 	GetUserTransactions(userID string, limit, offset int) ([]models.TokenTransaction, error)
 	GetTransactionsByType(txType string, limit, offset int) ([]models.TokenTransaction, error)
 	GetTransactionStats() (map[string]interface{}, error)
+
+	// Ingredient Catalog Management
+	BulkImportIngredients(ingredients []struct {
+		Name                 string
+		Unit                 string
+		Category             string
+		DefaultShelfLifeDays *int
+		DefaultPricePerUnit  *float64
+	}) (int, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -207,14 +216,14 @@ func (s *adminService) GetAdminProfile(adminID string) (map[string]interface{}, 
 	}
 
 	return map[string]interface{}{
-		"id":              user.ID,
-		"name":            user.Name,
-		"email":           user.Email,
-		"role":            user.Role,
-		"createdAt":       user.CreatedAt,
-		"managedUsers":    userCount,
-		"managedOrders":   orderCount,
-		"totalStats":      map[string]interface{}{"users": userCount, "orders": orderCount},
+		"id":            user.ID,
+		"name":          user.Name,
+		"email":         user.Email,
+		"role":          user.Role,
+		"createdAt":     user.CreatedAt,
+		"managedUsers":  userCount,
+		"managedOrders": orderCount,
+		"totalStats":    map[string]interface{}{"users": userCount, "orders": orderCount},
 	}, nil
 }
 
@@ -263,9 +272,9 @@ func (s *adminService) GetTokenBankStats() (*models.TokenBankStats, error) {
 	if err != nil {
 		// Если ошибка, возвращаем пустую статистику вместо ошибки
 		return &models.TokenBankStats{
-			TotalTokensAllocated: 0,
-			TotalTokensUsed:      0,
-			TotalUsersWithTokens: 0,
+			TotalTokensAllocated:  0,
+			TotalTokensUsed:       0,
+			TotalUsersWithTokens:  0,
 			AverageBalancePerUser: 0,
 		}, nil
 	}
@@ -351,4 +360,44 @@ func (s *adminService) GetTransactionsByType(txType string, limit, offset int) (
 func (s *adminService) GetTransactionStats() (map[string]interface{}, error) {
 	repo := &database.TokenTransactionRepository{}
 	return repo.GetTransactionStats()
+}
+
+// BulkImportIngredients импортирует ингредиенты массово
+func (s *adminService) BulkImportIngredients(ingredients []struct {
+	Name                 string
+	Unit                 string
+	Category             string
+	DefaultShelfLifeDays *int
+	DefaultPricePerUnit  *float64
+}) (int, error) {
+	imported := 0
+
+	for _, ing := range ingredients {
+		// Проверка обязательных полей
+		if ing.Name == "" || ing.Unit == "" || ing.Category == "" {
+			continue // Пропускаем невалидные записи
+		}
+
+		// Создаём модель
+		ingredient := models.Ingredient{
+			Name:                 ing.Name,
+			Unit:                 ing.Unit,
+			Category:             ing.Category,
+			DefaultShelfLifeDays: ing.DefaultShelfLifeDays,
+			DefaultPricePerUnit:  ing.DefaultPricePerUnit,
+		}
+
+		// Upsert: если существует с таким именем - обновляем, иначе создаём
+		result := s.db.Where("name = ?", ing.Name).
+			Assign(ingredient).
+			FirstOrCreate(&ingredient)
+
+		if result.Error != nil {
+			continue // Логируем, но продолжаем
+		}
+
+		imported++
+	}
+
+	return imported, nil
 }

@@ -70,8 +70,11 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 		// Treasury
 		r.Get("/treasury", m.handlers.GetTreasuryInfo)
-		r.Get("/treasury/stats", m.handlers.GetTreasuryStats)          // Detailed Treasury statistics
+		r.Get("/treasury/stats", m.handlers.GetTreasuryStats)        // Detailed Treasury statistics
 		r.Get("/token-bank/treasury", m.handlers.GetTreasuryBalance) // Simplified endpoint
 		r.Post("/treasury/allocate", m.handlers.AllocateFromTreasury)
+
+		// Ingredient Catalog Management
+		r.Post("/ingredients/import", m.handlers.ImportIngredients) // Bulk import catalog
 	})
 }

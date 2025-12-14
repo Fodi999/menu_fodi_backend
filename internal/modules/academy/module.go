@@ -39,7 +39,7 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handl
 		// Protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(jwtMiddleware)
-			
+
 			r.Post("/enroll", m.handlers.EnrollInCourse)
 			r.Post("/lessons/complete", m.handlers.CompleteLesson)
 			r.Post("/quizzes/submit", m.handlers.SubmitQuiz)

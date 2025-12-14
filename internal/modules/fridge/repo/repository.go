@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,15 +19,15 @@ var (
 // FridgeRepository handles fridge data operations
 type FridgeRepository interface {
 	// Item operations
-	GetUserFridge(userID uuid.UUID) ([]models.UserFridge, error)
-	GetItemByID(itemID, userID uuid.UUID) (*models.UserFridge, error)
+	GetUserFridge(userID uuid.UUID) ([]models.UserFridgeItem, error)
+	GetItemByID(itemID, userID uuid.UUID) (*models.UserFridgeItem, error)
 	AddItem(userID uuid.UUID, product string, quantity float64, unit string) error
 	UpdateItem(itemID, userID uuid.UUID, updates map[string]interface{}) error
 	DeleteItem(itemID, userID uuid.UUID) error
 
 	// Query operations
 	CountItems(userID uuid.UUID) (int, error)
-	GetAvailableItems(userID uuid.UUID) ([]models.UserFridge, error)
+	GetAvailableItems(userID uuid.UUID) ([]models.UserFridgeItem, error)
 }
 
 type fridgeRepository struct {
@@ -38,16 +39,16 @@ func NewFridgeRepository(db *gorm.DB) FridgeRepository {
 	return &fridgeRepository{db: db}
 }
 
-func (r *fridgeRepository) GetUserFridge(userID uuid.UUID) ([]models.UserFridge, error) {
-	var items []models.UserFridge
+func (r *fridgeRepository) GetUserFridge(userID uuid.UUID) ([]models.UserFridgeItem, error) {
+	var items []models.UserFridgeItem
 	err := r.db.Where("user_id = ?", userID).
 		Order("added_at DESC").
 		Find(&items).Error
 	return items, err
 }
 
-func (r *fridgeRepository) GetItemByID(itemID, userID uuid.UUID) (*models.UserFridge, error) {
-	var item models.UserFridge
+func (r *fridgeRepository) GetItemByID(itemID, userID uuid.UUID) (*models.UserFridgeItem, error) {
+	var item models.UserFridgeItem
 	err := r.db.Where("id = ? AND user_id = ?", itemID, userID).First(&item).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -59,19 +60,21 @@ func (r *fridgeRepository) GetItemByID(itemID, userID uuid.UUID) (*models.UserFr
 }
 
 func (r *fridgeRepository) AddItem(userID uuid.UUID, product string, quantity float64, unit string) error {
-	item := &models.UserFridge{
-		UserID:    userID,
-		Product:   product,
-		Quantity:  quantity,
-		Unit:      unit,
-		Available: true,
+	// Преобразуем quantity + unit в string формат
+	quantityStr := fmt.Sprintf("%.2f %s", quantity, unit)
+
+	item := &models.UserFridgeItem{
+		ID:       uuid.New().String(),
+		UserID:   userID.String(),
+		Name:     product,
+		Quantity: quantityStr,
 	}
 	return r.db.Create(item).Error
 }
 
 func (r *fridgeRepository) UpdateItem(itemID, userID uuid.UUID, updates map[string]interface{}) error {
 	// First check if item exists and belongs to user
-	var item models.UserFridge
+	var item models.UserFridgeItem
 	err := r.db.Where("id = ? AND user_id = ?", itemID, userID).First(&item).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -86,7 +89,7 @@ func (r *fridgeRepository) UpdateItem(itemID, userID uuid.UUID, updates map[stri
 
 func (r *fridgeRepository) DeleteItem(itemID, userID uuid.UUID) error {
 	result := r.db.Where("id = ? AND user_id = ?", itemID, userID).
-		Delete(&models.UserFridge{})
+		Delete(&models.UserFridgeItem{})
 
 	if result.Error != nil {
 		return result.Error
@@ -101,14 +104,14 @@ func (r *fridgeRepository) DeleteItem(itemID, userID uuid.UUID) error {
 
 func (r *fridgeRepository) CountItems(userID uuid.UUID) (int, error) {
 	var count int64
-	err := r.db.Model(&models.UserFridge{}).
+	err := r.db.Model(&models.UserFridgeItem{}).
 		Where("user_id = ?", userID).
 		Count(&count).Error
 	return int(count), err
 }
 
-func (r *fridgeRepository) GetAvailableItems(userID uuid.UUID) ([]models.UserFridge, error) {
-	var items []models.UserFridge
+func (r *fridgeRepository) GetAvailableItems(userID uuid.UUID) ([]models.UserFridgeItem, error) {
+	var items []models.UserFridgeItem
 	err := r.db.Where("user_id = ? AND available = ?", userID, true).
 		Order("added_at DESC").
 		Find(&items).Error

@@ -196,7 +196,7 @@ func (r *TokenBankRepository) InitializeTokenBankForUser(userID string) error {
 		TotalAllocated: 0,
 		TotalUsed:      0,
 	}
-	
+
 	if err := r.Create(tokenBank); err != nil {
 		return err
 	}
@@ -301,16 +301,16 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 
 		return nil
 	})
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	// ============================================
 	// WebSocket: Публикуем события после успешной транзакции
 	// ============================================
 	eventBus := wsservice.GetEventBus()
-	
+
 	// 1. Treasury update event (для админов)
 	treasuryAfter, _ := r.GetTreasuryBalance()
 	eventBus.Publish(wsservice.TreasuryAllocateEvent, map[string]interface{}{
@@ -319,7 +319,7 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 		"user_id":   userID,
 		"operation": "allocate",
 	})
-	
+
 	// 2. User token balance event (для конкретного пользователя)
 	userBank, _ := r.FindByUserID(userID)
 	balanceBefore := userBank.Balance - amount
@@ -335,7 +335,7 @@ func (r *TokenBankRepository) AllocateFromTreasury(userID string, amount int64) 
 			"type":           "earn",
 		},
 	)
-	
+
 	return nil
 }
 
@@ -402,14 +402,14 @@ func (r *TokenBankRepository) AllocateFromTreasuryWithReason(
 
 		return nil
 	})
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	// WebSocket события
 	eventBus := wsservice.GetEventBus()
-	
+
 	treasuryAfter, _ := r.GetTreasuryBalance()
 	eventBus.Publish(wsservice.TreasuryAllocateEvent, map[string]interface{}{
 		"balance":   treasuryAfter,
@@ -418,7 +418,7 @@ func (r *TokenBankRepository) AllocateFromTreasuryWithReason(
 		"operation": "allocate",
 		"type":      txType,
 	})
-	
+
 	userBank, _ := r.FindByUserID(userID)
 	balanceBefore := userBank.Balance - amount
 	eventBus.PublishUserEvent(
@@ -433,7 +433,7 @@ func (r *TokenBankRepository) AllocateFromTreasuryWithReason(
 			"type":           "earn",
 		},
 	)
-	
+
 	return nil
 }
 
@@ -547,16 +547,16 @@ func (r *TokenBankRepository) SpendTokens(userID string, amount int64) error {
 
 		return nil
 	})
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	// ============================================
 	// WebSocket: Публикуем события после успешной транзакции
 	// ============================================
 	eventBus := wsservice.GetEventBus()
-	
+
 	// 1. User token spend event (для конкретного пользователя)
 	balanceAfter := balanceBefore - amount
 	eventBus.PublishUserEvent(
@@ -571,7 +571,7 @@ func (r *TokenBankRepository) SpendTokens(userID string, amount int64) error {
 			"type":           "spend",
 		},
 	)
-	
+
 	// 2. Treasury update event (баланс увеличился)
 	treasuryAfter, _ := r.GetTreasuryBalance()
 	eventBus.Publish(wsservice.TreasurySpendEvent, map[string]interface{}{
@@ -580,7 +580,7 @@ func (r *TokenBankRepository) SpendTokens(userID string, amount int64) error {
 		"user_id":   userID,
 		"operation": "return",
 	})
-	
+
 	return nil
 }
 

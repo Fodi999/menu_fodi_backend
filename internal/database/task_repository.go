@@ -37,11 +37,11 @@ func (r *TaskRepository) GetTaskByID(taskID uuid.UUID) (*models.Task, error) {
 func (r *TaskRepository) GetAllTasks(activeOnly bool) ([]models.Task, error) {
 	var tasks []models.Task
 	query := DB.Order("created_at DESC")
-	
+
 	if activeOnly {
 		query = query.Where("is_active = ?", true)
 	}
-	
+
 	if err := query.Find(&tasks).Error; err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (r *TaskRepository) ToggleTaskActive(taskID uuid.UUID, isActive bool) error
 	result := DB.Model(&models.Task{}).
 		Where("id = ?", taskID).
 		Update("is_active", isActive)
-	
+
 	if result.Error != nil {
 		return result.Error
 	}
@@ -331,9 +331,9 @@ func (r *TaskRepository) GetAllUserTasks() ([]models.UserTask, error) {
 // GetTaskCompletionStats возвращает статистику выполнения конкретного задания
 func (r *TaskRepository) GetTaskCompletionStats(taskID uuid.UUID) (map[string]interface{}, error) {
 	var (
-		totalStarted  int64
-		completed     int64
-		inProgress    int64
+		totalStarted    int64
+		completed       int64
+		inProgress      int64
 		averageProgress float64
 	)
 

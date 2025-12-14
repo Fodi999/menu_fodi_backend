@@ -286,3 +286,24 @@ func (s *IngredientsService) generateBatchNumber(ingredientName string) string {
 		now.Format("20060102"),
 		now.Format("150405"))
 }
+
+// Search ищет ингредиенты по имени для автокомплита
+// Используется ВСЕМИ пользователями: home_chef, pro_chef, admin
+func (s *IngredientsService) Search(query string) ([]models.Ingredient, error) {
+	if query == "" {
+		// Если запрос пустой, возвращаем пустой массив
+		return []models.Ingredient{}, nil
+	}
+	return s.repo.Search(query)
+}
+
+// List возвращает ингредиенты с фильтрацией
+// Используется для просмотра каталога всеми пользователями
+func (s *IngredientsService) List(category, search string) ([]models.Ingredient, error) {
+	return s.repo.List(category, search)
+}
+
+// GetByCategory возвращает ингредиенты по категории
+func (s *IngredientsService) GetByCategory(category string) ([]models.Ingredient, error) {
+	return s.repo.GetByCategory(category)
+}
