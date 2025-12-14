@@ -5,13 +5,13 @@ import "time"
 // UserFridgeItem модель холодильника домашнего повара (HOME_CHEF) - MVP версия
 // Простая структура без лишних полей
 type UserFridgeItem struct {
-	ID           string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid();column:id" json:"id"`
-	UserID       string    `gorm:"type:uuid;not null;column:user_id;index" json:"userId"`
-	IngredientID string    `gorm:"type:uuid;not null;column:ingredient_id;index" json:"ingredientId"` // Обязательная связь с каталогом
-	Quantity     float64   `gorm:"not null;column:quantity" json:"quantity"`                           // Числовое значение (например, 500)
-	Unit         string    `gorm:"not null;column:unit" json:"unit"`                                   // "g", "ml", "pcs" - копия из каталога
-	ExpiresAt    time.Time `gorm:"not null;column:expires_at;index" json:"expiresAt"`                  // Дата истечения срока
-	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
+	ID           string     `gorm:"primaryKey;type:uuid;default:gen_random_uuid();column:id" json:"id"`
+	UserID       string     `gorm:"type:uuid;not null;column:user_id;index" json:"userId"`
+	IngredientID string     `gorm:"type:uuid;not null;column:ingredient_id;index" json:"ingredientId"` // Обязательная связь с каталогом
+	Quantity     float64    `gorm:"not null;column:quantity" json:"quantity"`                          // Числовое значение (например, 500)
+	Unit         string     `gorm:"not null;column:unit" json:"unit"`                                  // "g", "ml", "pcs" - копия из каталога
+	ExpiresAt    *time.Time `gorm:"column:expires_at;index" json:"expiresAt,omitempty"`                // Дата истечения срока (nullable)
+	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 
 	// Relations
 	User       *User       `gorm:"foreignKey:UserID;references:ID" json:"user,omitempty"`
@@ -25,7 +25,7 @@ func (UserFridgeItem) TableName() string {
 
 // CreateFridgeItemRequest запрос на добавление продукта в холодильник
 type CreateFridgeItemRequest struct {
-	IngredientID string  `json:"ingredientId" binding:"required"` // UUID из каталога
+	IngredientID string  `json:"ingredientId" binding:"required"`  // UUID из каталога
 	Quantity     float64 `json:"quantity" binding:"required,gt=0"` // Количество (должно быть > 0)
 }
 

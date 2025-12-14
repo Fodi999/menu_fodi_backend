@@ -273,7 +273,6 @@ func main() {
 	fmt.Println("\n📊 Final Statistics:")
 	fmt.Println("==================================================")
 
-
 	rows, err := db.Query(`
 		SELECT 
 			"category",

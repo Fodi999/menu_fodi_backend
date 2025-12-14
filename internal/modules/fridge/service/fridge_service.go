@@ -65,6 +65,7 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
+
 		result = append(result, models.FridgeItemListResponse{
 			ID:       item.ID,
 			Name:     item.Ingredient.Name,
@@ -137,17 +138,21 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 // ===== PRIVATE HELPERS =====
 
 // calculateExpiresAt вычисляет дату истечения срока на основе defaultShelfLifeDays
-func (s *FridgeService) calculateExpiresAt(shelfLifeDays *int) time.Time {
+func (s *FridgeService) calculateExpiresAt(shelfLifeDays *int) *time.Time {
 	days := 7 // Значение по умолчанию (неделя)
 	if shelfLifeDays != nil && *shelfLifeDays > 0 {
 		days = *shelfLifeDays
 	}
-	return time.Now().AddDate(0, 0, days)
+	expiresAt := time.Now().AddDate(0, 0, days)
+	return &expiresAt
 }
 
 // calculateDaysLeft вычисляет количество дней до истечения срока
-func (s *FridgeService) calculateDaysLeft(expiresAt time.Time) int {
-	duration := time.Until(expiresAt)
+func (s *FridgeService) calculateDaysLeft(expiresAt *time.Time) int {
+	if expiresAt == nil {
+		return 999 // Срок годности не указан
+	}
+	duration := time.Until(*expiresAt)
 	days := int(duration.Hours() / 24)
 	return days
 }
@@ -155,6 +160,11 @@ func (s *FridgeService) calculateDaysLeft(expiresAt time.Time) int {
 // buildFridgeItemResponse создает ответ для API
 func (s *FridgeService) buildFridgeItemResponse(item *models.UserFridgeItem, ingredient *models.Ingredient) *models.FridgeItemResponse {
 	daysLeft := s.calculateDaysLeft(item.ExpiresAt)
+
+	expiresAtStr := ""
+	if item.ExpiresAt != nil {
+		expiresAtStr = item.ExpiresAt.Format("2006-01-02") // ISO 8601 формат (YYYY-MM-DD)
+	}
 
 	return &models.FridgeItemResponse{
 		ID: item.ID,
@@ -164,7 +174,7 @@ func (s *FridgeService) buildFridgeItemResponse(item *models.UserFridgeItem, ing
 			Category: ingredient.Category,
 		},
 		Quantity:  item.Quantity,
-		ExpiresAt: item.ExpiresAt.Format("2006-01-02"), // ISO 8601 формат (YYYY-MM-DD)
+		ExpiresAt: expiresAtStr,
 		DaysLeft:  daysLeft,
 	}
 }
