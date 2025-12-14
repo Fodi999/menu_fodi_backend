@@ -52,13 +52,13 @@ func (s *AuthService) Register(req dto.RegisterRequest) (*dto.AuthResponse, erro
 		return nil, err
 	}
 
-	// Create user
+	// Create user with home_chef role (MVP default)
 	user := &models.User{
 		ID:        uuid.New().String(),
 		Email:     req.Email,
 		Name:      req.Name,
 		Password:  string(hashedPassword),
-		Role:      "user",
+		Role:      models.RoleHomeChef, // Default role for new users
 		CreatedAt: time.Now(),
 	}
 
