@@ -111,22 +111,23 @@ func (r *UserFridgeRepository) GetExpired(userID string) ([]models.UserFridgeIte
 	return items, nil
 }
 
-// ===== PRICE HISTORY METHODS =====
+// ===== PRICE HISTORY METHODS (Event Sourcing) =====
 
-// InsertPriceHistory добавляет запись в историю цен
+// InsertPriceHistory добавляет событие изменения цены в историю
 func (r *UserFridgeRepository) InsertPriceHistory(itemID string, pricePerUnit float64, currency string, source string) error {
-	history := &models.UserFridgePriceHistory{
+	history := models.UserFridgePriceHistory{
+		ID:               uuid.New().String(),
 		UserFridgeItemID: itemID,
 		PricePerUnit:     pricePerUnit,
 		Currency:         currency,
 		Source:           source,
 	}
 
-	result := r.db.Create(history)
+	result := r.db.Create(&history)
 	return result.Error
 }
 
-// GetPriceHistory возвращает историю цен для продукта
+// GetPriceHistory возвращает историю изменения цен для продукта
 func (r *UserFridgeRepository) GetPriceHistory(itemID string) ([]models.UserFridgePriceHistory, error) {
 	var history []models.UserFridgePriceHistory
 	result := r.db.
@@ -140,14 +141,15 @@ func (r *UserFridgeRepository) GetPriceHistory(itemID string) ([]models.UserFrid
 	return history, nil
 }
 
-// UpdateCurrentPrice обновляет кеш текущей цены в основной таблице
+// UpdateCurrentPrice обновляет кэш текущей цены в основной таблице (денормализация)
 func (r *UserFridgeRepository) UpdateCurrentPrice(itemID string, pricePerUnit float64, currency string) error {
+	now := time.Now()
 	result := r.db.Model(&models.UserFridgeItem{}).
 		Where("id = ?", itemID).
 		Updates(map[string]interface{}{
-			"current_price_per_unit": pricePerUnit,
-			"current_currency":       currency,
-			"price_updated_at":       time.Now(),
+			"current_price_per_unit":  pricePerUnit,
+			"current_price_currency": currency,
+			"price_updated_at":       now,
 		})
 
 	return result.Error

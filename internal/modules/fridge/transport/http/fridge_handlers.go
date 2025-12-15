@@ -115,7 +115,7 @@ func (h *FridgeHandlers) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// AddPrice добавляет цену к продукту (POST /items/{id}/price)
+// AddPrice добавляет событие изменения цены (event sourcing)
 func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 	// Получаем User ID из контекста
 	userIDPtr := middleware.GetUserID(r)
@@ -126,41 +126,37 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := userIDPtr.String()
 
-	// Получаем ID продукта из URL path parameter
+	// Получаем ID продукта из URL
 	itemID := chi.URLParam(r, "id")
 	if itemID == "" {
 		respondError(w, http.StatusBadRequest, "item ID is required")
 		return
 	}
 
-	// Парсим тело запроса
+	// Парсим запрос
 	var req models.AddPriceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		logger.Error("failed to parse request body", zap.Error(err))
 		respondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// Валидация
-	if req.PricePerUnit <= 0 {
-		respondError(w, http.StatusBadRequest, "pricePerUnit must be greater than 0")
-		return
-	}
-
-	if req.Currency == "" {
-		req.Currency = "PLN" // По умолчанию
-	}
-
-	if req.Source == "" {
-		req.Source = "manual" // По умолчанию
-	}
-
-	// Добавляем цену (event sourcing: запись в историю + обновление кеша)
-	if err := h.service.AddPrice(userID, itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
+	// Добавляем событие изменения цены
+	if err := h.service.AddPrice(userID, itemID, req); err != nil {
 		logger.Error("failed to add price",
 			zap.Error(err),
 			zap.String("user_id", userID),
 			zap.String("item_id", itemID))
+		
+		// Проверяем тип ошибки для правильного HTTP кода
+		if err.Error() == "access denied: item does not belong to user" {
+			respondError(w, http.StatusForbidden, err.Error())
+			return
+		}
+		if err.Error() == "fridge item not found: record not found" {
+			respondError(w, http.StatusNotFound, "item not found")
+			return
+		}
+		
 		respondError(w, http.StatusInternalServerError, "failed to add price")
 		return
 	}
@@ -171,7 +167,7 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetPriceHistory возвращает историю цен для продукта (GET /items/{id}/price/history)
+// GetPriceHistory возвращает историю изменения цен
 func (h *FridgeHandlers) GetPriceHistory(w http.ResponseWriter, r *http.Request) {
 	// Получаем User ID из контекста
 	userIDPtr := middleware.GetUserID(r)
@@ -196,12 +192,24 @@ func (h *FridgeHandlers) GetPriceHistory(w http.ResponseWriter, r *http.Request)
 			zap.Error(err),
 			zap.String("user_id", userID),
 			zap.String("item_id", itemID))
+		
+		// Проверяем тип ошибки
+		if err.Error() == "access denied: item does not belong to user" {
+			respondError(w, http.StatusForbidden, err.Error())
+			return
+		}
+		if err.Error() == "fridge item not found: record not found" {
+			respondError(w, http.StatusNotFound, "item not found")
+			return
+		}
+		
 		respondError(w, http.StatusInternalServerError, "failed to get price history")
 		return
 	}
 
 	respondSuccess(w, map[string]interface{}{
 		"history": history,
+		"count":   len(history),
 	})
 }
 

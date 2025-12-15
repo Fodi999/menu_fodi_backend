@@ -228,64 +228,6 @@ func (s *FridgeService) calculateTotalPrice(quantity float64, pricePerUnit *floa
 	return &total
 }
 
-// AddPrice добавляет цену к продукту (event sourcing подход)
-func (s *FridgeService) AddPrice(userID string, itemID string, pricePerUnit float64, currency string, source string) error {
-	// 1. Проверяем, что продукт существует и принадлежит пользователю
-	item, err := s.fridgeRepo.GetByID(itemID)
-	if err != nil {
-		return fmt.Errorf("fridge item not found: %w", err)
-	}
-
-	if item.UserID != userID {
-		return errors.New("access denied: item does not belong to user")
-	}
-
-	// 2. Валидация source
-	if source == "" {
-		source = "manual" // По умолчанию - ручной ввод
-	}
-
-	validSources := map[string]bool{
-		"manual":   true,
-		"receipt":  true,
-		"estimate": true,
-		"market":   true,
-		"ai":       true,
-	}
-
-	if !validSources[source] {
-		return fmt.Errorf("invalid price source: %s", source)
-	}
-
-	// 3. Добавляем запись в историю (event sourcing)
-	if err := s.fridgeRepo.InsertPriceHistory(itemID, pricePerUnit, currency, source); err != nil {
-		return fmt.Errorf("failed to insert price history: %w", err)
-	}
-
-	// 4. Обновляем кеш текущей цены в основной таблице
-	if err := s.fridgeRepo.UpdateCurrentPrice(itemID, pricePerUnit, currency); err != nil {
-		return fmt.Errorf("failed to update current price: %w", err)
-	}
-
-	return nil
-}
-
-// GetPriceHistory возвращает историю изменений цен для продукта
-func (s *FridgeService) GetPriceHistory(userID string, itemID string) ([]models.UserFridgePriceHistory, error) {
-	// Проверяем права доступа
-	item, err := s.fridgeRepo.GetByID(itemID)
-	if err != nil {
-		return nil, fmt.Errorf("fridge item not found: %w", err)
-	}
-
-	if item.UserID != userID {
-		return nil, errors.New("access denied: item does not belong to user")
-	}
-
-	// Получаем историю
-	return s.fridgeRepo.GetPriceHistory(itemID)
-}
-
 // buildFridgeItemResponse создает ответ для API
 func (s *FridgeService) buildFridgeItemResponse(item *models.UserFridgeItem, ingredient *models.Ingredient) *models.FridgeItemResponse {
 	daysLeft := s.calculateDaysLeft(item.ExpiresAt)
@@ -306,4 +248,76 @@ func (s *FridgeService) buildFridgeItemResponse(item *models.UserFridgeItem, ing
 		ExpiresAt: expiresAtStr,
 		DaysLeft:  daysLeft,
 	}
+}
+
+// ===== PRICE HISTORY SERVICE METHODS (Event Sourcing) =====
+
+// AddPrice добавляет событие изменения цены (event sourcing)
+func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPriceRequest) error {
+	// 1. Проверяем, что продукт существует и принадлежит пользователю
+	item, err := s.fridgeRepo.GetByID(itemID)
+	if err != nil {
+		return fmt.Errorf("fridge item not found: %w", err)
+	}
+
+	if item.UserID != userID {
+		return errors.New("access denied: item does not belong to user")
+	}
+
+	// 2. Валидация source
+	validSources := map[string]bool{
+		"manual":   true,
+		"receipt":  true,
+		"estimate": true,
+		"market":   true,
+		"ai":       true,
+	}
+	if !validSources[req.Source] {
+		return fmt.Errorf("invalid source: %s (allowed: manual, receipt, estimate, market, ai)", req.Source)
+	}
+
+	// 3. Добавляем событие в историю
+	if err := s.fridgeRepo.InsertPriceHistory(itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
+		return fmt.Errorf("failed to insert price history: %w", err)
+	}
+
+	// 4. Обновляем кэш текущей цены (денормализация для производительности)
+	if err := s.fridgeRepo.UpdateCurrentPrice(itemID, req.PricePerUnit, req.Currency); err != nil {
+		return fmt.Errorf("failed to update current price: %w", err)
+	}
+
+	return nil
+}
+
+// GetPriceHistory возвращает историю изменения цен
+func (s *FridgeService) GetPriceHistory(userID string, itemID string) ([]models.PriceHistoryResponse, error) {
+	// 1. Проверяем доступ
+	item, err := s.fridgeRepo.GetByID(itemID)
+	if err != nil {
+		return nil, fmt.Errorf("fridge item not found: %w", err)
+	}
+
+	if item.UserID != userID {
+		return nil, errors.New("access denied: item does not belong to user")
+	}
+
+	// 2. Получаем историю
+	history, err := s.fridgeRepo.GetPriceHistory(itemID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get price history: %w", err)
+	}
+
+	// 3. Преобразуем в DTO
+	result := make([]models.PriceHistoryResponse, 0, len(history))
+	for _, h := range history {
+		result = append(result, models.PriceHistoryResponse{
+			ID:           h.ID,
+			PricePerUnit: h.PricePerUnit,
+			Currency:     h.Currency,
+			Source:       h.Source,
+			CreatedAt:    h.CreatedAt,
+		})
+	}
+
+	return result, nil
 }
