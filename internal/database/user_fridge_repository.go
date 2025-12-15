@@ -110,3 +110,45 @@ func (r *UserFridgeRepository) GetExpired(userID string) ([]models.UserFridgeIte
 
 	return items, nil
 }
+
+// ===== PRICE HISTORY METHODS =====
+
+// InsertPriceHistory добавляет запись в историю цен
+func (r *UserFridgeRepository) InsertPriceHistory(itemID string, pricePerUnit float64, currency string, source string) error {
+	history := &models.UserFridgePriceHistory{
+		UserFridgeItemID: itemID,
+		PricePerUnit:     pricePerUnit,
+		Currency:         currency,
+		Source:           source,
+	}
+
+	result := r.db.Create(history)
+	return result.Error
+}
+
+// GetPriceHistory возвращает историю цен для продукта
+func (r *UserFridgeRepository) GetPriceHistory(itemID string) ([]models.UserFridgePriceHistory, error) {
+	var history []models.UserFridgePriceHistory
+	result := r.db.
+		Where("user_fridge_item_id = ?", itemID).
+		Order("created_at DESC").
+		Find(&history)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return history, nil
+}
+
+// UpdateCurrentPrice обновляет кеш текущей цены в основной таблице
+func (r *UserFridgeRepository) UpdateCurrentPrice(itemID string, pricePerUnit float64, currency string) error {
+	result := r.db.Model(&models.UserFridgeItem{}).
+		Where("id = ?", itemID).
+		Updates(map[string]interface{}{
+			"current_price_per_unit": pricePerUnit,
+			"current_currency":       currency,
+			"price_updated_at":       time.Now(),
+		})
+
+	return result.Error
+}

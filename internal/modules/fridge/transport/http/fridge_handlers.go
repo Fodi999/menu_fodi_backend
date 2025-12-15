@@ -115,6 +115,96 @@ func (h *FridgeHandlers) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// AddPrice добавляет цену к продукту (POST /items/{id}/price)
+func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
+	// Получаем User ID из контекста
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		respondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// Получаем ID продукта из URL path parameter
+	itemID := chi.URLParam(r, "id")
+	if itemID == "" {
+		respondError(w, http.StatusBadRequest, "item ID is required")
+		return
+	}
+
+	// Парсим тело запроса
+	var req models.AddPriceRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		respondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Валидация
+	if req.PricePerUnit <= 0 {
+		respondError(w, http.StatusBadRequest, "pricePerUnit must be greater than 0")
+		return
+	}
+
+	if req.Currency == "" {
+		req.Currency = "PLN" // По умолчанию
+	}
+
+	if req.Source == "" {
+		req.Source = "manual" // По умолчанию
+	}
+
+	// Добавляем цену (event sourcing: запись в историю + обновление кеша)
+	if err := h.service.AddPrice(userID, itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
+		logger.Error("failed to add price",
+			zap.Error(err),
+			zap.String("user_id", userID),
+			zap.String("item_id", itemID))
+		respondError(w, http.StatusInternalServerError, "failed to add price")
+		return
+	}
+
+	respondSuccess(w, map[string]interface{}{
+		"success": true,
+		"message": "price added successfully",
+	})
+}
+
+// GetPriceHistory возвращает историю цен для продукта (GET /items/{id}/price/history)
+func (h *FridgeHandlers) GetPriceHistory(w http.ResponseWriter, r *http.Request) {
+	// Получаем User ID из контекста
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		respondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// Получаем ID продукта из URL
+	itemID := chi.URLParam(r, "id")
+	if itemID == "" {
+		respondError(w, http.StatusBadRequest, "item ID is required")
+		return
+	}
+
+	// Получаем историю
+	history, err := h.service.GetPriceHistory(userID, itemID)
+	if err != nil {
+		logger.Error("failed to get price history",
+			zap.Error(err),
+			zap.String("user_id", userID),
+			zap.String("item_id", itemID))
+		respondError(w, http.StatusInternalServerError, "failed to get price history")
+		return
+	}
+
+	respondSuccess(w, map[string]interface{}{
+		"history": history,
+	})
+}
+
 // Helper functions for consistent responses
 
 func respondSuccess(w http.ResponseWriter, data interface{}) {

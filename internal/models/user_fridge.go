@@ -80,3 +80,25 @@ func GetFridgeItemStatus(daysLeft int) string {
 	}
 	return "ok"
 }
+
+// UserFridgePriceHistory история изменений цен продуктов (event sourcing)
+type UserFridgePriceHistory struct {
+	ID                string    `gorm:"primaryKey;type:text;default:gen_random_uuid()::text;column:id" json:"id"`
+	UserFridgeItemID  string    `gorm:"type:text;not null;column:user_fridge_item_id;index" json:"userFridgeItemId"`
+	PricePerUnit      float64   `gorm:"not null;column:price_per_unit" json:"pricePerUnit"`
+	Currency          string    `gorm:"not null;default:'PLN';column:currency" json:"currency"`
+	Source            string    `gorm:"not null;default:'manual';column:source" json:"source"` // manual, receipt, estimate, market, ai
+	CreatedAt         time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
+}
+
+// TableName указывает имя таблицы для GORM
+func (UserFridgePriceHistory) TableName() string {
+	return "user_fridge_price_history"
+}
+
+// AddPriceRequest запрос на добавление цены к продукту
+type AddPriceRequest struct {
+	PricePerUnit float64 `json:"pricePerUnit" binding:"required,gt=0"` // Нормализованная цена (за g/ml/szt)
+	Currency     string  `json:"currency" binding:"required"`          // PLN, EUR, USD
+	Source       string  `json:"source"`                               // manual (default), receipt, estimate, market, ai
+}

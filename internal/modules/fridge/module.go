@@ -43,8 +43,12 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 		r.Use(middleware.RequireRole(models.RoleHomeChef))
 
 		// Операции с продуктами
-		r.Get("/items", m.handlers.GetUserItems)       // GET /api/fridge/items - список продуктов
-		r.Post("/items", m.handlers.AddItem)           // POST /api/fridge/items - добавить продукт
-		r.Delete("/items/{id}", m.handlers.DeleteItem) // DELETE /api/fridge/items/{id} - удалить продукт
+		r.Get("/items", m.handlers.GetUserItems)          // GET /api/fridge/items - список продуктов
+		r.Post("/items", m.handlers.AddItem)              // POST /api/fridge/items - добавить продукт
+		r.Delete("/items/{id}", m.handlers.DeleteItem)    // DELETE /api/fridge/items/{id} - удалить продукт
+		
+		// Операции с ценами (event sourcing)
+		r.Post("/items/{id}/price", m.handlers.AddPrice)           // POST /api/fridge/items/{id}/price - добавить цену
+		r.Get("/items/{id}/price/history", m.handlers.GetPriceHistory) // GET /api/fridge/items/{id}/price/history - история цен
 	})
 }

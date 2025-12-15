@@ -228,6 +228,64 @@ func (s *FridgeService) calculateTotalPrice(quantity float64, pricePerUnit *floa
 	return &total
 }
 
+// AddPrice добавляет цену к продукту (event sourcing подход)
+func (s *FridgeService) AddPrice(userID string, itemID string, pricePerUnit float64, currency string, source string) error {
+	// 1. Проверяем, что продукт существует и принадлежит пользователю
+	item, err := s.fridgeRepo.GetByID(itemID)
+	if err != nil {
+		return fmt.Errorf("fridge item not found: %w", err)
+	}
+
+	if item.UserID != userID {
+		return errors.New("access denied: item does not belong to user")
+	}
+
+	// 2. Валидация source
+	if source == "" {
+		source = "manual" // По умолчанию - ручной ввод
+	}
+
+	validSources := map[string]bool{
+		"manual":   true,
+		"receipt":  true,
+		"estimate": true,
+		"market":   true,
+		"ai":       true,
+	}
+
+	if !validSources[source] {
+		return fmt.Errorf("invalid price source: %s", source)
+	}
+
+	// 3. Добавляем запись в историю (event sourcing)
+	if err := s.fridgeRepo.InsertPriceHistory(itemID, pricePerUnit, currency, source); err != nil {
+		return fmt.Errorf("failed to insert price history: %w", err)
+	}
+
+	// 4. Обновляем кеш текущей цены в основной таблице
+	if err := s.fridgeRepo.UpdateCurrentPrice(itemID, pricePerUnit, currency); err != nil {
+		return fmt.Errorf("failed to update current price: %w", err)
+	}
+
+	return nil
+}
+
+// GetPriceHistory возвращает историю изменений цен для продукта
+func (s *FridgeService) GetPriceHistory(userID string, itemID string) ([]models.UserFridgePriceHistory, error) {
+	// Проверяем права доступа
+	item, err := s.fridgeRepo.GetByID(itemID)
+	if err != nil {
+		return nil, fmt.Errorf("fridge item not found: %w", err)
+	}
+
+	if item.UserID != userID {
+		return nil, errors.New("access denied: item does not belong to user")
+	}
+
+	// Получаем историю
+	return s.fridgeRepo.GetPriceHistory(itemID)
+}
+
 // buildFridgeItemResponse создает ответ для API
 func (s *FridgeService) buildFridgeItemResponse(item *models.UserFridgeItem, ingredient *models.Ingredient) *models.FridgeItemResponse {
 	daysLeft := s.calculateDaysLeft(item.ExpiresAt)
