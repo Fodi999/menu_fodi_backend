@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
@@ -244,12 +245,20 @@ func (s *FridgeService) normalizePrice(value float64, per string, unit string) (
 	}
 }
 
+// round2 округляет число до 2 знаков после запятой (для денег)
+// Пример: 10.350000000000001 → 10.35
+func round2(v float64) float64 {
+	return math.Round(v*100) / 100
+}
+
 // calculateTotalPrice вычисляет общую стоимость продукта
+// Всегда округляет до 2 знаков после запятой (правило денег)
 func (s *FridgeService) calculateTotalPrice(quantity float64, pricePerUnit *float64) *float64 {
 	if pricePerUnit == nil {
 		return nil
 	}
-	total := quantity * (*pricePerUnit)
+	// Вычисляем и сразу округляем до 2 знаков
+	total := round2(quantity * (*pricePerUnit))
 	return &total
 }
 
