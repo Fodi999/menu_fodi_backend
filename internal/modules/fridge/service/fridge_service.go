@@ -346,3 +346,24 @@ func (s *FridgeService) GetPriceHistory(userID string, itemID string) ([]models.
 
 	return result, nil
 }
+
+// UpdateItemQuantity обновляет количество продукта в холодильнике
+func (s *FridgeService) UpdateItemQuantity(userID string, itemID string, newQuantity float64) error {
+	// 1. Проверяем, что продукт существует и принадлежит пользователю
+	item, err := s.fridgeRepo.GetByID(itemID)
+	if err != nil {
+		return fmt.Errorf("fridge item not found: %w", err)
+	}
+
+	if item.UserID != userID {
+		return errors.New("access denied: item does not belong to user")
+	}
+
+	// 2. Обновляем количество
+	item.Quantity = newQuantity
+	if err := s.fridgeRepo.Update(item); err != nil {
+		return fmt.Errorf("failed to update quantity: %w", err)
+	}
+
+	return nil
+}

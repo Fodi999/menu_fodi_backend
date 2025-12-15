@@ -213,6 +213,67 @@ func (h *FridgeHandlers) GetPriceHistory(w http.ResponseWriter, r *http.Request)
 	})
 }
 
+// UpdateItemQuantity обновляет количество продукта
+func (h *FridgeHandlers) UpdateItemQuantity(w http.ResponseWriter, r *http.Request) {
+	// Получаем User ID из контекста
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		respondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// Получаем ID продукта из URL
+	itemID := chi.URLParam(r, "id")
+	if itemID == "" {
+		respondError(w, http.StatusBadRequest, "item ID is required")
+		return
+	}
+
+	// Парсим запрос
+	var req struct {
+		Quantity float64 `json:"quantity"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode request", zap.Error(err))
+		respondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Валидация
+	if req.Quantity <= 0 {
+		respondError(w, http.StatusBadRequest, "quantity must be greater than 0")
+		return
+	}
+
+	// Обновляем количество
+	if err := h.service.UpdateItemQuantity(userID, itemID, req.Quantity); err != nil {
+		logger.Error("failed to update quantity",
+			zap.Error(err),
+			zap.String("user_id", userID),
+			zap.String("item_id", itemID),
+			zap.Float64("new_quantity", req.Quantity))
+		
+		// Проверяем тип ошибки
+		if err.Error() == "access denied: item does not belong to user" {
+			respondError(w, http.StatusForbidden, err.Error())
+			return
+		}
+		if err.Error() == "fridge item not found: record not found" {
+			respondError(w, http.StatusNotFound, "item not found")
+			return
+		}
+		
+		respondError(w, http.StatusInternalServerError, "failed to update quantity")
+		return
+	}
+
+	respondSuccess(w, map[string]interface{}{
+		"message": "Quantity updated successfully",
+	})
+}
+
 // Helper functions for consistent responses
 
 func respondSuccess(w http.ResponseWriter, data interface{}) {
