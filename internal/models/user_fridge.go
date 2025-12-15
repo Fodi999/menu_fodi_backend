@@ -9,7 +9,9 @@ type UserFridgeItem struct {
 	UserID       string     `gorm:"type:uuid;not null;column:user_id;index" json:"userId"`
 	IngredientID string     `gorm:"type:uuid;not null;column:ingredient_id;index" json:"ingredientId"` // Обязательная связь с каталогом
 	Quantity     float64    `gorm:"not null;column:quantity" json:"quantity"`                          // Числовое значение (например, 500)
-	Unit         string     `gorm:"not null;column:unit" json:"unit"`                                  // "g", "ml", "pcs" - копия из каталога
+	Unit         string     `gorm:"not null;column:unit" json:"unit"`                                  // "g", "ml", "szt" - единица измерения
+	PricePerUnit *float64   `gorm:"column:price_per_unit" json:"pricePerUnit,omitempty"`               // Цена ЗА ЕДИНИЦУ (нормализованная: всегда за g/ml/szt)
+	Currency     string     `gorm:"column:currency;default:'PLN'" json:"currency"`                     // PLN, EUR, USD
 	ExpiresAt    *time.Time `gorm:"column:expires_at;index" json:"expiresAt,omitempty"`                // Дата истечения срока (nullable)
 	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 
@@ -25,8 +27,15 @@ func (UserFridgeItem) TableName() string {
 
 // CreateFridgeItemRequest запрос на добавление продукта в холодильник
 type CreateFridgeItemRequest struct {
-	IngredientID string  `json:"ingredientId" binding:"required"`  // UUID из каталога
-	Quantity     float64 `json:"quantity" binding:"required,gt=0"` // Количество (должно быть > 0)
+	IngredientID string      `json:"ingredientId" binding:"required"`  // UUID из каталога
+	Quantity     float64     `json:"quantity" binding:"required,gt=0"` // Количество (должно быть > 0)
+	PriceInput   *PriceInput `json:"priceInput,omitempty"`             // Опциональная цена
+}
+
+// PriceInput структура для ввода цены от фронтенда
+type PriceInput struct {
+	Value float64 `json:"value" binding:"required,gt=0"` // 3.20
+	Per   string  `json:"per" binding:"required"`        // "kg", "l", "szt"
 }
 
 // FridgeItemResponse DTO для ответа API с расширенной информацией
@@ -47,13 +56,15 @@ type IngredientShortInfo struct {
 
 // FridgeItemListResponse DTO для списка продуктов в холодильнике
 type FridgeItemListResponse struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Category string  `json:"category"` // protein, vegetable, dairy, grain, condiment, other
-	Quantity float64 `json:"quantity"`
-	Unit     string  `json:"unit"`
-	DaysLeft int     `json:"daysLeft"`
-	Status   string  `json:"status"` // "ok", "warning", "critical"
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Category   string   `json:"category"` // protein, vegetable, dairy, grain, condiment, other
+	Quantity   float64  `json:"quantity"`
+	Unit       string   `json:"unit"`
+	TotalPrice *float64 `json:"totalPrice,omitempty"` // Вычисляется: quantity * pricePerUnit
+	Currency   string   `json:"currency,omitempty"`   // PLN, EUR, USD
+	DaysLeft   int      `json:"daysLeft"`
+	Status     string   `json:"status"` // "ok", "warning", "critical"
 }
 
 // GetStatus возвращает статус продукта на основе оставшихся дней

@@ -34,12 +34,24 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 	// 2. Вычисляем expires_at на основе defaultShelfLifeDays
 	expiresAt := s.calculateExpiresAt(ingredient.DefaultShelfLifeDays)
 
-	// 3. Создаем запись в холодильнике
+	// 3. Нормализуем цену (если указана)
+	var pricePerUnit *float64
+	if req.PriceInput != nil {
+		normalized, err := s.normalizePrice(req.PriceInput.Value, req.PriceInput.Per, ingredient.Unit)
+		if err != nil {
+			return nil, fmt.Errorf("invalid price input: %w", err)
+		}
+		pricePerUnit = &normalized
+	}
+
+	// 4. Создаем запись в холодильнике
 	item := &models.UserFridgeItem{
 		UserID:       userID,
 		IngredientID: req.IngredientID,
 		Quantity:     req.Quantity,
 		Unit:         ingredient.Unit, // Копируем unit из каталога
+		PricePerUnit: pricePerUnit,    // Нормализованная цена
+		Currency:     "PLN",            // По умолчанию PLN
 		ExpiresAt:    expiresAt,
 	}
 
@@ -47,7 +59,7 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		return nil, fmt.Errorf("failed to create fridge item: %w", err)
 	}
 
-	// 4. Формируем ответ
+	// 5. Формируем ответ
 	return s.buildFridgeItemResponse(item, ingredient), nil
 }
 
@@ -65,8 +77,9 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
+		totalPrice := s.calculateTotalPrice(item.Quantity, item.PricePerUnit)
 
-		result = append(result, models.FridgeItemListResponse{
+		response := models.FridgeItemListResponse{
 			ID:       item.ID,
 			Name:     item.Ingredient.Name,
 			Category: item.Ingredient.Category, // Добавляем категорию для группировки
@@ -74,7 +87,15 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 			Unit:     item.Unit,
 			DaysLeft: daysLeft,
 			Status:   models.GetFridgeItemStatus(daysLeft),
-		})
+		}
+
+		// Добавляем цену только если она есть
+		if totalPrice != nil {
+			response.TotalPrice = totalPrice
+			response.Currency = item.Currency
+		}
+
+		result = append(result, response)
 	}
 
 	return result, nil
@@ -123,7 +144,9 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
-		result = append(result, models.FridgeItemListResponse{
+		totalPrice := s.calculateTotalPrice(item.Quantity, item.PricePerUnit)
+
+		response := models.FridgeItemListResponse{
 			ID:       item.ID,
 			Name:     item.Ingredient.Name,
 			Category: item.Ingredient.Category, // Добавляем категорию
@@ -131,7 +154,15 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 			Unit:     item.Unit,
 			DaysLeft: daysLeft,
 			Status:   models.GetFridgeItemStatus(daysLeft),
-		})
+		}
+
+		// Добавляем цену только если она есть
+		if totalPrice != nil {
+			response.TotalPrice = totalPrice
+			response.Currency = item.Currency
+		}
+
+		result = append(result, response)
 	}
 
 	return result, nil
@@ -157,6 +188,44 @@ func (s *FridgeService) calculateDaysLeft(expiresAt *time.Time) int {
 	duration := time.Until(*expiresAt)
 	days := int(duration.Hours() / 24)
 	return days
+}
+
+// normalizePrice нормализует цену к единице измерения в БД (всегда g/ml/szt)
+func (s *FridgeService) normalizePrice(value float64, per string, unit string) (float64, error) {
+	switch per {
+	case "kg":
+		if unit != "g" {
+			return 0, fmt.Errorf("unit mismatch: cannot convert price per kg to unit %s", unit)
+		}
+		// 3.20 PLN / kg → 0.0032 PLN / g
+		return value / 1000, nil
+
+	case "l":
+		if unit != "ml" {
+			return 0, fmt.Errorf("unit mismatch: cannot convert price per l to unit %s", unit)
+		}
+		// 2.50 PLN / l → 0.0025 PLN / ml
+		return value / 1000, nil
+
+	case "szt":
+		if unit != "szt" {
+			return 0, fmt.Errorf("unit mismatch: price per szt requires unit szt, got %s", unit)
+		}
+		// 1.00 PLN / szt → 1.00 PLN / szt (без изменений)
+		return value, nil
+
+	default:
+		return 0, fmt.Errorf("unknown price unit: %s (supported: kg, l, szt)", per)
+	}
+}
+
+// calculateTotalPrice вычисляет общую стоимость продукта
+func (s *FridgeService) calculateTotalPrice(quantity float64, pricePerUnit *float64) *float64 {
+	if pricePerUnit == nil {
+		return nil
+	}
+	total := quantity * (*pricePerUnit)
+	return &total
 }
 
 // buildFridgeItemResponse создает ответ для API
