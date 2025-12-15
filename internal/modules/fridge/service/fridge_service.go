@@ -97,10 +97,11 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 			Status:   models.GetFridgeItemStatus(daysLeft),
 		}
 
-		// Добавляем цену только если она есть (из кэша)
-		if totalPrice != nil {
-			response.TotalPrice = totalPrice
-			response.Currency = item.CurrentPriceCurrency
+		// Добавляем цену только если она есть (из кэша current_price_*)
+		if item.CurrentPricePerUnit != nil {
+			response.PricePerUnit = item.CurrentPricePerUnit // Цена за единицу
+			response.TotalPrice = totalPrice                  // Общая стоимость
+			response.Currency = item.CurrentPriceCurrency     // Валюта
 		}
 
 		result = append(result, response)
@@ -164,10 +165,11 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 			Status:   models.GetFridgeItemStatus(daysLeft),
 		}
 
-		// Добавляем цену только если она есть (из кэша)
-		if totalPrice != nil {
-			response.TotalPrice = totalPrice
-			response.Currency = item.CurrentPriceCurrency
+		// Добавляем цену только если она есть (из кэша current_price_*)
+		if item.CurrentPricePerUnit != nil {
+			response.PricePerUnit = item.CurrentPricePerUnit // Цена за единицу
+			response.TotalPrice = totalPrice                  // Общая стоимость
+			response.Currency = item.CurrentPriceCurrency     // Валюта
 		}
 
 		result = append(result, response)

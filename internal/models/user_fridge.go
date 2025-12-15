@@ -95,14 +95,15 @@ type IngredientShortInfo struct {
 
 // FridgeItemListResponse DTO для списка продуктов в холодильнике
 type FridgeItemListResponse struct {
-	ID         string   `json:"id"`
-	Name       string   `json:"name"`
-	Category   string   `json:"category"` // protein, vegetable, dairy, grain, condiment, other
-	Quantity   float64  `json:"quantity"`
-	Unit       string   `json:"unit"`
-	TotalPrice *float64 `json:"totalPrice,omitempty"` // Вычисляется: quantity * pricePerUnit
-	Currency   string   `json:"currency,omitempty"`   // PLN, EUR, USD
-	DaysLeft   int      `json:"daysLeft"`
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Category     string   `json:"category"`             // protein, vegetable, dairy, grain, condiment, other
+	Quantity     float64  `json:"quantity"`
+	Unit         string   `json:"unit"`
+	PricePerUnit *float64 `json:"pricePerUnit,omitempty"` // Цена за единицу (из кэша current_price_per_unit)
+	TotalPrice   *float64 `json:"totalPrice,omitempty"`   // Вычисляется: quantity * pricePerUnit
+	Currency     string   `json:"currency,omitempty"`     // PLN, EUR, USD
+	DaysLeft     int      `json:"daysLeft"`
 	Status     string   `json:"status"` // "ok", "warning", "critical"
 }
 
