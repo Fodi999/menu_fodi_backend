@@ -97,19 +97,31 @@ type IngredientShortInfo struct {
 }
 
 // FridgeItemListResponse DTO для списка продуктов в холодильнике
+//
+// ⚠️ API CONTRACT - MONEY RULES (не изменять без согласования с фронтом):
+// 1. PricePerUnit: normalized price per base unit (g/ml/szt) with HIGH PRECISION
+//    Example: 4.00 PLN/kg → 0.004 PLN/g (stored as-is for calculations)
+// 2. TotalPrice: ALWAYS ROUNDED to 2 decimal places by backend
+//    Example: 3560g * 0.00581 PLN/g = 20.68 PLN (NOT 20.6836)
+// 3. Frontend MUST NOT recalculate totalPrice from quantity * pricePerUnit
+// 4. Wartość lodówki = SUM(totalPrice) where all values already rounded
 type FridgeItemListResponse struct {
-	ID           string     `json:"id"`
-	Name         string     `json:"name"`
-	Category     string     `json:"category"` // protein, vegetable, dairy, grain, condiment, other
-	Quantity     float64    `json:"quantity"`
-	Unit         string     `json:"unit"`
-	PricePerUnit *float64   `json:"pricePerUnit,omitempty"` // Цена за единицу (из кэша current_price_per_unit)
-	TotalPrice   *float64   `json:"totalPrice,omitempty"`   // Вычисляется: quantity * pricePerUnit
-	Currency     string     `json:"currency,omitempty"`     // PLN, EUR, USD
-	ArrivedAt    time.Time  `json:"arrivedAt"`              // Когда продукт попал в холодильник
-	ExpiresAt    *time.Time `json:"expiresAt,omitempty"`    // Когда испортится (может быть NULL)
-	DaysLeft     *int       `json:"daysLeft,omitempty"`     // Дней до истечения (NULL если нет срока годности)
-	Status       string     `json:"status"`                 // "fresh", "ok", "warning", "expired"
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Category string  `json:"category"` // protein, vegetable, dairy, grain, condiment, other
+	Quantity float64 `json:"quantity"`
+	Unit     string  `json:"unit"`
+
+	// PRICE FIELDS - See API CONTRACT above ⬆️
+	PricePerUnit *float64 `json:"pricePerUnit,omitempty"` // Normalized price per base unit (high precision, for reference only)
+	TotalPrice   *float64 `json:"totalPrice,omitempty"`   // ALWAYS rounded to 2 decimals - NEVER recalculate on frontend!
+	Currency     string   `json:"currency,omitempty"`     // PLN, EUR, USD
+
+	// DATE FIELDS
+	ArrivedAt time.Time  `json:"arrivedAt"`           // Когда продукт попал в холодильник
+	ExpiresAt *time.Time `json:"expiresAt,omitempty"` // Когда испортится (может быть NULL)
+	DaysLeft  *int       `json:"daysLeft,omitempty"`  // Дней до истечения (NULL если нет срока годности)
+	Status    string     `json:"status"`              // "fresh", "ok", "warning", "expired"
 }
 
 // GetFridgeItemStatus возвращает статус продукта на основе оставшихся дней
