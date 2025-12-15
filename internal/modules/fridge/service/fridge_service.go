@@ -101,13 +101,14 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
-			ID:       item.ID,
-			Name:     item.Ingredient.Name,
-			Category: item.Ingredient.Category, // Добавляем категорию для группировки
-			Quantity: item.Quantity,
-			Unit:     item.Unit,
-			DaysLeft: daysLeft,
-			Status:   models.GetFridgeItemStatus(daysLeft),
+			ID:        item.ID,
+			Name:      item.Ingredient.Name,
+			Category:  item.Ingredient.Category, // Добавляем категорию для группировки
+			Quantity:  item.Quantity,
+			Unit:      item.Unit,
+			ArrivedAt: item.ArrivedAt, // Дата поступления в холодильник
+			DaysLeft:  daysLeft,
+			Status:    models.GetFridgeItemStatus(daysLeft),
 		}
 
 		// Добавляем цену только если она есть (из кэша current_price_*)
@@ -169,13 +170,14 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
-			ID:       item.ID,
-			Name:     item.Ingredient.Name,
-			Category: item.Ingredient.Category, // Добавляем категорию
-			Quantity: item.Quantity,
-			Unit:     item.Unit,
-			DaysLeft: daysLeft,
-			Status:   models.GetFridgeItemStatus(daysLeft),
+			ID:        item.ID,
+			Name:      item.Ingredient.Name,
+			Category:  item.Ingredient.Category, // Добавляем категорию
+			Quantity:  item.Quantity,
+			Unit:      item.Unit,
+			ArrivedAt: item.ArrivedAt, // Дата поступления
+			DaysLeft:  daysLeft,
+			Status:    models.GetFridgeItemStatus(daysLeft),
 		}
 
 		// Добавляем цену только если она есть (из кэша current_price_*)
