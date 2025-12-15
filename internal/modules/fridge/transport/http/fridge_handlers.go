@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
@@ -147,18 +148,26 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 			zap.String("user_id", userID),
 			zap.String("item_id", itemID))
 		
-		// Проверяем тип ошибки для правильного HTTP кода
-		if err.Error() == "access denied: item does not belong to user" {
-			respondError(w, http.StatusForbidden, err.Error())
-			return
-		}
-		if err.Error() == "fridge item not found: record not found" {
+		// Маппируем доменные ошибки на HTTP коды
+		switch {
+		case errors.Is(err, service.ErrNotFound):
 			respondError(w, http.StatusNotFound, "item not found")
 			return
+		case errors.Is(err, service.ErrForbidden):
+			respondError(w, http.StatusForbidden, "access denied")
+			return
+		case errors.Is(err, service.ErrInvalidSource):
+			respondError(w, http.StatusBadRequest, err.Error())
+			return
+		case errors.Is(err, service.ErrInvalidInput):
+			respondError(w, http.StatusBadRequest, "invalid input")
+			return
+		default:
+			// Логируем полную ошибку для отладки
+			logger.Error("unexpected error in AddPrice", zap.Error(err))
+			respondError(w, http.StatusInternalServerError, "failed to add price")
+			return
 		}
-		
-		respondError(w, http.StatusInternalServerError, "failed to add price")
-		return
 	}
 
 	respondSuccess(w, map[string]interface{}{
@@ -193,18 +202,19 @@ func (h *FridgeHandlers) GetPriceHistory(w http.ResponseWriter, r *http.Request)
 			zap.String("user_id", userID),
 			zap.String("item_id", itemID))
 		
-		// Проверяем тип ошибки
-		if err.Error() == "access denied: item does not belong to user" {
-			respondError(w, http.StatusForbidden, err.Error())
-			return
-		}
-		if err.Error() == "fridge item not found: record not found" {
+		// Маппируем доменные ошибки на HTTP коды
+		switch {
+		case errors.Is(err, service.ErrNotFound):
 			respondError(w, http.StatusNotFound, "item not found")
 			return
+		case errors.Is(err, service.ErrForbidden):
+			respondError(w, http.StatusForbidden, "access denied")
+			return
+		default:
+			logger.Error("unexpected error in GetPriceHistory", zap.Error(err))
+			respondError(w, http.StatusInternalServerError, "failed to get price history")
+			return
 		}
-		
-		respondError(w, http.StatusInternalServerError, "failed to get price history")
-		return
 	}
 
 	respondSuccess(w, map[string]interface{}{
@@ -255,18 +265,19 @@ func (h *FridgeHandlers) UpdateItemQuantity(w http.ResponseWriter, r *http.Reque
 			zap.String("item_id", itemID),
 			zap.Float64("new_quantity", req.Quantity))
 		
-		// Проверяем тип ошибки
-		if err.Error() == "access denied: item does not belong to user" {
-			respondError(w, http.StatusForbidden, err.Error())
-			return
-		}
-		if err.Error() == "fridge item not found: record not found" {
+		// Маппируем доменные ошибки на HTTP коды
+		switch {
+		case errors.Is(err, service.ErrNotFound):
 			respondError(w, http.StatusNotFound, "item not found")
 			return
+		case errors.Is(err, service.ErrForbidden):
+			respondError(w, http.StatusForbidden, "access denied")
+			return
+		default:
+			logger.Error("unexpected error in UpdateItemQuantity", zap.Error(err))
+			respondError(w, http.StatusInternalServerError, "failed to update quantity")
+			return
 		}
-		
-		respondError(w, http.StatusInternalServerError, "failed to update quantity")
-		return
 	}
 
 	respondSuccess(w, map[string]interface{}{

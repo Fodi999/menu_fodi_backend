@@ -282,11 +282,15 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 	// 1. Проверяем, что продукт существует и принадлежит пользователю
 	item, err := s.fridgeRepo.GetByID(itemID)
 	if err != nil {
-		return fmt.Errorf("fridge item not found: %w", err)
+		// Маппируем ошибку БД на доменную ошибку
+		if err.Error() == "record not found" {
+			return ErrNotFound // 404
+		}
+		return fmt.Errorf("failed to get fridge item: %w", err)
 	}
 
 	if item.UserID != userID {
-		return errors.New("access denied: item does not belong to user")
+		return ErrForbidden // 403
 	}
 
 	// 2. Валидация source
@@ -298,12 +302,15 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 		"ai":       true,
 	}
 	if !validSources[req.Source] {
-		return fmt.Errorf("invalid source: %s (allowed: manual, receipt, estimate, market, ai)", req.Source)
+		return fmt.Errorf("%w: %s (allowed: manual, receipt, estimate, market, ai)", 
+			ErrInvalidSource, req.Source) // 400
 	}
 
 	// 3. Добавляем событие в историю
 	if err := s.fridgeRepo.InsertPriceHistory(itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
-		return fmt.Errorf("failed to insert price history: %w", err)
+		// Детальное логирование для отладки
+		return fmt.Errorf("failed to insert price history (itemID=%s, price=%.8f, currency=%s, source=%s): %w", 
+			itemID, req.PricePerUnit, req.Currency, req.Source, err)
 	}
 
 	// 4. Обновляем кэш текущей цены (денормализация для производительности)
@@ -319,11 +326,14 @@ func (s *FridgeService) GetPriceHistory(userID string, itemID string) ([]models.
 	// 1. Проверяем доступ
 	item, err := s.fridgeRepo.GetByID(itemID)
 	if err != nil {
-		return nil, fmt.Errorf("fridge item not found: %w", err)
+		if err.Error() == "record not found" {
+			return nil, ErrNotFound // 404
+		}
+		return nil, fmt.Errorf("failed to get fridge item: %w", err)
 	}
 
 	if item.UserID != userID {
-		return nil, errors.New("access denied: item does not belong to user")
+		return nil, ErrForbidden // 403
 	}
 
 	// 2. Получаем историю
@@ -352,11 +362,14 @@ func (s *FridgeService) UpdateItemQuantity(userID string, itemID string, newQuan
 	// 1. Проверяем, что продукт существует и принадлежит пользователю
 	item, err := s.fridgeRepo.GetByID(itemID)
 	if err != nil {
-		return fmt.Errorf("fridge item not found: %w", err)
+		if err.Error() == "record not found" {
+			return ErrNotFound // 404
+		}
+		return fmt.Errorf("failed to get fridge item: %w", err)
 	}
 
 	if item.UserID != userID {
-		return errors.New("access denied: item does not belong to user")
+		return ErrForbidden // 403
 	}
 
 	// 2. Обновляем количество
