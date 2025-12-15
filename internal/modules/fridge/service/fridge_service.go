@@ -69,6 +69,7 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		result = append(result, models.FridgeItemListResponse{
 			ID:       item.ID,
 			Name:     item.Ingredient.Name,
+			Category: item.Ingredient.Category, // Добавляем категорию для группировки
 			Quantity: item.Quantity,
 			Unit:     item.Unit,
 			DaysLeft: daysLeft,
@@ -125,6 +126,7 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 		result = append(result, models.FridgeItemListResponse{
 			ID:       item.ID,
 			Name:     item.Ingredient.Name,
+			Category: item.Ingredient.Category, // Добавляем категорию
 			Quantity: item.Quantity,
 			Unit:     item.Unit,
 			DaysLeft: daysLeft,

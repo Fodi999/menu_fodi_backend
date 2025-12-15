@@ -49,6 +49,7 @@ type IngredientShortInfo struct {
 type FridgeItemListResponse struct {
 	ID       string  `json:"id"`
 	Name     string  `json:"name"`
+	Category string  `json:"category"` // protein, vegetable, dairy, grain, condiment, other
 	Quantity float64 `json:"quantity"`
 	Unit     string  `json:"unit"`
 	DaysLeft int     `json:"daysLeft"`
