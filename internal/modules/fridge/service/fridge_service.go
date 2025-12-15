@@ -31,23 +31,36 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		return nil, fmt.Errorf("ingredient not found: %w", err)
 	}
 
-	// 2. Вычисляем expires_at на основе defaultShelfLifeDays
-	expiresAt := s.calculateExpiresAt(ingredient.DefaultShelfLifeDays)
+	// 2. Устанавливаем arrived_at = NOW (автоматически при создании)
+	arrivedAt := time.Now()
 
-	// 3. Создаем запись в холодильнике
+	// 3. Вычисляем expires_at автоматически, если не задано явно
+	var expiresAt *time.Time
+	if req.ExpiresAt != nil {
+		// Пользователь явно указал срок годности
+		expiresAt = req.ExpiresAt
+	} else if ingredient.DefaultShelfLifeDays != nil {
+		// Вычисляем: arrivedAt + defaultShelfLifeDays
+		t := arrivedAt.AddDate(0, 0, *ingredient.DefaultShelfLifeDays)
+		expiresAt = &t
+	}
+	// Если оба nil → продукт "вечный" (expiresAt = nil)
+
+	// 4. Создаем запись в холодильнике
 	item := &models.UserFridgeItem{
 		UserID:       userID,
 		IngredientID: req.IngredientID,
 		Quantity:     req.Quantity,
 		Unit:         ingredient.Unit, // Копируем unit из каталога
-		ExpiresAt:    expiresAt,
+		ArrivedAt:    arrivedAt,       // Дата поступления
+		ExpiresAt:    expiresAt,       // Срок годности (автоматически или NULL)
 	}
 
 	if err := s.fridgeRepo.Create(item); err != nil {
 		return nil, fmt.Errorf("failed to create fridge item: %w", err)
 	}
 
-	// 4. Если указана цена, добавляем событие в историю (event sourcing)
+	// 5. Если указана цена, добавляем событие в историю (event sourcing)
 	if req.PriceInput != nil {
 		normalized, err := s.normalizePrice(req.PriceInput.Value, req.PriceInput.Per, ingredient.Unit)
 		if err != nil {
@@ -67,7 +80,7 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		}
 	}
 
-	// 5. Формируем ответ
+	// 6. Формируем ответ
 	return s.buildFridgeItemResponse(item, ingredient), nil
 }
 
@@ -191,13 +204,13 @@ func (s *FridgeService) calculateExpiresAt(shelfLifeDays *int) *time.Time {
 }
 
 // calculateDaysLeft вычисляет количество дней до истечения срока
-func (s *FridgeService) calculateDaysLeft(expiresAt *time.Time) int {
+func (s *FridgeService) calculateDaysLeft(expiresAt *time.Time) *int {
 	if expiresAt == nil {
-		return 999 // Срок годности не указан
+		return nil // Нет срока годности
 	}
 	duration := time.Until(*expiresAt)
 	days := int(duration.Hours() / 24)
-	return days
+	return &days
 }
 
 // normalizePrice нормализует цену к единице измерения в БД (всегда g/ml/szt)

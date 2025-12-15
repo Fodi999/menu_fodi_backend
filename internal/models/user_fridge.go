@@ -17,7 +17,9 @@ type UserFridgeItem struct {
 	CurrentPriceCurrency string     `gorm:"column:current_price_currency;default:'PLN'" json:"currentPriceCurrency,omitempty"`
 	PriceUpdatedAt       *time.Time `gorm:"column:price_updated_at" json:"priceUpdatedAt,omitempty"`
 	
-	ExpiresAt *time.Time `gorm:"column:expires_at;index" json:"expiresAt,omitempty"` // Дата истечения срока (nullable)
+	// Date tracking
+	ArrivedAt time.Time  `gorm:"column:arrived_at;not null;default:CURRENT_TIMESTAMP;index:,sort:desc" json:"arrivedAt"` // Когда продукт попал в холодильник (автоматически)
+	ExpiresAt *time.Time `gorm:"column:expires_at;index" json:"expiresAt,omitempty"`                                      // Дата истечения срока (nullable, может вычисляться автоматически)
 	CreatedAt time.Time  `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 
 	// Relations
@@ -53,6 +55,7 @@ type CreateFridgeItemRequest struct {
 	IngredientID string      `json:"ingredientId" binding:"required"`  // UUID из каталога
 	Quantity     float64     `json:"quantity" binding:"required,gt=0"` // Количество (должно быть > 0)
 	PriceInput   *PriceInput `json:"priceInput,omitempty"`             // Опциональная цена
+	ExpiresAt    *time.Time  `json:"expiresAt,omitempty"`              // Опциональная дата истечения (иначе auto-вычисляется)
 }
 
 // PriceInput структура для ввода цены от фронтенда
@@ -82,8 +85,8 @@ type FridgeItemResponse struct {
 	ID         string              `json:"id"`
 	Ingredient IngredientShortInfo `json:"ingredient"`
 	Quantity   float64             `json:"quantity"`
-	ExpiresAt  string              `json:"expiresAt"` // ISO 8601 формат
-	DaysLeft   int                 `json:"daysLeft"`  // Вычисляется на бэкенде
+	ExpiresAt  string              `json:"expiresAt"` // ISO 8601 формат (или "" если нет)
+	DaysLeft   *int                `json:"daysLeft"`  // Вычисляется на бэкенде (null если нет срока)
 }
 
 // IngredientShortInfo краткая информация об ингредиенте для ответа
@@ -95,27 +98,29 @@ type IngredientShortInfo struct {
 
 // FridgeItemListResponse DTO для списка продуктов в холодильнике
 type FridgeItemListResponse struct {
-	ID           string   `json:"id"`
-	Name         string   `json:"name"`
-	Category     string   `json:"category"`             // protein, vegetable, dairy, grain, condiment, other
-	Quantity     float64  `json:"quantity"`
-	Unit         string   `json:"unit"`
-	PricePerUnit *float64 `json:"pricePerUnit,omitempty"` // Цена за единицу (из кэша current_price_per_unit)
-	TotalPrice   *float64 `json:"totalPrice,omitempty"`   // Вычисляется: quantity * pricePerUnit
-	Currency     string   `json:"currency,omitempty"`     // PLN, EUR, USD
-	DaysLeft     int      `json:"daysLeft"`
-	Status     string   `json:"status"` // "ok", "warning", "critical"
+	ID           string     `json:"id"`
+	Name         string     `json:"name"`
+	Category     string     `json:"category"` // protein, vegetable, dairy, grain, condiment, other
+	Quantity     float64    `json:"quantity"`
+	Unit         string     `json:"unit"`
+	PricePerUnit *float64   `json:"pricePerUnit,omitempty"` // Цена за единицу (из кэша current_price_per_unit)
+	TotalPrice   *float64   `json:"totalPrice,omitempty"`   // Вычисляется: quantity * pricePerUnit
+	Currency     string     `json:"currency,omitempty"`     // PLN, EUR, USD
+	ArrivedAt    time.Time  `json:"arrivedAt"`              // Когда продукт попал в холодильник
+	ExpiresAt    *time.Time `json:"expiresAt,omitempty"`    // Когда испортится (может быть NULL)
+	DaysLeft     *int       `json:"daysLeft,omitempty"`     // Дней до истечения (NULL если нет срока годности)
+	Status       string     `json:"status"`                 // "fresh", "ok", "warning", "expired"
 }
 
-// GetStatus возвращает статус продукта на основе оставшихся дней
-func GetFridgeItemStatus(daysLeft int) string {
-	if daysLeft < 0 {
+// GetFridgeItemStatus возвращает статус продукта на основе оставшихся дней
+func GetFridgeItemStatus(daysLeft *int) string {
+	if daysLeft == nil {
+		return "fresh" // Нет срока годности - продукт свежий
+	}
+	if *daysLeft < 0 {
 		return "expired"
 	}
-	if daysLeft <= 1 {
-		return "critical"
-	}
-	if daysLeft <= 3 {
+	if *daysLeft <= 2 {
 		return "warning"
 	}
 	return "ok"
