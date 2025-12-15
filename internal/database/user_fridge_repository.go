@@ -116,7 +116,7 @@ func (r *UserFridgeRepository) GetExpired(userID string) ([]models.UserFridgeIte
 // InsertPriceHistory добавляет событие изменения цены в историю
 func (r *UserFridgeRepository) InsertPriceHistory(itemID string, pricePerUnit float64, currency string, source string) error {
 	history := models.UserFridgePriceHistory{
-		ID:               uuid.New().String(),
+		// ID: не устанавливаем - используем DEFAULT gen_random_uuid()::text из БД
 		UserFridgeItemID: itemID,
 		PricePerUnit:     pricePerUnit,
 		Currency:         currency,
