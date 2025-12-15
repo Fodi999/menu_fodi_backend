@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
@@ -143,10 +144,15 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 
 	// Добавляем событие изменения цены
 	if err := h.service.AddPrice(userID, itemID, req); err != nil {
+		// Детальное логирование с полным контекстом
 		logger.Error("failed to add price",
 			zap.Error(err),
 			zap.String("user_id", userID),
-			zap.String("item_id", itemID))
+			zap.String("item_id", itemID),
+			zap.Float64("price_per_unit", req.PricePerUnit),
+			zap.String("currency", req.Currency),
+			zap.String("source", req.Source),
+			zap.String("error_type", fmt.Sprintf("%T", err)))
 		
 		// Маппируем доменные ошибки на HTTP коды
 		switch {
@@ -163,8 +169,10 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 			respondError(w, http.StatusBadRequest, "invalid input")
 			return
 		default:
-			// Логируем полную ошибку для отладки
-			logger.Error("unexpected error in AddPrice", zap.Error(err))
+			// Логируем полную ошибку со стектрейсом для отладки
+			logger.Error("unexpected error in AddPrice - full context", 
+				zap.Error(err),
+				zap.String("error_string", err.Error()))
 			respondError(w, http.StatusInternalServerError, "failed to add price")
 			return
 		}

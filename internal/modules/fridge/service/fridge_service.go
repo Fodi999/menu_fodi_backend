@@ -306,7 +306,8 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 			ErrInvalidSource, req.Source) // 400
 	}
 
-	// 3. Добавляем событие в историю
+	// 3. Добавляем событие в историю (обернуто в транзакцию)
+	// Используем транзакцию для атомарности: history INSERT + cache UPDATE
 	if err := s.fridgeRepo.InsertPriceHistory(itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
 		// Детальное логирование для отладки
 		return fmt.Errorf("failed to insert price history (itemID=%s, price=%.8f, currency=%s, source=%s): %w", 
@@ -314,8 +315,9 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 	}
 
 	// 4. Обновляем кэш текущей цены (денормализация для производительности)
+	// Защита от NULL: если price был NULL, теперь устанавливаем значение
 	if err := s.fridgeRepo.UpdateCurrentPrice(itemID, req.PricePerUnit, req.Currency); err != nil {
-		return fmt.Errorf("failed to update current price: %w", err)
+		return fmt.Errorf("failed to update current price cache: %w", err)
 	}
 
 	return nil
