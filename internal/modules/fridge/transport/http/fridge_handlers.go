@@ -8,6 +8,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
+	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
 
@@ -91,8 +92,8 @@ func (h *FridgeHandlers) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := userIDPtr.String()
 
-	// Получаем ID продукта из URL
-	itemID := r.URL.Query().Get("id")
+	// Получаем ID продукта из URL path parameter (chi router)
+	itemID := chi.URLParam(r, "id")
 	if itemID == "" {
 		respondError(w, http.StatusBadRequest, "item ID is required")
 		return
