@@ -11,11 +11,8 @@ type UserFridgeItem struct {
 	Quantity     float64    `gorm:"not null;column:quantity" json:"quantity"`                          // Числовое значение (например, 500)
 	Unit         string     `gorm:"not null;column:unit" json:"unit"`                                  // "g", "ml", "szt" - единица измерения
 	
-	// Legacy pricing (deprecated - use price history instead)
-	PricePerUnit *float64 `gorm:"column:price_per_unit" json:"pricePerUnit,omitempty"`
-	Currency     string   `gorm:"column:currency;default:'PLN'" json:"currency"`
-	
-	// Current price cache (denormalized from history)
+	// Current price cache (denormalized from history for performance)
+	// Source of truth: user_fridge_price_history table
 	CurrentPricePerUnit  *float64   `gorm:"column:current_price_per_unit" json:"currentPricePerUnit,omitempty"`
 	CurrentPriceCurrency string     `gorm:"column:current_price_currency;default:'PLN'" json:"currentPriceCurrency,omitempty"`
 	PriceUpdatedAt       *time.Time `gorm:"column:price_updated_at" json:"priceUpdatedAt,omitempty"`

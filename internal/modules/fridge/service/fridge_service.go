@@ -34,29 +34,37 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 	// 2. Вычисляем expires_at на основе defaultShelfLifeDays
 	expiresAt := s.calculateExpiresAt(ingredient.DefaultShelfLifeDays)
 
-	// 3. Нормализуем цену (если указана)
-	var pricePerUnit *float64
-	if req.PriceInput != nil {
-		normalized, err := s.normalizePrice(req.PriceInput.Value, req.PriceInput.Per, ingredient.Unit)
-		if err != nil {
-			return nil, fmt.Errorf("invalid price input: %w", err)
-		}
-		pricePerUnit = &normalized
-	}
-
-	// 4. Создаем запись в холодильнике
+	// 3. Создаем запись в холодильнике
 	item := &models.UserFridgeItem{
 		UserID:       userID,
 		IngredientID: req.IngredientID,
 		Quantity:     req.Quantity,
 		Unit:         ingredient.Unit, // Копируем unit из каталога
-		PricePerUnit: pricePerUnit,    // Нормализованная цена
-		Currency:     "PLN",            // По умолчанию PLN
 		ExpiresAt:    expiresAt,
 	}
 
 	if err := s.fridgeRepo.Create(item); err != nil {
 		return nil, fmt.Errorf("failed to create fridge item: %w", err)
+	}
+
+	// 4. Если указана цена, добавляем событие в историю (event sourcing)
+	if req.PriceInput != nil {
+		normalized, err := s.normalizePrice(req.PriceInput.Value, req.PriceInput.Per, ingredient.Unit)
+		if err != nil {
+			return nil, fmt.Errorf("invalid price input: %w", err)
+		}
+
+		// Добавляем первое событие цены
+		priceReq := models.AddPriceRequest{
+			PricePerUnit: normalized,
+			Currency:     "PLN",
+			Source:       "manual",
+		}
+		
+		if err := s.AddPrice(userID, item.ID, priceReq); err != nil {
+			// Не фейлим весь запрос из-за цены, просто логируем
+			fmt.Printf("warning: failed to add initial price: %v\n", err)
+		}
 	}
 
 	// 5. Формируем ответ
@@ -77,7 +85,7 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
-		totalPrice := s.calculateTotalPrice(item.Quantity, item.PricePerUnit)
+		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
 			ID:       item.ID,
@@ -89,10 +97,10 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 			Status:   models.GetFridgeItemStatus(daysLeft),
 		}
 
-		// Добавляем цену только если она есть
+		// Добавляем цену только если она есть (из кэша)
 		if totalPrice != nil {
 			response.TotalPrice = totalPrice
-			response.Currency = item.Currency
+			response.Currency = item.CurrentPriceCurrency
 		}
 
 		result = append(result, response)
@@ -144,7 +152,7 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
-		totalPrice := s.calculateTotalPrice(item.Quantity, item.PricePerUnit)
+		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
 			ID:       item.ID,
@@ -156,10 +164,10 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 			Status:   models.GetFridgeItemStatus(daysLeft),
 		}
 
-		// Добавляем цену только если она есть
+		// Добавляем цену только если она есть (из кэша)
 		if totalPrice != nil {
 			response.TotalPrice = totalPrice
-			response.Currency = item.Currency
+			response.Currency = item.CurrentPriceCurrency
 		}
 
 		result = append(result, response)
