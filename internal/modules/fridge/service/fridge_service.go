@@ -8,6 +8,8 @@ import (
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
+	"go.uber.org/zap"
 )
 
 // FridgeService сервис для работы с холодильником
@@ -117,6 +119,17 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 			response.PricePerUnit = item.CurrentPricePerUnit // Цена за единицу
 			response.TotalPrice = totalPrice                  // Общая стоимость
 			response.Currency = item.CurrentPriceCurrency     // Валюта
+
+			// SMART KITCHEN: Добавляем анализ динамики цены
+			priceAnalysis, err := s.CalculatePriceTrend(item.ID)
+			if err != nil {
+				// Не критично, просто логируем и продолжаем без аналитики
+				logger.Warn("failed to calculate price trend", 
+					zap.String("item_id", item.ID), 
+					zap.Error(err))
+			} else if priceAnalysis != nil {
+				response.PriceAnalysis = priceAnalysis
+			}
 		}
 
 		result = append(result, response)
@@ -366,6 +379,49 @@ func (s *FridgeService) GetPriceHistory(userID string, itemID string) ([]models.
 	}
 
 	return result, nil
+}
+
+// CalculatePriceTrend анализирует динамику изменения цены для "умной кухни"
+// Возвращает nil если недостаточно данных (< 2 записей в истории)
+func (s *FridgeService) CalculatePriceTrend(itemID string) (*models.PriceAnalysis, error) {
+	// Получаем историю цен (отсортирована по created_at DESC)
+	history, err := s.fridgeRepo.GetPriceHistory(itemID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get price history: %w", err)
+	}
+
+	// Нужно минимум 2 записи для анализа тренда
+	if len(history) < 2 {
+		return nil, nil // Не ошибка, просто недостаточно данных
+	}
+
+	// Берём последние 2 записи
+	last := history[0]       // Самая свежая
+	previous := history[1]   // Предыдущая
+
+	// Считаем процент изменения: ((last - previous) / previous) * 100
+	percentChange := ((last.PricePerUnit - previous.PricePerUnit) / previous.PricePerUnit) * 100
+
+	// Определяем тренд
+	var trend string
+	const stableThreshold = 5.0 // ±5% считается стабильной ценой
+	switch {
+	case percentChange > stableThreshold:
+		trend = "up"
+	case percentChange < -stableThreshold:
+		trend = "down"
+	default:
+		trend = "stable"
+	}
+
+	return &models.PriceAnalysis{
+		Trend:         trend,
+		PercentChange: round2(percentChange),
+		LastPrice:     last.PricePerUnit,
+		PreviousPrice: previous.PricePerUnit,
+		LastUpdated:   last.CreatedAt,
+		HistoryCount:  len(history),
+	}, nil
 }
 
 // UpdateItemQuantity обновляет количество продукта в холодильнике

@@ -80,6 +80,36 @@ type PriceHistoryResponse struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
+// PriceAnalysis анализ динамики цены для "умной кухни"
+//
+// 💡 SMART KITCHEN FEATURE - Price Trend Analysis
+// Используйте для отображения пользователю:
+//   - Мини-график изменения цены (trend: "up"/"down"/"stable")
+//   - Бейдж "⬆ +15%" или "⬇ -10%" рядом с ценой
+//   - Алерт "Цена выросла на 20% за неделю"
+//
+// Example response:
+//   {
+//     "trend": "up",           // "up" | "down" | "stable"
+//     "percentChange": 15.05,  // +15.05% (положительное = подорожало)
+//     "lastPrice": 0.00581,    // Текущая цена
+//     "previousPrice": 0.00505 // Предыдущая цена
+//   }
+//
+// Frontend implementation ideas:
+//   - trend === "up" → показать 🔴 красный бейдж "⬆ +15%"
+//   - trend === "down" → показать 🟢 зелёный бейдж "⬇ -10%"
+//   - trend === "stable" → скрыть или показать серый "≈ 0%"
+//   - Использовать historyCount для проверки надёжности (2 записи = минимум)
+type PriceAnalysis struct {
+	Trend           string  `json:"trend"`                     // "up", "down", "stable"
+	PercentChange   float64 `json:"percentChange"`             // +15.5 (подорожало на 15.5%) или -10.2 (подешевело на 10.2%)
+	LastPrice       float64 `json:"lastPrice"`                 // Текущая цена за единицу
+	PreviousPrice   float64 `json:"previousPrice"`             // Предыдущая цена за единицу
+	LastUpdated     time.Time `json:"lastUpdated"`             // Когда была последняя цена
+	HistoryCount    int     `json:"historyCount"`              // Количество записей в истории
+}
+
 // FridgeItemResponse DTO для ответа API с расширенной информацией
 type FridgeItemResponse struct {
 	ID         string              `json:"id"`
@@ -116,6 +146,9 @@ type FridgeItemListResponse struct {
 	PricePerUnit *float64 `json:"pricePerUnit,omitempty"` // Normalized price per base unit (high precision, for reference only)
 	TotalPrice   *float64 `json:"totalPrice,omitempty"`   // ALWAYS rounded to 2 decimals - NEVER recalculate on frontend!
 	Currency     string   `json:"currency,omitempty"`     // PLN, EUR, USD
+
+	// SMART KITCHEN - PRICE ANALYTICS
+	PriceAnalysis *PriceAnalysis `json:"priceAnalysis,omitempty"` // Trend analysis: "⬆ +15%" or "⬇ -10%" for mini-charts
 
 	// DATE FIELDS
 	ArrivedAt time.Time  `json:"arrivedAt"`           // Когда продукт попал в холодильник
