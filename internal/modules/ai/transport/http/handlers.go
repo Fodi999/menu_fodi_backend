@@ -284,3 +284,115 @@ func (h *AIHandlers) SaveRecipeIngredientsToFridge(w http.ResponseWriter, r *htt
 		"count":   len(req.Ingredients),
 	})
 }
+
+// AnalyzeFridge godoc
+// @Summary AI Fridge Analysis (Smart Kitchen)
+// @Description Analyze user's fridge and provide AI-powered recommendations based on goal
+// @Tags ai
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.FridgeAnalyzeRequest true "Fridge analysis request"
+// @Success 200 {object} map[string]string "result: AI recommendations"
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/ai/fridge/analyze [post]
+func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
+	// Получаем User ID
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// Парсим запрос
+	var req dto.FridgeAnalyzeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode AI fridge analyze request", zap.Error(err))
+		httpx.BadRequest(w, "invalid request body")
+		return
+	}
+
+	// Валидация goal
+	validGoals := map[string]bool{
+		"today_meals":   true,
+		"3_days_plan":   true,
+		"reduce_waste":  true,
+		"budget_review": true,
+	}
+	if !validGoals[req.Goal] {
+		httpx.BadRequest(w, "invalid goal: must be today_meals, 3_days_plan, reduce_waste, or budget_review")
+		return
+	}
+
+	// Загружаем холодильник пользователя
+	var fridgeItems []models.UserFridgeItem
+	if err := h.db.Preload("Ingredient").Where("user_id = ?", userID).Find(&fridgeItems).Error; err != nil {
+		logger.Error("failed to load fridge items",
+			zap.String("user_id", userID),
+			zap.Error(err))
+		httpx.InternalError(w, "failed to load fridge")
+		return
+	}
+
+	// Конвертируем в DTO для AI (без ID, user_id)
+	aiItems := make([]dto.FridgeItemDTO, 0, len(fridgeItems))
+	for _, item := range fridgeItems {
+		if item.Ingredient == nil {
+			continue
+		}
+
+		// Вычисляем daysLeft
+		var daysLeft *int
+		if item.ExpiresAt != nil {
+			days := int(time.Until(*item.ExpiresAt).Hours() / 24)
+			daysLeft = &days
+		}
+
+		// Определяем status
+		status := "ok"
+		if daysLeft != nil {
+			if *daysLeft < 0 {
+				status = "expired"
+			} else if *daysLeft <= 2 {
+				status = "critical"
+			} else if *daysLeft <= 5 {
+				status = "warning"
+			}
+		}
+
+		aiItems = append(aiItems, dto.FridgeItemDTO{
+			Name:       item.Ingredient.Name,
+			Category:   item.Ingredient.Category,
+			Quantity:   item.Quantity,
+			Unit:       item.Unit,
+			DaysLeft:   daysLeft,
+			Status:     status,
+			TotalPrice: item.CurrentPricePerUnit, // Используем цену если есть
+			Currency:   item.CurrentPriceCurrency,
+		})
+	}
+
+	logger.Info("AI analyzing fridge",
+		zap.String("user_id", userID),
+		zap.String("goal", req.Goal),
+		zap.Int("items_count", len(aiItems)))
+
+	// Анализируем через AI service
+	result, err := h.service.AnalyzeFridge(userID, req, aiItems)
+	if err != nil {
+		logger.Error("AI fridge analysis failed",
+			zap.String("user_id", userID),
+			zap.String("goal", req.Goal),
+			zap.Error(err))
+		httpx.InternalError(w, "AI analysis failed")
+		return
+	}
+
+	httpx.Success(w, map[string]string{
+		"result": result,
+	})
+}
