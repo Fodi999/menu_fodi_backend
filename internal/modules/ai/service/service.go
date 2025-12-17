@@ -366,23 +366,14 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 	// Строим список доступных ингредиентов для system prompt
 	ingredientsList := buildIngredientsListForPrompt(fridgeItems)
 
-	// System prompt на выбранном языке + ЖЁСТКИЙ список доступных продуктов
+	// System prompt на выбранном языке + КОМПАКТНЫЙ список доступных продуктов
 	baseSystemPrompt := prompts.FridgeSystemPrompt[language]
 	strictSystemPrompt := fmt.Sprintf(`%s
 
-🔴 КРИТИЧЕСКИ ВАЖНО - ДОСТУПНЫЕ ИНГРЕДИЕНТЫ:
+DOSTĘPNE PRODUKTY (używaj TYLKO tych):
 %s
 
-⛔ ЗАПРЕЩЕНО:
-- Добавлять ингредиенты, которых НЕТ в списке выше
-- Использовать оливковое масло, соль, перец или другие приправы, если их нет в списке
-- "Придумывать" продукты для заполнения меню
-- Если ингредиентов недостаточно для цели - НАПИШИ ОБ ЭТОМ ЧЕСТНО
-
-✅ РАЗРЕШЕНО:
-- Использовать ТОЛЬКО продукты из списка выше
-- Если продуктов мало - предложи упрощённый вариант
-- Если план на 3 дня невозможен - объясни почему и предложи что можно сделать`, 
+ZAKAZ dodawania innych składników!`, 
 		baseSystemPrompt,
 		ingredientsList)
 
@@ -413,6 +404,16 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 				"pl": "AI nie udało się wygenerować przepisu z dostępnych produktów. Spróbuj dodać więcej składników.",
 				"en": "AI couldn't generate a recipe with available products. Try adding more ingredients.",
 				"ru": "AI не смог создать рецепт из доступных продуктов. Попробуй добавить больше ингредиентов.",
+			},
+			"reduce_waste": {
+				"pl": "AI nie może przeanalizować produktów. Sprawdź czy produkty mają poprawne daty ważności.",
+				"en": "AI cannot analyze products. Check if products have valid expiry dates.",
+				"ru": "AI не может проанализировать продукты. Проверь, правильно ли указаны сроки годности.",
+			},
+			"budget_review": {
+				"pl": "AI nie może przeanalizować wydatków. Upewnij się, że produkty mają przypisane ceny.",
+				"en": "AI cannot analyze expenses. Make sure products have prices assigned.",
+				"ru": "AI не может проанализировать расходы. Убедись, что у продуктов указаны цены.",
 			},
 		}
 		
