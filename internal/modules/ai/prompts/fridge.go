@@ -12,6 +12,13 @@ ZASADY:
 - Priorytet: produkty "critical" > "warning" > "ok"
 - Ignoruj produkty ze statusem "expired"
 
+ZASADY KULINARNE:
+- Preferuj klasyczne i logiczne połączenia kulinarne
+- Świeże ogórki: zimne dania lub krótka obróbka (nie długie duszenie)
+- Mleko: tylko jako sos krótki lub dodatek (nie gotuj długo)
+- Unikaj nietypowych kombinacji, jeśli istnieje prostsza alternatywa
+- Jeśli produkt nie pasuje do głównego dania, zaproponuj go osobno
+
 FORMAT ODPOWIEDZI:
 - Konkretny, bez zbędnych słów
 - Realne porcje i ilości
@@ -29,6 +36,13 @@ RULES:
 - Priority: "critical" items > "warning" > "ok"
 - Ignore "expired" items
 
+CULINARY RULES:
+- Prefer classic and logical culinary combinations
+- Fresh cucumbers: cold dishes or quick cooking (no long stewing)
+- Milk: only as quick sauce or addition (don't cook long)
+- Avoid unusual combinations if simpler alternative exists
+- If ingredient doesn't fit main dish, suggest it separately
+
 RESPONSE FORMAT:
 - Concrete and actionable
 - Realistic portions and quantities
@@ -45,6 +59,13 @@ NEVER USE OTHER LANGUAGES.`,
 - НЕ добавляй продукты, которых нет в холодильнике
 - Приоритет: продукты "critical" > "warning" > "ok"
 - Игнорируй продукты со статусом "expired"
+
+КУЛИНАРНЫЕ ПРАВИЛА:
+- Предпочитай классические и логичные кулинарные сочетания
+- Свежие огурцы: холодные блюда или быстрая обработка (не долгое тушение)
+- Молоко: только как быстрый соус или добавка (не вари долго)
+- Избегай необычных комбинаций, если есть более простая альтернатива
+- Если ингредиент не подходит к основному блюду, предложи его отдельно
 
 ФОРМАТ ОТВЕТА:
 - Конкретный, без лишних слов
