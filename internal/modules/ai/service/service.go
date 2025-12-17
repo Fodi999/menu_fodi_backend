@@ -356,6 +356,11 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 	// Строим prompt с учётом языка
 	prompt := buildFridgeAnalysisPrompt(req.Goal, language, fridgeItems)
 
+	// ВАЖНО: Проверяем что промпт не пустой
+	if strings.TrimSpace(prompt) == "" {
+		return "", fmt.Errorf("empty prompt for goal: %s, language: %s", req.Goal, language)
+	}
+
 	// System prompt на выбранном языке
 	systemPrompt := prompts.FridgeSystemPrompt[language]
 
@@ -363,6 +368,11 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 	response, err := s.groqClient.SimpleChat(systemPrompt, prompt)
 	if err != nil {
 		return "", fmt.Errorf("AI analysis failed: %w", err)
+	}
+
+	// ВАЖНО: Проверяем что AI вернул непустой ответ
+	if strings.TrimSpace(response) == "" {
+		return "", fmt.Errorf("AI returned empty response for goal: %s", req.Goal)
 	}
 
 	return response, nil
@@ -393,6 +403,16 @@ func buildFridgeAnalysisPrompt(goal string, language string, items []dto.FridgeI
 		if text, ok := goalTexts[language]; ok {
 			goalPrompt = text
 		}
+	}
+
+	// ФОЛЛБЭК: если промпт цели не найден - используем базовый
+	if strings.TrimSpace(goalPrompt) == "" {
+		fallbackGoals := map[string]string{
+			"pl": fmt.Sprintf("\n\nCEL: %s\n\nPrzeanalizuj produkty i podaj rekomendacje.", goal),
+			"en": fmt.Sprintf("\n\nGOAL: %s\n\nAnalyze products and provide recommendations.", goal),
+			"ru": fmt.Sprintf("\n\nЦЕЛЬ: %s\n\nПроанализируй продукты и дай рекомендации.", goal),
+		}
+		goalPrompt = fallbackGoals[language]
 	}
 
 	// Формируем финальный prompt
