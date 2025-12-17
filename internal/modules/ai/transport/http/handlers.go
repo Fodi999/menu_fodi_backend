@@ -376,6 +376,13 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Вычисляем TOTAL PRICE (quantity × pricePerUnit)
+		var totalPrice *float64
+		if item.CurrentPricePerUnit != nil && *item.CurrentPricePerUnit > 0 {
+			total := item.Quantity * (*item.CurrentPricePerUnit)
+			totalPrice = &total
+		}
+
 		aiItems = append(aiItems, dto.FridgeItemDTO{
 			Name:       item.Ingredient.Name,
 			Category:   item.Ingredient.Category,
@@ -383,7 +390,7 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			Unit:       item.Unit,
 			DaysLeft:   daysLeft,
 			Status:     status,
-			TotalPrice: item.CurrentPricePerUnit, // Используем цену если есть
+			TotalPrice: totalPrice, // ✅ TOTAL COST = quantity × pricePerUnit
 			Currency:   item.CurrentPriceCurrency,
 		})
 	}
