@@ -133,19 +133,196 @@ If combination is culinarily unusual:
 - вместо соуса – жарка без жидкости + специи`,
 	},
 	"3_days_plan": {
-		"pl": "\n\nCEL: Stwórz zbilansowany plan posiłków na 3 dni. Wykorzystaj wszystkie dostępne produkty efektywnie.",
-		"en": "\n\nGOAL: Create a balanced 3-day meal plan. Use all available products efficiently.",
-		"ru": "\n\nЦЕЛЬ: Создай сбалансированный план питания на 3 дня. Эффективно используй все доступные продукты.",
+		"pl": `
+
+CEL: Zaplanuj posiłki na 3 kolejne dni (śniadanie, obiad, kolacja).
+
+ZASADY DLA PLANU 3-DNIOWEGO:
+- Używaj WYŁĄCZNIE produktów z lodówki
+- Rozłóż produkty logicznie na 3 dni
+- Najpierw zużyj produkty z krótkim terminem (critical, warning)
+- Nie powtarzaj tego samego dania
+- Proste, domowe posiłki
+- Zrównoważona dieta (białko, warzywa, węglowodany)
+
+FORMAT ODPOWIEDZI:
+DZIEŃ 1:
+- Śniadanie: ...
+- Obiad: ...
+- Kolacja: ...
+
+DZIEŃ 2:
+...
+
+DZIEŃ 3:
+...`,
+
+		"en": `
+
+GOAL: Plan meals for 3 consecutive days (breakfast, lunch, dinner).
+
+RULES FOR 3-DAY PLAN:
+- Use ONLY products from the fridge
+- Distribute products logically across 3 days
+- Use products with short expiry first (critical, warning)
+- Don't repeat the same dish
+- Simple, home-cooked meals
+- Balanced diet (protein, vegetables, carbs)
+
+RESPONSE FORMAT:
+DAY 1:
+- Breakfast: ...
+- Lunch: ...
+- Dinner: ...
+
+DAY 2:
+...
+
+DAY 3:
+...`,
+
+		"ru": `
+
+ЦЕЛЬ: Спланируй питание на 3 дня подряд (завтрак, обед, ужин).
+
+ПРАВИЛА ДЛЯ 3-ДНЕВНОГО ПЛАНА:
+- Используй ТОЛЬКО продукты из холодильника
+- Распределяй продукты логично на 3 дня
+- Сначала используй продукты с коротким сроком (critical, warning)
+- Не повторяй одно и то же блюдо
+- Простые, домашние блюда
+- Сбалансированная диета (белок, овощи, углеводы)
+
+ФОРМАТ ОТВЕТА:
+ДЕНЬ 1:
+- Завтрак: ...
+- Обед: ...
+- Ужин: ...
+
+ДЕНЬ 2:
+...
+
+ДЕНЬ 3:
+...`,
 	},
 	"reduce_waste": {
-		"pl": "\n\nCEL: Pomóż uniknąć marnowania jedzenia. Sortuj produkty według daysLeft (najkrótszy termin = najwyższy priorytet).",
-		"en": "\n\nGOAL: Help avoid food waste. Sort products by daysLeft (shortest expiry = highest priority).",
-		"ru": "\n\nЦЕЛЬ: Помоги избежать выброса еды. Сортируй продукты по daysLeft (самый короткий срок = наивысший приоритет).",
+		"pl": `
+
+CEL: Pomóż uniknąć marnowania jedzenia.
+
+ZASADY PRZECIW MARNOWANIU:
+- Sortuj produkty według daysLeft (najkrótszy termin = NAJWYŻSZY priorytet)
+- Produkty "critical" (≤2 dni) → zużyj DZISIAJ
+- Produkty "warning" (≤5 dni) → zaplanuj na jutro/pojutrze
+- Zaproponuj konkretne dania dla każdego kończącego się produktu
+- Jeśli produktu zostało mało → użyj go jako dodatek
+
+FORMAT:
+PILNE (≤2 dni):
+- [produkt]: [konkretne danie]
+
+DO ZUŻYCIA WKRÓTCE (3-5 dni):
+- [produkt]: [plan wykorzystania]`,
+
+		"en": `
+
+GOAL: Help avoid food waste.
+
+ANTI-WASTE RULES:
+- Sort products by daysLeft (shortest expiry = HIGHEST priority)
+- "critical" items (≤2 days) → use TODAY
+- "warning" items (≤5 days) → plan for tomorrow/day after
+- Suggest specific dishes for each expiring product
+- If small amount left → use as addition
+
+FORMAT:
+URGENT (≤2 days):
+- [product]: [specific dish]
+
+USE SOON (3-5 days):
+- [product]: [usage plan]`,
+
+		"ru": `
+
+ЦЕЛЬ: Помоги избежать выброса еды.
+
+ПРАВИЛА ПРОТИВ ВЫБРОСА:
+- Сортируй продукты по daysLeft (самый короткий срок = НАИВЫСШИЙ приоритет)
+- Продукты "critical" (≤2 дня) → используй СЕГОДНЯ
+- Продукты "warning" (≤5 дней) → запланируй на завтра/послезавтра
+- Предложи конкретные блюда для каждого истекающего продукта
+- Если продукта осталось мало → используй как добавку
+
+ФОРМАТ:
+СРОЧНО (≤2 дней):
+- [продукт]: [конкретное блюдо]
+
+ИСПОЛЬЗОВАТЬ СКОРО (3-5 дней):
+- [продукт]: [план использования]`,
 	},
 	"budget_review": {
-		"pl": "\n\nCEL: Przeanalizuj wydatki. Pokaż, które produkty były drogie, zaproponuj tańsze alternatywy lub sposób ich wykorzystania.",
-		"en": "\n\nGOAL: Analyze expenses. Show which products were expensive, suggest cheaper alternatives or ways to use them.",
-		"ru": "\n\nЦЕЛЬ: Проанализируй расходы. Покажи, какие продукты были дорогими, предложи более дешёвые альтернативы или способы их использования.",
+		"pl": `
+
+CEL: Przeanalizuj wydatki i pomóż zaoszczędzić.
+
+ZASADY ANALIZY BUDŻETU:
+- Pokaż łączną wartość produktów w lodówce
+- Wskaż produkty drogie (najwyższa cena)
+- Zaproponuj sposoby ich efektywnego wykorzystania
+- Sugeruj tańsze alternatywy na przyszłość
+- Pomóż nie zmarnować drogich produktów
+
+FORMAT:
+PODSUMOWANIE:
+- Całkowita wartość: [suma] PLN
+- Najdroższe produkty: [lista]
+
+REKOMENDACJE:
+- Jak wykorzystać drogie produkty: ...
+- Tańsze alternatywy: ...
+- Oszczędności: ...`,
+
+		"en": `
+
+GOAL: Analyze expenses and help save money.
+
+BUDGET ANALYSIS RULES:
+- Show total value of fridge products
+- Highlight expensive products (highest price)
+- Suggest ways to use them efficiently
+- Recommend cheaper alternatives for future
+- Help avoid wasting expensive products
+
+FORMAT:
+SUMMARY:
+- Total value: [sum] [currency]
+- Most expensive products: [list]
+
+RECOMMENDATIONS:
+- How to use expensive products: ...
+- Cheaper alternatives: ...
+- Savings tips: ...`,
+
+		"ru": `
+
+ЦЕЛЬ: Проанализируй расходы и помоги сэкономить.
+
+ПРАВИЛА АНАЛИЗА БЮДЖЕТА:
+- Покажи общую стоимость продуктов в холодильнике
+- Укажи дорогие продукты (наивысшая цена)
+- Предложи способы их эффективного использования
+- Посоветуй более дешёвые альтернативы на будущее
+- Помоги не выбросить дорогие продукты
+
+ФОРМАТ:
+ИТОГО:
+- Общая стоимость: [сумма] [валюта]
+- Самые дорогие продукты: [список]
+
+РЕКОМЕНДАЦИИ:
+- Как использовать дорогие продукты: ...
+- Более дешёвые альтернативы: ...
+- Советы по экономии: ...`,
 	},
 }
 
