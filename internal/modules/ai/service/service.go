@@ -353,7 +353,40 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 	// Нормализуем язык
 	language := prompts.NormalizeLanguage(req.Language)
 
-	// Строим prompt с учётом языка
+	// 🔴 GUARD: Проверка минимального количества продуктов для 3-дневного плана
+	if req.Goal == "3_days_plan" && len(fridgeItems) < 3 {
+		fallbackMessages := map[string]string{
+			"pl": "Masz za mało produktów, aby ułożyć sensowny plan na 3 dni. Dodaj więcej składników do lodówki (minimum 5-7 produktów dla pełnego planu).",
+			"en": "Not enough products to create a 3-day plan. Add more ingredients to your fridge (minimum 5-7 products for a complete plan).",
+			"ru": "Недостаточно продуктов для составления плана на 3 дня. Добавь больше ингредиентов в холодильник (минимум 5-7 продуктов для полного плана).",
+		}
+		return fallbackMessages[language], nil
+	}
+
+	// Строим список доступных ингредиентов для system prompt
+	ingredientsList := buildIngredientsListForPrompt(fridgeItems)
+
+	// System prompt на выбранном языке + ЖЁСТКИЙ список доступных продуктов
+	baseSystemPrompt := prompts.FridgeSystemPrompt[language]
+	strictSystemPrompt := fmt.Sprintf(`%s
+
+🔴 КРИТИЧЕСКИ ВАЖНО - ДОСТУПНЫЕ ИНГРЕДИЕНТЫ:
+%s
+
+⛔ ЗАПРЕЩЕНО:
+- Добавлять ингредиенты, которых НЕТ в списке выше
+- Использовать оливковое масло, соль, перец или другие приправы, если их нет в списке
+- "Придумывать" продукты для заполнения меню
+- Если ингредиентов недостаточно для цели - НАПИШИ ОБ ЭТОМ ЧЕСТНО
+
+✅ РАЗРЕШЕНО:
+- Использовать ТОЛЬКО продукты из списка выше
+- Если продуктов мало - предложи упрощённый вариант
+- Если план на 3 дня невозможен - объясни почему и предложи что можно сделать`, 
+		baseSystemPrompt,
+		ingredientsList)
+
+	// Строим user prompt с учётом языка
 	prompt := buildFridgeAnalysisPrompt(req.Goal, language, fridgeItems)
 
 	// ВАЖНО: Проверяем что промпт не пустой
@@ -361,21 +394,58 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 		return "", fmt.Errorf("empty prompt for goal: %s, language: %s", req.Goal, language)
 	}
 
-	// System prompt на выбранном языке
-	systemPrompt := prompts.FridgeSystemPrompt[language]
-
 	// Отправляем в Groq AI
-	response, err := s.groqClient.SimpleChat(systemPrompt, prompt)
+	response, err := s.groqClient.SimpleChat(strictSystemPrompt, prompt)
 	if err != nil {
 		return "", fmt.Errorf("AI analysis failed: %w", err)
 	}
 
 	// ВАЖНО: Проверяем что AI вернул непустой ответ
 	if strings.TrimSpace(response) == "" {
+		// Возвращаем специфичное сообщение по цели
+		goalSpecificFallback := map[string]map[string]string{
+			"3_days_plan": {
+				"pl": "Za mało produktów w lodówce, aby ułożyć pełny plan na 3 dni. Dodaj więcej składników (mięso, warzywa, węglowodany).",
+				"en": "Not enough products in the fridge to create a full 3-day plan. Add more ingredients (meat, vegetables, carbs).",
+				"ru": "Недостаточно продуктов в холодильнике для создания полного плана на 3 дня. Добавь больше ингредиентов (мясо, овощи, углеводы).",
+			},
+			"today_meals": {
+				"pl": "AI nie udało się wygenerować przepisu z dostępnych produktów. Spróbuj dodać więcej składników.",
+				"en": "AI couldn't generate a recipe with available products. Try adding more ingredients.",
+				"ru": "AI не смог создать рецепт из доступных продуктов. Попробуй добавить больше ингредиентов.",
+			},
+		}
+		
+		if messages, ok := goalSpecificFallback[req.Goal]; ok {
+			if msg, ok := messages[language]; ok {
+				return msg, nil
+			}
+		}
+		
 		return "", fmt.Errorf("AI returned empty response for goal: %s", req.Goal)
 	}
 
 	return response, nil
+}
+
+// buildIngredientsListForPrompt создаёт строгий список доступных ингредиентов
+func buildIngredientsListForPrompt(items []dto.FridgeItemDTO) string {
+	if len(items) == 0 {
+		return "BRAK PRODUKTÓW"
+	}
+
+	ingredientsList := make([]string, 0, len(items))
+	for i, item := range items {
+		status := item.Status
+		if item.DaysLeft != nil {
+			status = fmt.Sprintf("%s, zostało %d dni", status, *item.DaysLeft)
+		}
+		
+		ingredientsList = append(ingredientsList, fmt.Sprintf("%d. %s - %.0f %s [%s]", 
+			i+1, item.Name, item.Quantity, item.Unit, status))
+	}
+
+	return strings.Join(ingredientsList, "\n")
 }
 
 // buildFridgeAnalysisPrompt строит промпт для анализа холодильника с учётом языка

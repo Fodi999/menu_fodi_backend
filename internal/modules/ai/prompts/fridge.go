@@ -135,45 +135,89 @@ If combination is culinarily unusual:
 	"3_days_plan": {
 		"pl": `
 
-CEL: Zaplanuj posiłki na 3 kolejne dni (śniadanie, obiad, kolacja).
+CEL: Zaplanuj posiłki na 3 kolejne dni (TYLKO obiad lub kolacja - 1 danie dziennie).
 
-ZASADY DLA PLANU 3-DNIOWEGO:
-- Używaj WYŁĄCZNIE produktów z lodówki
-- Rozłóż produkty logicznie na 3 dni
-- Najpierw zużyj produkty z krótkim terminem (critical, warning)
+⚠️ KRYTYCZNE ZASADY:
+- Używaj WYŁĄCZNIE produktów z listy w system prompt
+- ZAKAZ dodawania produktów, których nie ma w lodówce
+- Jeśli produktów jest mało (mniej niż 5) - napisz UCZCIWIE że plan 3 dni jest niemożliwy
+- Jeśli produktów wystarcza tylko na 1-2 dni - zaproponuj krótszy plan
+
+ZASADY PLANOWANIA:
+- Najpierw zużyj produkty z krótkim terminem (critical, warning) - DZIEŃ 1
+- Potem produkty ze średnim terminem - DZIEŃ 2
+- Na końcu produkty długoterminowe - DZIEŃ 3
+- Każdy dzień: JEDNO danie główne (obiad lub kolacja)
 - Nie powtarzaj tego samego dania
-- Proste, domowe posiłki
-- Zrównoważona dieta (białko, warzywa, węglowodany)
+- Proste, domowe posiłki (maksymalnie 3-4 składniki na danie)
 
-FORMAT ODPOWIEDZI:
-DZIEŃ 1:
-- Śniadanie: ...
-- Obiad: ...
-- Kolacja: ...
+LOGIKA DYSTRYBUCJI:
+- Jeśli jest mięso/ryba → wykorzystaj w dniu 1 lub 2 (krótki termin)
+- Warzywa świeże → rozłóż równomiernie
+- Produkty długoterminowe (puszki, mrożonki) → dzień 3
 
-DZIEŃ 2:
+FORMAT ODPOWIEDZI (OBOWIĄZKOWY):
+**DZIEŃ 1:**
+🍽️ [Nazwa dania]
+📦 Składniki: [lista składników z ilościami]
+⏱️ Czas: ~[X] minut
+👨‍🍳 Krótka instrukcja: [2-3 kroki]
+
+**DZIEŃ 2:**
+🍽️ [Nazwa dania]
 ...
 
-DZIEŃ 3:
-...`,
+**DZIEŃ 3:**
+🍽️ [Nazwa dania]
+...
+
+JEŚLI PRODUKTÓW ZA MAŁO:
+"❌ Za mało produktów w lodówce, aby ułożyć sensowny plan na 3 dni.
+Dostępne produkty pozwalają na przygotowanie [X] dań.
+Sugeruję dodać: [lista brakujących kategorii: mięso/warzywa/węglowodany]"`,
 
 		"en": `
 
-GOAL: Plan meals for 3 consecutive days (breakfast, lunch, dinner).
+GOAL: Plan meals for 3 consecutive days (ONLY lunch or dinner - 1 dish per day).
 
-RULES FOR 3-DAY PLAN:
-- Use ONLY products from the fridge
-- Distribute products logically across 3 days
-- Use products with short expiry first (critical, warning)
+⚠️ CRITICAL RULES:
+- Use ONLY products from the list in system prompt
+- FORBIDDEN to add products not in the fridge
+- If few products (less than 5) - write HONESTLY that 3-day plan is impossible
+- If products enough only for 1-2 days - suggest shorter plan
+
+PLANNING RULES:
+- First use products with short expiry (critical, warning) - DAY 1
+- Then medium-term products - DAY 2
+- Finally long-term products - DAY 3
+- Each day: ONE main dish (lunch or dinner)
 - Don't repeat the same dish
-- Simple, home-cooked meals
-- Balanced diet (protein, vegetables, carbs)
+- Simple, home-cooked meals (max 3-4 ingredients per dish)
 
-RESPONSE FORMAT:
-DAY 1:
-- Breakfast: ...
-- Lunch: ...
-- Dinner: ...
+DISTRIBUTION LOGIC:
+- If meat/fish → use on day 1 or 2 (short expiry)
+- Fresh vegetables → distribute evenly
+- Long-term products (cans, frozen) → day 3
+
+RESPONSE FORMAT (MANDATORY):
+**DAY 1:**
+🍽️ [Dish name]
+📦 Ingredients: [list with quantities]
+⏱️ Time: ~[X] minutes
+👨‍🍳 Quick instructions: [2-3 steps]
+
+**DAY 2:**
+🍽️ [Dish name]
+...
+
+**DAY 3:**
+🍽️ [Dish name]
+...
+
+IF NOT ENOUGH PRODUCTS:
+"❌ Not enough products in the fridge to create a sensible 3-day plan.
+Available products allow preparing [X] dishes.
+Suggest adding: [list of missing categories: meat/vegetables/carbs]"
 
 DAY 2:
 ...
@@ -183,27 +227,46 @@ DAY 3:
 
 		"ru": `
 
-ЦЕЛЬ: Спланируй питание на 3 дня подряд (завтрак, обед, ужин).
+ЦЕЛЬ: Спланируй питание на 3 дня подряд (ТОЛЬКО обед или ужин - 1 блюдо в день).
 
-ПРАВИЛА ДЛЯ 3-ДНЕВНОГО ПЛАНА:
-- Используй ТОЛЬКО продукты из холодильника
-- Распределяй продукты логично на 3 дня
-- Сначала используй продукты с коротким сроком (critical, warning)
+⚠️ КРИТИЧЕСКИЕ ПРАВИЛА:
+- Используй ТОЛЬКО продукты из списка в system prompt
+- ЗАПРЕЩЕНО добавлять продукты, которых нет в холодильнике
+- Если продуктов мало (менее 5) - напиши ЧЕСТНО что план на 3 дня невозможен
+- Если продуктов хватает только на 1-2 дня - предложи более короткий план
+
+ПРАВИЛА ПЛАНИРОВАНИЯ:
+- Сначала используй продукты с коротким сроком (critical, warning) - ДЕНЬ 1
+- Затем продукты со средним сроком - ДЕНЬ 2
+- В конце долгосрочные продукты - ДЕНЬ 3
+- Каждый день: ОДНО основное блюдо (обед или ужин)
 - Не повторяй одно и то же блюдо
-- Простые, домашние блюда
-- Сбалансированная диета (белок, овощи, углеводы)
+- Простые, домашние блюда (максимум 3-4 ингредиента на блюдо)
 
-ФОРМАТ ОТВЕТА:
-ДЕНЬ 1:
-- Завтрак: ...
-- Обед: ...
-- Ужин: ...
+ЛОГИКА РАСПРЕДЕЛЕНИЯ:
+- Если есть мясо/рыба → используй в день 1 или 2 (короткий срок)
+- Свежие овощи → распредели равномерно
+- Долгосрочные продукты (консервы, заморозка) → день 3
 
-ДЕНЬ 2:
+ФОРМАТ ОТВЕТА (ОБЯЗАТЕЛЬНО):
+**ДЕНЬ 1:**
+🍽️ [Название блюда]
+📦 Ингредиенты: [список с количеством]
+⏱️ Время: ~[X] минут
+👨‍🍳 Краткая инструкция: [2-3 шага]
+
+**ДЕНЬ 2:**
+🍽️ [Название блюда]
 ...
 
-ДЕНЬ 3:
-...`,
+**ДЕНЬ 3:**
+🍽️ [Название блюда]
+...
+
+ЕСЛИ ПРОДУКТОВ НЕДОСТАТОЧНО:
+"❌ Недостаточно продуктов в холодильнике для создания разумного плана на 3 дня.
+Доступные продукты позволяют приготовить [X] блюд.
+Рекомендую добавить: [список недостающих категорий: мясо/овощи/углеводы]"`,
 	},
 	"reduce_waste": {
 		"pl": `
