@@ -366,6 +366,12 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 	// Строим список доступных ингредиентов для system prompt
 	ingredientsList := buildIngredientsListForPrompt(fridgeItems)
 
+	// 🔧 СПЕЦИАЛЬНАЯ ОБРАБОТКА для budget_review: считаем на backend, AI только комментирует
+	var budgetSummary string
+	if req.Goal == "budget_review" {
+		budgetSummary = calculateBudgetSummary(fridgeItems, language)
+	}
+
 	// System prompt на выбранном языке + КОМПАКТНЫЙ список доступных продуктов
 	baseSystemPrompt := prompts.FridgeSystemPrompt[language]
 	strictSystemPrompt := fmt.Sprintf(`%s
@@ -378,7 +384,23 @@ ZAKAZ dodawania innych składników!`,
 		ingredientsList)
 
 	// Строим user prompt с учётом языка
-	prompt := buildFridgeAnalysisPrompt(req.Goal, language, fridgeItems)
+	var prompt string
+	if req.Goal == "budget_review" && budgetSummary != "" {
+		// Для budget_review используем готовую аналитику
+		goalPrompt := ""
+		if goalTexts, ok := prompts.GoalPrompts["budget_review"]; ok {
+			if text, ok := goalTexts[language]; ok {
+				goalPrompt = text
+			}
+		}
+		prompt = fmt.Sprintf(`%s
+
+%s
+
+Teraz skomentuj te dane i dodaj praktyczne porady jak zaoszczędzić.`, goalPrompt, budgetSummary)
+	} else {
+		prompt = buildFridgeAnalysisPrompt(req.Goal, language, fridgeItems)
+	}
 
 	// ВАЖНО: Проверяем что промпт не пустой
 	if strings.TrimSpace(prompt) == "" {
@@ -447,6 +469,167 @@ func buildIngredientsListForPrompt(items []dto.FridgeItemDTO) string {
 	}
 
 	return strings.Join(ingredientsList, "\n")
+}
+
+// calculateBudgetSummary считает финансовую аналитику НА BACKEND (AI только комментирует)
+func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
+	if len(items) == 0 {
+		return ""
+	}
+
+	// Считаем общую стоимость и находим самые дорогие продукты
+	totalValue := 0.0
+	type expensiveItem struct {
+		name       string
+		totalPrice float64
+		daysLeft   int
+		risk       string
+	}
+	expensiveItems := make([]expensiveItem, 0)
+
+	for _, item := range items {
+		if item.TotalPrice != nil && *item.TotalPrice > 0 {
+			totalValue += *item.TotalPrice
+			
+			risk := "ok"
+			daysLeft := 999
+			if item.DaysLeft != nil {
+				daysLeft = *item.DaysLeft
+				if daysLeft <= 2 {
+					risk = "critical"
+				} else if daysLeft <= 5 {
+					risk = "warning"
+				}
+			}
+			
+			expensiveItems = append(expensiveItems, expensiveItem{
+				name:       item.Name,
+				totalPrice: *item.TotalPrice,
+				daysLeft:   daysLeft,
+				risk:       risk,
+			})
+		}
+	}
+
+	// Сортируем по цене (самые дорогие первыми)
+	for i := 0; i < len(expensiveItems)-1; i++ {
+		for j := i + 1; j < len(expensiveItems); j++ {
+			if expensiveItems[j].totalPrice > expensiveItems[i].totalPrice {
+				expensiveItems[i], expensiveItems[j] = expensiveItems[j], expensiveItems[i]
+			}
+		}
+	}
+
+	// Берём топ-3 самых дорогих
+	topExpensive := expensiveItems
+	if len(topExpensive) > 3 {
+		topExpensive = topExpensive[:3]
+	}
+
+	// Считаем потенциальные потери (дорогие продукты с коротким сроком)
+	potentialLoss := 0.0
+	criticalExpensive := make([]expensiveItem, 0)
+	for _, item := range expensiveItems {
+		if item.risk == "critical" || item.risk == "warning" {
+			potentialLoss += item.totalPrice
+			criticalExpensive = append(criticalExpensive, item)
+		}
+	}
+
+	// Форматируем результат в зависимости от языка
+	currency := "PLN"
+	if len(items) > 0 {
+		currency = items[0].Currency
+	}
+
+	summaryTemplates := map[string]string{
+		"pl": `**ANALIZA BUDŻETU (obliczona przez system):**
+
+📊 PODSUMOWANIE:
+- Całkowita wartość lodówki: %.2f %s
+- Liczba produktów z ceną: %d
+- Średnia wartość produktu: %.2f %s
+
+💰 NAJDROŻSZE PRODUKTY:
+%s
+
+⚠️ RYZYKO STRAT:
+- Produkty kończące się (≤5 dni): %.2f %s
+- Potencjalna strata jeśli nie wykorzystasz: %.2f %s
+%s`,
+		"en": `**BUDGET ANALYSIS (calculated by system):**
+
+📊 SUMMARY:
+- Total fridge value: %.2f %s
+- Products with price: %d
+- Average product value: %.2f %s
+
+💰 MOST EXPENSIVE PRODUCTS:
+%s
+
+⚠️ LOSS RISK:
+- Expiring products (≤5 days): %.2f %s
+- Potential loss if not used: %.2f %s
+%s`,
+		"ru": `**АНАЛИЗ БЮДЖЕТА (рассчитано системой):**
+
+📊 ИТОГО:
+- Общая стоимость холодильника: %.2f %s
+- Продуктов с ценой: %d
+- Средняя стоимость продукта: %.2f %s
+
+💰 САМЫЕ ДОРОГИЕ ПРОДУКТЫ:
+%s
+
+⚠️ РИСК ПОТЕРЬ:
+- Истекающие продукты (≤5 дней): %.2f %s
+- Потенциальная потеря если не использовать: %.2f %s
+%s`,
+	}
+
+	template := summaryTemplates[language]
+	
+	// Форматируем список дорогих продуктов
+	expensiveList := ""
+	for i, item := range topExpensive {
+		riskEmoji := ""
+		if item.risk == "critical" {
+			riskEmoji = " 🚨"
+		} else if item.risk == "warning" {
+			riskEmoji = " ⚠️"
+		}
+		expensiveList += fmt.Sprintf("%d. %s: %.2f %s (zostało %d dni)%s\n", 
+			i+1, item.name, item.totalPrice, currency, item.daysLeft, riskEmoji)
+	}
+
+	// Форматируем список критических продуктов
+	criticalList := ""
+	if len(criticalExpensive) > 0 {
+		labels := map[string]string{
+			"pl": "\n\n🔴 PRODUKTY DO NATYCHMIASTOWEGO WYKORZYSTANIA:",
+			"en": "\n\n🔴 PRODUCTS TO USE IMMEDIATELY:",
+			"ru": "\n\n🔴 ПРОДУКТЫ ДЛЯ НЕМЕДЛЕННОГО ИСПОЛЬЗОВАНИЯ:",
+		}
+		criticalList = labels[language]
+		for _, item := range criticalExpensive {
+			criticalList += fmt.Sprintf("\n- %s: %.2f %s (zostało %d dni)", 
+				item.name, item.totalPrice, currency, item.daysLeft)
+		}
+	}
+
+	avgValue := 0.0
+	if len(expensiveItems) > 0 {
+		avgValue = totalValue / float64(len(expensiveItems))
+	}
+
+	return fmt.Sprintf(template,
+		totalValue, currency,
+		len(expensiveItems),
+		avgValue, currency,
+		expensiveList,
+		potentialLoss, currency,
+		potentialLoss, currency,
+		criticalList)
 }
 
 // buildFridgeAnalysisPrompt строит промпт для анализа холодильника с учётом языка
