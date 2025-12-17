@@ -13,6 +13,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai/dto"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai/prompts"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/httpx"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
@@ -391,14 +392,24 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 		zap.String("goal", req.Goal),
 		zap.Int("items_count", len(aiItems)))
 
+	// Нормализуем язык
+	language := prompts.NormalizeLanguage(req.Language)
+
 	// 3️⃣ Если холодильник пустой - не зовём AI
 	if len(aiItems) == 0 {
 		logger.Info("empty fridge - returning default message",
 			zap.String("user_id", userID),
-			zap.String("goal", req.Goal))
+			zap.String("goal", req.Goal),
+			zap.String("language", language))
+		
+		emptyMessages := map[string]string{
+			"pl": "Twoja lodówka jest pusta. Dodaj produkty, aby otrzymać rekomendacje AI!",
+			"en": "Your fridge is empty. Add some products to get AI recommendations!",
+			"ru": "Твой холодильник пуст. Добавь продукты, чтобы получить рекомендации AI!",
+		}
 		
 		httpx.Success(w, map[string]string{
-			"result": "Twoja lodówka jest pusta. Dodaj produkty, aby otrzymać rekomendacje AI!",
+			"result": emptyMessages[language],
 		})
 		return
 	}
@@ -410,11 +421,18 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			zap.String("user_id", userID),
 			zap.String("goal", req.Goal),
 			zap.Int("items_count", len(aiItems)),
+			zap.String("language", language),
 			zap.Error(err))
 		
 		// Возвращаем fallback вместо 500
+		errorMessages := map[string]string{
+			"pl": "Przepraszamy, AI jest chwilowo niedostępne. Spróbuj ponownie później.",
+			"en": "Sorry, AI is temporarily unavailable. Please try again later.",
+			"ru": "Извините, AI временно недоступен. Попробуйте позже.",
+		}
+		
 		httpx.Success(w, map[string]string{
-			"result": "Przepraszamy, AI jest chwilowo niedostępne. Spróbuj ponownie później.",
+			"result": errorMessages[language],
 		})
 		return
 	}
