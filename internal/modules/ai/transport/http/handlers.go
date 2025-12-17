@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -435,6 +436,21 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			"result": errorMessages[language],
 		})
 		return
+	}
+
+	// 🛡️ КРИТИЧЕСКАЯ ЗАЩИТА: гарантируем непустой result
+	if strings.TrimSpace(result) == "" {
+		logger.Warn("AI returned empty result - using fallback",
+			zap.String("user_id", userID),
+			zap.String("goal", req.Goal),
+			zap.String("language", language))
+		
+		fallbackMessages := map[string]string{
+			"pl": "AI nie wygenerowało odpowiedzi. Spróbuj ponownie za chwilę lub wybierz inny cel.",
+			"en": "AI did not generate a response. Please try again in a moment or choose a different goal.",
+			"ru": "AI не сгенерировал ответ. Попробуйте снова через минуту или выберите другую цель.",
+		}
+		result = fallbackMessages[language]
 	}
 
 	httpx.Success(w, map[string]string{
