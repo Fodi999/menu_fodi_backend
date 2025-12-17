@@ -324,9 +324,18 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 		"budget_review": true,
 	}
 	if !validGoals[req.Goal] {
+		logger.Error("invalid goal received",
+			zap.String("user_id", userID),
+			zap.String("goal", req.Goal))
 		httpx.BadRequest(w, "invalid goal: must be today_meals, 3_days_plan, reduce_waste, or budget_review")
 		return
 	}
+
+	logger.Info("AI fridge analyze request",
+		zap.String("user_id", userID),
+		zap.String("goal", req.Goal),
+		zap.String("time_preference", req.Preferences.Time),
+		zap.String("budget_preference", req.Preferences.Budget))
 
 	// Загружаем холодильник пользователя
 	var fridgeItems []models.UserFridgeItem
@@ -381,14 +390,31 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 		zap.String("goal", req.Goal),
 		zap.Int("items_count", len(aiItems)))
 
-	// Анализируем через AI service
+	// 3️⃣ Если холодильник пустой - не зовём AI
+	if len(aiItems) == 0 {
+		logger.Info("empty fridge - returning default message",
+			zap.String("user_id", userID),
+			zap.String("goal", req.Goal))
+		
+		httpx.Success(w, map[string]string{
+			"result": "Twoja lodówka jest pusta. Dodaj produkty, aby otrzymać rekomendacje AI!",
+		})
+		return
+	}
+
+	// 2️⃣ Анализируем через AI service (с safe error handling)
 	result, err := h.service.AnalyzeFridge(userID, req, aiItems)
 	if err != nil {
 		logger.Error("AI fridge analysis failed",
 			zap.String("user_id", userID),
 			zap.String("goal", req.Goal),
+			zap.Int("items_count", len(aiItems)),
 			zap.Error(err))
-		httpx.InternalError(w, "AI analysis failed")
+		
+		// Возвращаем fallback вместо 500
+		httpx.Success(w, map[string]string{
+			"result": "Przepraszamy, AI jest chwilowo niedostępne. Spróbuj ponownie później.",
+		})
 		return
 	}
 
