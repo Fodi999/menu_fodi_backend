@@ -78,9 +78,59 @@ NEVER USE OTHER LANGUAGES.`,
 // GoalPrompts language-specific goal descriptions
 var GoalPrompts = map[string]map[string]string{
 	"today_meals": {
-		"pl": "\n\nCEL: Zaproponuj konkretne dania na dzisiaj. Priorytet: produkty ze statusem 'critical' i 'warning'.",
-		"en": "\n\nGOAL: Suggest specific meals for today. Priority: 'critical' and 'warning' status items.",
-		"ru": "\n\nЦЕЛЬ: Предложи конкретные блюда на сегодня. Приоритет: продукты со статусом 'critical' и 'warning'.",
+		"pl": `
+
+CEL: Zaproponuj konkretne dania na dzisiaj. Priorytet: produkty ze statusem 'critical' i 'warning'.
+
+ZASADY DLA DANIA NA DZIŚ:
+- Preferuj maksymalnie 3 składniki w daniu głównym
+- Jeśli produkt nie jest konieczny – nie dodawaj go
+- Prostota > skomplikowana kombinacja
+
+SZCZEGÓLNIE WAŻNE:
+Jeśli mleko jest jedynym płynem:
+- NIE używaj go do smażenia z ogórkiem
+- mleko stosuj tylko: na zimno (sosy, sałatki) lub jako krótki dodatek bez ogórka
+
+Jeśli połączenie jest nietypowe kulinarnie:
+- preferuj prostszą wersję dania
+- zamiast sosu – smażenie na sucho + przyprawy`,
+
+		"en": `
+
+GOAL: Suggest specific meals for today. Priority: 'critical' and 'warning' status items.
+
+RULES FOR TODAY'S MEAL:
+- Prefer maximum 3 ingredients in main dish
+- If ingredient is not necessary – don't add it
+- Simplicity > complex combination
+
+ESPECIALLY IMPORTANT:
+If milk is the only liquid:
+- DO NOT use it for frying with cucumber
+- milk only for: cold use (sauces, salads) or as quick addition without cucumber
+
+If combination is culinarily unusual:
+- prefer simpler version of the dish
+- instead of sauce – dry frying + spices`,
+
+		"ru": `
+
+ЦЕЛЬ: Предложи конкретные блюда на сегодня. Приоритет: продукты со статусом 'critical' и 'warning'.
+
+ПРАВИЛА ДЛЯ БЛЮДА НА СЕГОДНЯ:
+- Предпочитай максимум 3 ингредиента в основном блюде
+- Если продукт не обязателен – не добавляй его
+- Простота > сложная комбинация
+
+ОСОБЕННО ВАЖНО:
+Если молоко единственная жидкость:
+- НЕ используй его для жарки с огурцом
+- молоко только для: холодного использования (соусы, салаты) или как быстрая добавка без огурца
+
+Если сочетание кулинарно необычно:
+- предпочти более простую версию блюда
+- вместо соуса – жарка без жидкости + специи`,
 	},
 	"3_days_plan": {
 		"pl": "\n\nCEL: Stwórz zbilansowany plan posiłków na 3 dni. Wykorzystaj wszystkie dostępne produkty efektywnie.",
