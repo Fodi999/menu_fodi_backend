@@ -334,6 +334,7 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 	logger.Info("AI fridge analyze request",
 		zap.String("user_id", userID),
 		zap.String("goal", req.Goal),
+		zap.String("language", req.Language),
 		zap.String("time_preference", req.Preferences.Time),
 		zap.String("budget_preference", req.Preferences.Budget))
 

@@ -2,7 +2,8 @@ package dto
 
 // FridgeAnalyzeRequest запрос на анализ холодильника через AI
 type FridgeAnalyzeRequest struct {
-	Goal        string      `json:"goal" binding:"required"` // "today_meals" | "3_days_plan" | "reduce_waste" | "budget_review"
+	Goal        string      `json:"goal" binding:"required"`     // "today_meals" | "3_days_plan" | "reduce_waste" | "budget_review"
+	Language    string      `json:"language,omitempty"`          // "pl" | "en" | "ru" (default: "pl")
 	Preferences Preferences `json:"preferences,omitempty"`
 }
 

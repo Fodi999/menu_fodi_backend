@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai/dto"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai/prompts"
 	ai_core "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
 )
 
@@ -349,11 +350,17 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 		return "Your fridge is empty. Add some items to get AI recommendations!", nil
 	}
 
-	// Строим prompt
-	prompt := buildFridgeAnalysisPrompt(req, fridgeItems)
+	// Нормализуем язык
+	language := prompts.NormalizeLanguage(req.Language)
+
+	// Строим prompt с учётом языка
+	prompt := buildFridgeAnalysisPrompt(req.Goal, language, fridgeItems)
+
+	// System prompt на выбранном языке
+	systemPrompt := prompts.FridgeSystemPrompt[language]
 
 	// Отправляем в Groq AI
-	response, err := s.groqClient.SimpleChat("You are a helpful kitchen assistant.", prompt)
+	response, err := s.groqClient.SimpleChat(systemPrompt, prompt)
 	if err != nil {
 		return "", fmt.Errorf("AI analysis failed: %w", err)
 	}
@@ -361,40 +368,41 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 	return response, nil
 }
 
-// buildFridgeAnalysisPrompt строит промпт для анализа холодильника
-func buildFridgeAnalysisPrompt(req dto.FridgeAnalyzeRequest, items []dto.FridgeItemDTO) string {
+// buildFridgeAnalysisPrompt строит промпт для анализа холодильника с учётом языка
+func buildFridgeAnalysisPrompt(goal string, language string, items []dto.FridgeItemDTO) string {
 	// Сериализуем items в строку
 	itemsList := make([]string, 0, len(items))
 	for _, item := range items {
 		status := item.Status
 		if item.DaysLeft != nil {
-			status = fmt.Sprintf("%s (%d days left)", status, *item.DaysLeft)
+			status = fmt.Sprintf("%s (%d days)", status, *item.DaysLeft)
 		}
-		itemsList = append(itemsList, fmt.Sprintf("- %s: %.1f %s [%s]", item.Name, item.Quantity, item.Unit, status))
+		
+		priceInfo := ""
+		if item.TotalPrice != nil && *item.TotalPrice > 0 {
+			priceInfo = fmt.Sprintf(" [%.2f %s]", *item.TotalPrice, item.Currency)
+		}
+		
+		itemsList = append(itemsList, fmt.Sprintf("- %s: %.1f %s [%s]%s", 
+			item.Name, item.Quantity, item.Unit, status, priceInfo))
 	}
 
-	goalDescription := map[string]string{
-		"today_meals":   "What to cook TODAY using these ingredients",
-		"3_days_plan":   "Meal plan for next 3 DAYS",
-		"reduce_waste":  "What items to use URGENTLY (before they expire)",
-		"budget_review": "Budget analysis and cost-saving tips",
+	// Получаем промпт цели на нужном языке
+	goalPrompt := ""
+	if goalTexts, ok := prompts.GoalPrompts[goal]; ok {
+		if text, ok := goalTexts[language]; ok {
+			goalPrompt = text
+		}
 	}
 
-	prompt := fmt.Sprintf(`You are a kitchen assistant.
+	// Формируем финальный prompt
+	prompt := fmt.Sprintf(`%s
 
-**User Goal:** %s
-
-**Fridge Items:**
+**Produkty w lodówce:**
 %s
 
-**Rules:**
-- Use ONLY these items
-- Prioritize items with status: critical > warning > ok
-- Be practical and concise
-- Explain reasoning briefly
-
-Give practical recommendations.`, 
-		goalDescription[req.Goal],
+Proszę o konkretne rekomendacje.`,
+		goalPrompt,
 		strings.Join(itemsList, "\n"))
 
 	return prompt
