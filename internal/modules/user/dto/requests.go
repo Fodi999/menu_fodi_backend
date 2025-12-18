@@ -50,6 +50,10 @@ type DashboardResponse struct {
 	Recommendations     []RecommendationInfo `json:"recommendations"`
 	RecentTransactions  []TransactionInfo    `json:"recentTransactions"`
 	ActiveRecipes       []ActiveRecipeInfo   `json:"activeRecipes"`
+	
+	// 🆕 Smart Kitchen Integration
+	FridgeSummary   *FridgeSummary `json:"fridgeSummary"`   // Статистика холодильника
+	ChefTokens      int            `json:"chefTokens"`      // Chef Tokens баланс
 }
 
 // UserProfileInfo for dashboard
@@ -107,6 +111,16 @@ type ActiveRecipeInfo struct {
 	Name     string    `json:"name"`
 	Progress int       `json:"progress"`
 	Status   string    `json:"status"`
+}
+
+// FridgeSummary represents fridge statistics for dashboard
+type FridgeSummary struct {
+	TotalItems       int     `json:"totalItems"`       // Общее количество продуктов
+	CriticalItems    int     `json:"criticalItems"`    // Продукты с истекающим сроком (≤2 дня)
+	WarningItems     int     `json:"warningItems"`     // Продукты требующие внимания (3-5 дней)
+	TotalValue       float64 `json:"totalValue"`       // Общая стоимость продуктов (PLN)
+	PotentialLoss    float64 `json:"potentialLoss"`    // Потенциальная потеря (продукты critical)
+	Currency         string  `json:"currency"`         // Валюта (PLN)
 }
 
 // AchievementResponse represents user achievement

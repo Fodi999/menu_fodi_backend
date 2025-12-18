@@ -2,9 +2,11 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user/repo"
@@ -25,12 +27,22 @@ type UserService interface {
 }
 
 type userService struct {
-	repo repo.UserRepository
+	repo            repo.UserRepository
+	fridgeRepo      *database.UserFridgeRepository
+	tokenBankRepo   *database.TokenBankRepository
 }
 
 // NewUserService creates new user service
-func NewUserService(repo repo.UserRepository) UserService {
-	return &userService{repo: repo}
+func NewUserService(
+	repo repo.UserRepository,
+	fridgeRepo *database.UserFridgeRepository,
+	tokenBankRepo *database.TokenBankRepository,
+) UserService {
+	return &userService{
+		repo:          repo,
+		fridgeRepo:    fridgeRepo,
+		tokenBankRepo: tokenBankRepo,
+	}
 }
 
 func (s *userService) GetProfile(userID uuid.UUID) (*dto.UserProfileResponse, error) {
@@ -165,6 +177,12 @@ func (s *userService) GetDashboard(userID uuid.UUID) (*dto.DashboardResponse, er
 		activeRecipes = []dto.ActiveRecipeInfo{}
 	}
 
+	// 🆕 Get fridge summary (Smart Kitchen integration)
+	fridgeSummary := s.getFridgeSummary(userID)
+
+	// 🆕 Get chef tokens balance
+	chefTokens := s.getChefTokensBalance(userID)
+
 	return &dto.DashboardResponse{
 		Profile: dto.UserProfileInfo{
 			Level:            profile.Level,
@@ -184,6 +202,8 @@ func (s *userService) GetDashboard(userID uuid.UUID) (*dto.DashboardResponse, er
 		Recommendations:     recommendations,
 		RecentTransactions:  recentTransactions,
 		ActiveRecipes:       activeRecipes,
+		FridgeSummary:       fridgeSummary,
+		ChefTokens:          chefTokens,
 	}, nil
 }
 
@@ -255,6 +275,66 @@ func (s *userService) GetWallet(userID uuid.UUID) (*dto.WalletResponse, error) {
 		},
 		TransactionCount: len(transactions),
 	}, nil
+}
+
+// 🆕 getFridgeSummary возвращает статистику холодильника
+func (s *userService) getFridgeSummary(userID uuid.UUID) *dto.FridgeSummary {
+	// Получаем все продукты пользователя
+	items, err := s.fridgeRepo.GetUserFridgeItems(userID.String())
+	if err != nil || len(items) == 0 {
+		return nil // Холодильник пуст или ошибка
+	}
+
+	summary := &dto.FridgeSummary{
+		TotalItems:    len(items),
+		CriticalItems: 0,
+		WarningItems:  0,
+		TotalValue:    0,
+		PotentialLoss: 0,
+		Currency:      "PLN",
+	}
+
+	now := time.Now()
+	for _, item := range items {
+		// Считаем стоимость
+		if item.CurrentPricePerUnit != nil {
+			itemValue := item.Quantity * (*item.CurrentPricePerUnit)
+			summary.TotalValue += itemValue
+
+			// Вычисляем DaysLeft и Status
+			if item.ExpiresAt != nil {
+				daysLeft := int(item.ExpiresAt.Sub(now).Hours() / 24)
+
+				// Critical items (≤2 дня) - потенциальная потеря
+				if daysLeft <= 2 {
+					summary.CriticalItems++
+					summary.PotentialLoss += itemValue
+				} else if daysLeft > 2 && daysLeft <= 5 {
+					summary.WarningItems++
+				}
+			}
+		}
+	}
+
+	// Округляем до 2 знаков
+	summary.TotalValue = round2(summary.TotalValue)
+	summary.PotentialLoss = round2(summary.PotentialLoss)
+
+	return summary
+}
+
+// 🆕 getChefTokensBalance возвращает баланс Chef Tokens
+func (s *userService) getChefTokensBalance(userID uuid.UUID) int {
+	tokenBank, err := s.tokenBankRepo.FindByUserID(userID.String())
+	if err != nil || tokenBank == nil {
+		return 0 // Нет токенов или ошибка
+	}
+	return int(tokenBank.Balance) // int64 → int
+}
+
+// round2 округляет до 2 знаков после запятой
+func round2(val float64) float64 {
+	return float64(int(val*100+0.5)) / 100
 }
 
 // Helper to convert models.UserProfile to DTO

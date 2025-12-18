@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user/repo"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user/service"
 	userhttp "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user/transport/http"
@@ -19,7 +20,10 @@ type Module struct {
 // NewModule creates new user module
 func NewModule(db *gorm.DB) *Module {
 	repository := repo.NewUserRepository(db)
-	svc := service.NewUserService(repository)
+	fridgeRepo := database.NewUserFridgeRepository(db)
+	tokenBankRepo := &database.TokenBankRepository{} // No constructor, use direct instantiation
+	
+	svc := service.NewUserService(repository, fridgeRepo, tokenBankRepo)
 	handlers := userhttp.NewUserHandlers(svc)
 
 	return &Module{
