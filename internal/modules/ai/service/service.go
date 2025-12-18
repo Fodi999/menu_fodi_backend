@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"encoding/json"
 
 	"github.com/google/uuid"
 
@@ -413,7 +414,17 @@ Teraz skomentuj te dane i dodaj praktyczne porady jak zaoszczędzić.`, goalProm
 		return "", fmt.Errorf("AI analysis failed: %w", err)
 	}
 
-	// ВАЖНО: Проверяем что AI вернул непустой ответ
+	// 🔧 ПАРСИНГ JSON (Phase 3A)
+	parsedJSON, isJSON, parseErr := parseAIResponse(response, req.Goal)
+	
+	// Если AI вернул валидный JSON - возвращаем его
+	if isJSON && parseErr == nil {
+		return parsedJSON, nil
+	}
+	
+	// Если AI вернул невалидный JSON или текст - используем fallback
+
+	// ВАЖНО: Проверяем что AI вернул непустой ответ (fallback logic)
 	if strings.TrimSpace(response) == "" {
 		// Возвращаем специфичное сообщение по цели
 		goalSpecificFallback := map[string]map[string]string{
@@ -449,6 +460,54 @@ Teraz skomentuj te dane i dodaj praktyczne porady jak zaoszczędzić.`, goalProm
 	}
 
 	return response, nil
+}
+
+// parseAIResponse пытается распарсить JSON ответ от AI
+// Возвращает: (jsonString, isJSON, error)
+func parseAIResponse(response string, goal string) (string, bool, error) {
+	response = strings.TrimSpace(response)
+	
+	// Проверка 1: Ответ пустой
+	if response == "" {
+		return "", false, fmt.Errorf("empty response")
+	}
+	
+	// Проверка 2: Попытка найти JSON (может быть обёрнут в markdown)
+	// Убираем markdown блоки если есть
+	if strings.Contains(response, "```json") {
+		start := strings.Index(response, "```json")
+		end := strings.LastIndex(response, "```")
+		if start != -1 && end != -1 && end > start {
+			response = response[start+7 : end]
+			response = strings.TrimSpace(response)
+		}
+	} else if strings.Contains(response, "```") {
+		// Убираем обычные ``` блоки
+		start := strings.Index(response, "```")
+		end := strings.LastIndex(response, "```")
+		if start != -1 && end != -1 && end > start {
+			response = response[start+3 : end]
+			response = strings.TrimSpace(response)
+		}
+	}
+	
+	// Проверка 3: Выглядит ли как JSON?
+	if !strings.HasPrefix(response, "{") || !strings.HasSuffix(response, "}") {
+		return response, false, fmt.Errorf("response is not JSON")
+	}
+	
+	// Проверка 4: Валидный ли JSON?
+	var testJSON map[string]interface{}
+	if err := json.Unmarshal([]byte(response), &testJSON); err != nil {
+		return response, false, fmt.Errorf("invalid JSON: %w", err)
+	}
+	
+	// Проверка 5: Есть ли поле error?
+	if errorMsg, ok := testJSON["error"].(string); ok && errorMsg != "" {
+		return response, true, fmt.Errorf("AI returned error: %s", errorMsg)
+	}
+	
+	return response, true, nil
 }
 
 // buildIngredientsListForPrompt создаёт строгий список доступных ингредиентов

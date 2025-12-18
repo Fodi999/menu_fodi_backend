@@ -66,59 +66,101 @@ NEVER USE OTHER LANGUAGES.`,
 // GoalPrompts language-specific goal descriptions
 var GoalPrompts = map[string]map[string]string{
 	"today_meals": {
-		"pl": `
+		"pl": `CEL: Zaproponuj konkretne danie na dzisiaj.
 
-CEL: Zaproponuj konkretne dania na dzisiaj. Priorytet: produkty ze statusem 'critical' i 'warning'.
+PRIORYTET: produkty ze statusem 'critical' i 'warning'.
 
-ZASADY DLA DANIA NA DZIŚ:
-- Preferuj maksymalnie 3 składniki w daniu głównym
-- Jeśli produkt nie jest konieczny – nie dodawaj go
+ZASADY:
+- Maksymalnie 3 składniki w daniu głównym
 - Prostota > skomplikowana kombinacja
+- Jedna technika kulinarna (nie mieszaj smażenia z pieczeniem)
 
-SZCZEGÓLNIE WAŻNE:
-Jeśli mleko jest jedynym płynem:
-- NIE używaj go do smażenia z ogórkiem
-- mleko stosuj tylko: na zimno (sosy, sałatki) lub jako krótki dodatek bez ogórka
+ZWRÓĆ JSON W DOKŁADNIE TYM FORMACIE:
+{
+  "title": "Nazwa dania po polsku",
+  "portions": 2,
+  "ingredients_used": [
+    {
+      "name": "Wołowina",
+      "quantity": 400,
+      "unit": "g"
+    }
+  ],
+  "steps": [
+    "Krok 1: Pokrój wołowinę",
+    "Krok 2: Podsmaż na patelni",
+    "Krok 3: Dodaj cebulę"
+  ],
+  "cooking_time": 25,
+  "expires_priority": "critical",
+  "culinary_technique": "smażenie"
+}
 
-Jeśli połączenie jest nietypowe kulinarnie:
-- preferuj prostszą wersję dania
-- zamiast sosu – smażenie na sucho + przyprawy`,
+TYLKO JSON, żadnego tekstu poza tym!`,
 
-		"en": `
+		"en": `GOAL: Suggest a specific meal for today.
 
-GOAL: Suggest specific meals for today. Priority: 'critical' and 'warning' status items.
+PRIORITY: 'critical' and 'warning' status items.
 
-RULES FOR TODAY'S MEAL:
-- Prefer maximum 3 ingredients in main dish
-- If ingredient is not necessary – don't add it
+RULES:
+- Maximum 3 ingredients in main dish
 - Simplicity > complex combination
+- One culinary technique (don't mix frying with baking)
 
-ESPECIALLY IMPORTANT:
-If milk is the only liquid:
-- DO NOT use it for frying with cucumber
-- milk only for: cold use (sauces, salads) or as quick addition without cucumber
+RETURN JSON IN EXACTLY THIS FORMAT:
+{
+  "title": "Dish name in English",
+  "portions": 2,
+  "ingredients_used": [
+    {
+      "name": "Beef",
+      "quantity": 400,
+      "unit": "g"
+    }
+  ],
+  "steps": [
+    "Step 1: Cut the beef",
+    "Step 2: Fry in pan",
+    "Step 3: Add onion"
+  ],
+  "cooking_time": 25,
+  "expires_priority": "critical",
+  "culinary_technique": "frying"
+}
 
-If combination is culinarily unusual:
-- prefer simpler version of the dish
-- instead of sauce – dry frying + spices`,
+ONLY JSON, no text outside!`,
 
-		"ru": `
+		"ru": `ЦЕЛЬ: Предложи конкретное блюдо на сегодня.
 
-ЦЕЛЬ: Предложи конкретные блюда на сегодня. Приоритет: продукты со статусом 'critical' и 'warning'.
+ПРИОРИТЕТ: продукты со статусом 'critical' и 'warning'.
 
-ПРАВИЛА ДЛЯ БЛЮДА НА СЕГОДНЯ:
-- Предпочитай максимум 3 ингредиента в основном блюде
-- Если продукт не обязателен – не добавляй его
+ПРАВИЛА:
+- Максимум 3 ингредиента в основном блюде
 - Простота > сложная комбинация
+- Одна кулинарная техника (не смешивай жарку с запеканием)
 
-ОСОБЕННО ВАЖНО:
-Если молоко единственная жидкость:
-- НЕ используй его для жарки с огурцом
-- молоко только для: холодного использования (соусы, салаты) или как быстрая добавка без огурца
+ВЕРНИ JSON В ТОЧНО ТАКОМ ФОРМАТЕ:
+{
+  "title": "Название блюда на русском",
+  "portions": 2,
+  "ingredients_used": [
+    {
+      "name": "Говядина",
+      "quantity": 400,
+      "unit": "г"
+    }
+  ],
+  "steps": [
+    "Шаг 1: Нарежь говядину",
+    "Шаг 2: Обжарь на сковороде",
+    "Шаг 3: Добавь лук"
+  ],
+  "cooking_time": 25,
+  "expires_priority": "critical",
+  "culinary_technique": "жарка"
+}
 
-Если сочетание кулинарно необычно:
-- предпочти более простую версию блюда
-- вместо соуса – жарка без жидкости + специи`,
+ТОЛЬКО JSON, никакого текста снаружи!`,
 	},
 	"3_days_plan": {
 		"pl": `
