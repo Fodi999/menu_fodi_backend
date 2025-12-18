@@ -163,259 +163,484 @@ ONLY JSON, no text outside!`,
 ТОЛЬКО JSON, никакого текста снаружи!`,
 	},
 	"3_days_plan": {
-		"pl": `
+		"pl": `CEL: Zaplanuj posiłki na 3 kolejne dni.
 
-CEL: Zaplanuj posiłki na 3 kolejne dni (TYLKO obiad lub kolacja - 1 danie dziennie).
+ZASADY:
+- Najpierw produkty z krótkim terminem (critical/warning)
+- Proste dania (max 3-4 składniki)
+- Każdy dzień = JEDNO danie główne
 
-⚠️ KRYTYCZNE ZASADY:
-- Używaj WYŁĄCZNIE produktów z listy w system prompt
-- ZAKAZ dodawania produktów, których nie ma w lodówce
-- Jeśli produktów jest mało (mniej niż 5) - napisz UCZCIWIE że plan 3 dni jest niemożliwy
-- Jeśli produktów wystarcza tylko na 1-2 dni - zaproponuj krótszy plan
+ZWRÓĆ JSON W DOKŁADNIE TYM FORMACIE:
+{
+  "type": "3_days_plan",
+  "success": true,
+  "data": {
+    "days": [
+      {
+        "day": 1,
+        "meal": {
+          "title": "Kurczak pieczony z warzywami",
+          "ingredients": [
+            {"name": "Kurczak", "quantity": 400, "unit": "g"},
+            {"name": "Cebula", "quantity": 100, "unit": "g"}
+          ],
+          "cooking_time": 35,
+          "priority": "critical"
+        }
+      },
+      {
+        "day": 2,
+        "meal": {
+          "title": "Omlet z papryką",
+          "ingredients": [
+            {"name": "Jajka", "quantity": 3, "unit": "szt"},
+            {"name": "Papryka", "quantity": 100, "unit": "g"}
+          ],
+          "cooking_time": 15,
+          "priority": "warning"
+        }
+      },
+      {
+        "day": 3,
+        "meal": {
+          "title": "Zupa jarzynowa",
+          "ingredients": [
+            {"name": "Marchew", "quantity": 200, "unit": "g"},
+            {"name": "Ziemniaki", "quantity": 300, "unit": "g"}
+          ],
+          "cooking_time": 30,
+          "priority": "ok"
+        }
+      }
+    ]
+  },
+  "error": null
+}
 
-ZASADY PLANOWANIA:
-- Najpierw zużyj produkty z krótkim terminem (critical, warning) - DZIEŃ 1
-- Potem produkty ze średnim terminem - DZIEŃ 2
-- Na końcu produkty długoterminowe - DZIEŃ 3
-- Każdy dzień: JEDNO danie główne (obiad lub kolacja)
-- Nie powtarzaj tego samego dania
-- Proste, domowe posiłki (maksymalnie 3-4 składniki na danie)
+JEŚLI ZA MAŁO PRODUKTÓW (<5), ZWRÓĆ:
+{
+  "type": "3_days_plan",
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_ENOUGH_PRODUCTS",
+    "message": "Za mało produktów (jest X, potrzeba min 5 dla planu 3 dni)"
+  }
+}
 
-LOGIKA DYSTRYBUCJI:
-- Jeśli jest mięso/ryba → wykorzystaj w dniu 1 lub 2 (krótki termin)
-- Warzywa świeże → rozłóż równomiernie
-- Produkty długoterminowe (puszki, mrożonki) → dzień 3
+TYLKO JSON, żadnego tekstu poza tym!`,
 
-FORMAT ODPOWIEDZI (OBOWIĄZKOWY):
-**DZIEŃ 1:**
-🍽️ [Nazwa dania]
-📦 Składniki: [lista składników z ilościami]
-⏱️ Czas: ~[X] minut
-👨‍🍳 Krótka instrukcja: [2-3 kroki]
+		"en": `GOAL: Plan meals for 3 days.
 
-**DZIEŃ 2:**
-🍽️ [Nazwa dania]
-...
+RULES:
+- First: products with short expiry (critical/warning)
+- Simple dishes (max 3-4 ingredients)
+- Each day = ONE main dish
 
-**DZIEŃ 3:**
-🍽️ [Nazwa dania]
-...
+RETURN JSON IN EXACTLY THIS FORMAT:
+{
+  "type": "3_days_plan",
+  "success": true,
+  "data": {
+    "days": [
+      {
+        "day": 1,
+        "meal": {
+          "title": "Roasted chicken with vegetables",
+          "ingredients": [
+            {"name": "Chicken", "quantity": 400, "unit": "g"},
+            {"name": "Onion", "quantity": 100, "unit": "g"}
+          ],
+          "cooking_time": 35,
+          "priority": "critical"
+        }
+      },
+      {
+        "day": 2,
+        "meal": {
+          "title": "Omelette with bell pepper",
+          "ingredients": [
+            {"name": "Eggs", "quantity": 3, "unit": "pcs"},
+            {"name": "Bell pepper", "quantity": 100, "unit": "g"}
+          ],
+          "cooking_time": 15,
+          "priority": "warning"
+        }
+      },
+      {
+        "day": 3,
+        "meal": {
+          "title": "Vegetable soup",
+          "ingredients": [
+            {"name": "Carrot", "quantity": 200, "unit": "g"},
+            {"name": "Potatoes", "quantity": 300, "unit": "g"}
+          ],
+          "cooking_time": 30,
+          "priority": "ok"
+        }
+      }
+    ]
+  },
+  "error": null
+}
 
-JEŚLI PRODUKTÓW ZA MAŁO:
-"❌ Za mało produktów w lodówce, aby ułożyć sensowny plan na 3 dni.
-Dostępne produkty pozwalają na przygotowanie [X] dań.
-Sugeruję dodać: [lista brakujących kategorii: mięso/warzywa/węglowodany]"`,
+IF NOT ENOUGH PRODUCTS (<5), RETURN:
+{
+  "type": "3_days_plan",
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_ENOUGH_PRODUCTS",
+    "message": "Not enough products (have X, need min 5 for 3-day plan)"
+  }
+}
 
-		"en": `
+ONLY JSON, no text outside!`,
 
-GOAL: Plan meals for 3 consecutive days (ONLY lunch or dinner - 1 dish per day).
+		"ru": `ЦЕЛЬ: Спланируй питание на 3 дня.
 
-⚠️ CRITICAL RULES:
-- Use ONLY products from the list in system prompt
-- FORBIDDEN to add products not in the fridge
-- If few products (less than 5) - write HONESTLY that 3-day plan is impossible
-- If products enough only for 1-2 days - suggest shorter plan
+ПРАВИЛА:
+- Сначала: продукты с коротким сроком (critical/warning)
+- Простые блюда (макс 3-4 ингредиента)
+- Каждый день = ОДНО основное блюдо
 
-PLANNING RULES:
-- First use products with short expiry (critical, warning) - DAY 1
-- Then medium-term products - DAY 2
-- Finally long-term products - DAY 3
-- Each day: ONE main dish (lunch or dinner)
-- Don't repeat the same dish
-- Simple, home-cooked meals (max 3-4 ingredients per dish)
+ВЕРНИ JSON В ТОЧНО ТАКОМ ФОРМАТЕ:
+{
+  "type": "3_days_plan",
+  "success": true,
+  "data": {
+    "days": [
+      {
+        "day": 1,
+        "meal": {
+          "title": "Жареная курица с овощами",
+          "ingredients": [
+            {"name": "Курица", "quantity": 400, "unit": "г"},
+            {"name": "Лук", "quantity": 100, "unit": "г"}
+          ],
+          "cooking_time": 35,
+          "priority": "critical"
+        }
+      },
+      {
+        "day": 2,
+        "meal": {
+          "title": "Омлет с перцем",
+          "ingredients": [
+            {"name": "Яйца", "quantity": 3, "unit": "шт"},
+            {"name": "Перец", "quantity": 100, "unit": "г"}
+          ],
+          "cooking_time": 15,
+          "priority": "warning"
+        }
+      },
+      {
+        "day": 3,
+        "meal": {
+          "title": "Овощной суп",
+          "ingredients": [
+            {"name": "Морковь", "quantity": 200, "unit": "г"},
+            {"name": "Картофель", "quantity": 300, "unit": "г"}
+          ],
+          "cooking_time": 30,
+          "priority": "ok"
+        }
+      }
+    ]
+  },
+  "error": null
+}
 
-DISTRIBUTION LOGIC:
-- If meat/fish → use on day 1 or 2 (short expiry)
-- Fresh vegetables → distribute evenly
-- Long-term products (cans, frozen) → day 3
+ЕСЛИ НЕ ХВАТАЕТ ПРОДУКТОВ (<5), ВЕРНИ:
+{
+  "type": "3_days_plan",
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "NOT_ENOUGH_PRODUCTS",
+    "message": "Недостаточно продуктов (есть X, нужно минимум 5 для плана на 3 дня)"
+  }
+}
 
-RESPONSE FORMAT (MANDATORY):
-**DAY 1:**
-🍽️ [Dish name]
-📦 Ingredients: [list with quantities]
-⏱️ Time: ~[X] minutes
-👨‍🍳 Quick instructions: [2-3 steps]
-
-**DAY 2:**
-🍽️ [Dish name]
-...
-
-**DAY 3:**
-🍽️ [Dish name]
-...
-
-IF NOT ENOUGH PRODUCTS:
-"❌ Not enough products in the fridge to create a sensible 3-day plan.
-Available products allow preparing [X] dishes.
-Suggest adding: [list of missing categories: meat/vegetables/carbs]"
-
-DAY 2:
-...
-
-DAY 3:
-...`,
-
-		"ru": `
-
-ЦЕЛЬ: Спланируй питание на 3 дня подряд (ТОЛЬКО обед или ужин - 1 блюдо в день).
-
-⚠️ КРИТИЧЕСКИЕ ПРАВИЛА:
-- Используй ТОЛЬКО продукты из списка в system prompt
-- ЗАПРЕЩЕНО добавлять продукты, которых нет в холодильнике
-- Если продуктов мало (менее 5) - напиши ЧЕСТНО что план на 3 дня невозможен
-- Если продуктов хватает только на 1-2 дня - предложи более короткий план
-
-ПРАВИЛА ПЛАНИРОВАНИЯ:
-- Сначала используй продукты с коротким сроком (critical, warning) - ДЕНЬ 1
-- Затем продукты со средним сроком - ДЕНЬ 2
-- В конце долгосрочные продукты - ДЕНЬ 3
-- Каждый день: ОДНО основное блюдо (обед или ужин)
-- Не повторяй одно и то же блюдо
-- Простые, домашние блюда (максимум 3-4 ингредиента на блюдо)
-
-ЛОГИКА РАСПРЕДЕЛЕНИЯ:
-- Если есть мясо/рыба → используй в день 1 или 2 (короткий срок)
-- Свежие овощи → распредели равномерно
-- Долгосрочные продукты (консервы, заморозка) → день 3
-
-ФОРМАТ ОТВЕТА (ОБЯЗАТЕЛЬНО):
-**ДЕНЬ 1:**
-🍽️ [Название блюда]
-📦 Ингредиенты: [список с количеством]
-⏱️ Время: ~[X] минут
-👨‍🍳 Краткая инструкция: [2-3 шага]
-
-**ДЕНЬ 2:**
-🍽️ [Название блюда]
-...
-
-**ДЕНЬ 3:**
-🍽️ [Название блюда]
-...
-
-ЕСЛИ ПРОДУКТОВ НЕДОСТАТОЧНО:
-"❌ Недостаточно продуктов в холодильнике для создания разумного плана на 3 дня.
-Доступные продукты позволяют приготовить [X] блюд.
-Рекомендую добавить: [список недостающих категорий: мясо/овощи/углеводы]"`,
+ТОЛЬКО JSON, никакого текста снаружи!`,
 	},
 	"reduce_waste": {
-		"pl": `
+		"pl": `CEL: Pomóż uniknąć marnowania jedzenia.
 
-CEL: Pomóż uniknąć marnowania jedzenia.
+ZASADY:
+- Sortuj wg daysLeft (najkrótszy = najwyższy priorytet)
+- critical (≤2 dni) → zużyj DZISIAJ
+- warning (3-5 dni) → zaplanuj na jutro
 
-ZASADY PRZECIW MARNOWANIU:
-- Sortuj produkty według daysLeft (najkrótszy termin = NAJWYŻSZY priorytet)
-- Produkty "critical" (≤2 dni) → zużyj DZISIAJ
-- Produkty "warning" (≤5 dni) → zaplanuj na jutro/pojutrze
-- Zaproponuj konkretne dania dla każdego kończącego się produktu
-- Jeśli produktu zostało mało → użyj go jako dodatek
+ZWRÓĆ JSON W DOKŁADNIE TYM FORMACIE:
+{
+  "type": "reduce_waste",
+  "success": true,
+  "data": {
+    "urgent_items": [
+      {
+        "name": "Kurczak",
+        "days_left": 1,
+        "quantity": "500g",
+        "suggestion": "Zrób dziś pieczony kurczak z warzywami"
+      }
+    ],
+    "use_soon_items": [
+      {
+        "name": "Cebula",
+        "days_left": 4,
+        "quantity": "200g",
+        "suggestion": "Użyj do zupy lub sosu w ciągu 2 dni"
+      }
+    ],
+    "recommendations": [
+      "Zacznij od kurczaka (1 dzień)",
+      "Cebulę wykorzystaj jako dodatek do dań"
+    ],
+    "potential_loss": "60.00 PLN (jeśli nie wykorzystasz produktów)"
+  },
+  "error": null
+}
 
-FORMAT:
-PILNE (≤2 dni):
-- [produkt]: [konkretne danie]
+JEŚLI WSZYSTKO OK (brak produktów z krótkim terminem):
+{
+  "type": "reduce_waste",
+  "success": true,
+  "data": {
+    "urgent_items": [],
+    "use_soon_items": [],
+    "recommendations": [
+      "Wszystkie produkty mają długi termin ważności",
+      "Brak ryzyka marnowania w najbliższych dniach"
+    ],
+    "potential_loss": "0.00 PLN"
+  },
+  "error": null
+}
 
-DO ZUŻYCIA WKRÓTCE (3-5 dni):
-- [produkt]: [plan wykorzystania]`,
+TYLKO JSON, żadnego tekstu poza tym!`,
 
-		"en": `
+		"en": `GOAL: Help avoid food waste.
 
-GOAL: Help avoid food waste.
+RULES:
+- Sort by daysLeft (shortest = highest priority)
+- critical (≤2 days) → use TODAY
+- warning (3-5 days) → plan for tomorrow
 
-ANTI-WASTE RULES:
-- Sort products by daysLeft (shortest expiry = HIGHEST priority)
-- "critical" items (≤2 days) → use TODAY
-- "warning" items (≤5 days) → plan for tomorrow/day after
-- Suggest specific dishes for each expiring product
-- If small amount left → use as addition
+RETURN JSON IN EXACTLY THIS FORMAT:
+{
+  "type": "reduce_waste",
+  "success": true,
+  "data": {
+    "urgent_items": [
+      {
+        "name": "Chicken",
+        "days_left": 1,
+        "quantity": "500g",
+        "suggestion": "Make roasted chicken with vegetables today"
+      }
+    ],
+    "use_soon_items": [
+      {
+        "name": "Onion",
+        "days_left": 4,
+        "quantity": "200g",
+        "suggestion": "Use in soup or sauce within 2 days"
+      }
+    ],
+    "recommendations": [
+      "Start with chicken (1 day left)",
+      "Use onion as addition to dishes"
+    ],
+    "potential_loss": "60.00 PLN (if you don't use the products)"
+  },
+  "error": null
+}
 
-FORMAT:
-URGENT (≤2 days):
-- [product]: [specific dish]
+IF ALL OK (no short-term products):
+{
+  "type": "reduce_waste",
+  "success": true,
+  "data": {
+    "urgent_items": [],
+    "use_soon_items": [],
+    "recommendations": [
+      "All products have long shelf life",
+      "No waste risk in the coming days"
+    ],
+    "potential_loss": "0.00 PLN"
+  },
+  "error": null
+}
 
-USE SOON (3-5 days):
-- [product]: [usage plan]`,
+ONLY JSON, no text outside!`,
 
-		"ru": `
+		"ru": `ЦЕЛЬ: Помоги избежать выброса еды.
 
-ЦЕЛЬ: Помоги избежать выброса еды.
+ПРАВИЛА:
+- Сортируй по daysLeft (самый короткий = наивысший приоритет)
+- critical (≤2 дня) → используй СЕГОДНЯ
+- warning (3-5 дней) → запланируй на завтра
 
-ПРАВИЛА ПРОТИВ ВЫБРОСА:
-- Сортируй продукты по daysLeft (самый короткий срок = НАИВЫСШИЙ приоритет)
-- Продукты "critical" (≤2 дня) → используй СЕГОДНЯ
-- Продукты "warning" (≤5 дней) → запланируй на завтра/послезавтра
-- Предложи конкретные блюда для каждого истекающего продукта
-- Если продукта осталось мало → используй как добавку
+ВЕРНИ JSON В ТОЧНО ТАКОМ ФОРМАТЕ:
+{
+  "type": "reduce_waste",
+  "success": true,
+  "data": {
+    "urgent_items": [
+      {
+        "name": "Курица",
+        "days_left": 1,
+        "quantity": "500г",
+        "suggestion": "Приготовь сегодня жареную курицу с овощами"
+      }
+    ],
+    "use_soon_items": [
+      {
+        "name": "Лук",
+        "days_left": 4,
+        "quantity": "200г",
+        "suggestion": "Используй в супе или соусе в течение 2 дней"
+      }
+    ],
+    "recommendations": [
+      "Начни с курицы (1 день)",
+      "Лук используй как добавку к блюдам"
+    ],
+    "potential_loss": "60.00 PLN (если не используешь продукты)"
+  },
+  "error": null
+}
 
-ФОРМАТ:
-СРОЧНО (≤2 дней):
-- [продукт]: [конкретное блюдо]
+ЕСЛИ ВСЁ ОК (нет продуктов с коротким сроком):
+{
+  "type": "reduce_waste",
+  "success": true,
+  "data": {
+    "urgent_items": [],
+    "use_soon_items": [],
+    "recommendations": [
+      "Все продукты имеют длительный срок годности",
+      "Нет риска выброса в ближайшие дни"
+    ],
+    "potential_loss": "0.00 PLN"
+  },
+  "error": null
+}
 
-ИСПОЛЬЗОВАТЬ СКОРО (3-5 дней):
-- [продукт]: [план использования]`,
+ТОЛЬКО JSON, никакого текста снаружи!`,
 	},
 	"budget_review": {
-		"pl": `
+		"pl": `CEL: Przeanalizuj wydatki w lodówce.
 
-CEL: Przeanalizuj wydatki i pomóż zaoszczędzić.
+⚠️ BACKEND JUŻ OBLICZYŁ wszystkie liczby (total_value, most_expensive, potential_loss).
+TWOJA ROLA: Skomentuj dane i daj rekomendacje.
 
-ZASADY ANALIZY BUDŻETU:
-- Pokaż łączną wartość produktów w lodówce
-- Wskaż produkty drogie (najwyższa cena)
-- Zaproponuj sposoby ich efektywnego wykorzystania
-- Sugeruj tańsze alternatywy na przyszłość
-- Pomóż nie zmarnować drogich produktów
+ZWRÓĆ JSON W DOKŁADNIE TYM FORMACIE:
+{
+  "type": "budget_review",
+  "success": true,
+  "data": {
+    "total_value": 88.86,
+    "most_expensive": [
+      {
+        "name": "Kurczak",
+        "value": 60.00,
+        "percentage": 67.5,
+        "suggestion": "Wykorzystaj do 2 dań: pieczony kurczak + rosół z resztek"
+      },
+      {
+        "name": "Papryka",
+        "value": 15.00,
+        "percentage": 16.9,
+        "suggestion": "Użyj do sałatki lub jako dodatek do dań"
+      }
+    ],
+    "recommendations": [
+      "Kurczak stanowi 67% wartości - zaplanuj 2 dania",
+      "Nie marnuj drogich produktów (papryka, cebula)",
+      "Produkty warte 88.86 PLN - wykorzystaj w ciągu 5 dni"
+    ],
+    "potential_loss": 60.00
+  },
+  "error": null
+}
 
-FORMAT:
-PODSUMOWANIE:
-- Całkowita wartość: [suma] PLN
-- Najdroższe produkty: [lista]
+TYLKO JSON, żadnego tekstu poza tym!`,
 
-REKOMENDACJE:
-- Jak wykorzystać drogie produkty: ...
-- Tańsze alternatywy: ...
-- Oszczędności: ...`,
+		"en": `GOAL: Analyze fridge expenses.
 
-		"en": `
+⚠️ BACKEND ALREADY CALCULATED all numbers (total_value, most_expensive, potential_loss).
+YOUR ROLE: Comment on data and give recommendations.
 
-GOAL: Analyze expenses and help save money.
+RETURN JSON IN EXACTLY THIS FORMAT:
+{
+  "type": "budget_review",
+  "success": true,
+  "data": {
+    "total_value": 88.86,
+    "most_expensive": [
+      {
+        "name": "Chicken",
+        "value": 60.00,
+        "percentage": 67.5,
+        "suggestion": "Use for 2 dishes: roasted chicken + broth from leftovers"
+      },
+      {
+        "name": "Bell pepper",
+        "value": 15.00,
+        "percentage": 16.9,
+        "suggestion": "Use in salad or as addition to dishes"
+      }
+    ],
+    "recommendations": [
+      "Chicken is 67% of value - plan 2 dishes",
+      "Don't waste expensive products (pepper, onion)",
+      "Products worth 88.86 PLN - use within 5 days"
+    ],
+    "potential_loss": 60.00
+  },
+  "error": null
+}
 
-BUDGET ANALYSIS RULES:
-- Show total value of fridge products
-- Highlight expensive products (highest price)
-- Suggest ways to use them efficiently
-- Recommend cheaper alternatives for future
-- Help avoid wasting expensive products
+ONLY JSON, no text outside!`,
 
-FORMAT:
-SUMMARY:
-- Total value: [sum] [currency]
-- Most expensive products: [list]
+		"ru": `ЦЕЛЬ: Проанализируй расходы в холодильнике.
 
-RECOMMENDATIONS:
-- How to use expensive products: ...
-- Cheaper alternatives: ...
-- Savings tips: ...`,
+⚠️ BACKEND УЖЕ ВЫЧИСЛИЛ все числа (total_value, most_expensive, potential_loss).
+ТВОЯ РОЛЬ: Прокомментируй данные и дай рекомендации.
 
-		"ru": `
+ВЕРНИ JSON В ТОЧНО ТАКОМ ФОРМАТЕ:
+{
+  "type": "budget_review",
+  "success": true,
+  "data": {
+    "total_value": 88.86,
+    "most_expensive": [
+      {
+        "name": "Курица",
+        "value": 60.00,
+        "percentage": 67.5,
+        "suggestion": "Используй для 2 блюд: жареная курица + бульон из остатков"
+      },
+      {
+        "name": "Перец",
+        "value": 15.00,
+        "percentage": 16.9,
+        "suggestion": "Используй в салате или как добавку к блюдам"
+      }
+    ],
+    "recommendations": [
+      "Курица составляет 67% стоимости - запланируй 2 блюда",
+      "Не выбрасывай дорогие продукты (перец, лук)",
+      "Продукты стоимостью 88.86 PLN - используй в течение 5 дней"
+    ],
+    "potential_loss": 60.00
+  },
+  "error": null
+}
 
-ЦЕЛЬ: Проанализируй расходы и помоги сэкономить.
-
-ПРАВИЛА АНАЛИЗА БЮДЖЕТА:
-- Покажи общую стоимость продуктов в холодильнике
-- Укажи дорогие продукты (наивысшая цена)
-- Предложи способы их эффективного использования
-- Посоветуй более дешёвые альтернативы на будущее
-- Помоги не выбросить дорогие продукты
-
-ФОРМАТ:
-ИТОГО:
-- Общая стоимость: [сумма] [валюта]
-- Самые дорогие продукты: [список]
-
-РЕКОМЕНДАЦИИ:
-- Как использовать дорогие продукты: ...
-- Более дешёвые альтернативы: ...
-- Советы по экономии: ...`,
+ТОЛЬКО JSON, никакого текста снаружи!`,
 	},
 }
 
