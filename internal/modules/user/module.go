@@ -29,7 +29,8 @@ func NewModule(db *gorm.DB) *Module {
 
 // RegisterRoutes registers user routes
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) http.Handler) {
-	r.Route("/user", func(r chi.Router) {
+	// Register handler function для переиспользования
+	registerUserRoutes := func(r chi.Router) {
 		// All user routes require authentication
 		r.Use(jwtMiddleware)
 
@@ -46,5 +47,11 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 
 		// Wallet
 		r.Get("/wallet", m.handlers.GetWallet)
-	})
+	}
+
+	// Register routes under /user
+	r.Route("/user", registerUserRoutes)
+
+	// ALIAS: Register same routes under /users (for frontend compatibility)
+	r.Route("/users", registerUserRoutes)
 }
