@@ -567,6 +567,30 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// 6. Return response
-	httpx.Success(w, response)
+	// 6. Return response directly (it already has proper structure)
+	// Response structure:
+	// Success case: {"success": true, "data": {"recipe": {...}, "usedProducts": [...]}}
+	// Error case: {"success": false, "data": {"message": "..."}}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	
+	if !response.Success {
+		// Error case: empty fridge, no valid products, AI error
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"data": map[string]interface{}{
+				"message": response.Message,
+			},
+		})
+		return
+	}
+	
+	// Success case: recipe generated
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"recipe":       response.Recipe,
+			"usedProducts": response.UsedProducts,
+		},
+	})
 }
