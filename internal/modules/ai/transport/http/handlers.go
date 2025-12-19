@@ -464,3 +464,109 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 		"result": result,
 	})
 }
+
+// CreateRecipeFromFridge godoc
+// @Summary Create restaurant-grade recipe from fridge products
+// @Description Generate a professional recipe using only available fridge items, prioritizing expiry dates
+// @Tags ai
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateRecipeFromFridgeRequest true "Recipe request"
+// @Success 200 {object} dto.CreateRecipeFromFridgeResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/ai/create-recipe-from-fridge [post]
+func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Request) {
+	// 1. Get authenticated user ID
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		httpx.Unauthorized(w, "authentication required")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// 2. Parse request
+	var req dto.CreateRecipeFromFridgeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode request", zap.Error(err))
+		httpx.BadRequest(w, "invalid request body")
+		return
+	}
+
+	// Normalize language
+	language := prompts.NormalizeLanguage(req.Language)
+
+	// 3. Get fridge items from database
+	var fridgeItems []models.UserFridgeItem
+	if err := h.db.Preload("Ingredient").Where("user_id = ?", userID).
+		Find(&fridgeItems).Error; err != nil {
+		logger.Error("failed to fetch fridge items",
+			zap.String("user_id", userID),
+			zap.Error(err))
+		httpx.InternalError(w, "failed to load fridge data")
+		return
+	}
+
+	// 4. Convert to DTO format with expiry calculation
+	aiItems := make([]dto.FridgeItemDTO, 0, len(fridgeItems))
+	for _, item := range fridgeItems {
+		if item.Ingredient == nil {
+			continue
+		}
+
+		// Calculate days left until expiry
+		var daysLeft *int
+		var status string
+		if item.ExpiresAt != nil {
+			now := time.Now()
+			diff := item.ExpiresAt.Sub(now)
+			days := int(diff.Hours() / 24)
+			daysLeft = &days
+
+			// Determine status based on days left
+			switch {
+			case days < 0:
+				status = "expired"
+			case days <= 2:
+				status = "critical"
+			case days <= 5:
+				status = "warning"
+			default:
+				status = "ok"
+			}
+		} else {
+			status = "ok"
+		}
+
+		// Get unit or use default "szt."
+		unit := item.Unit
+		if unit == "" {
+			unit = "szt."
+		}
+
+		aiItems = append(aiItems, dto.FridgeItemDTO{
+			Name:     item.Ingredient.Name,
+			Quantity: item.Quantity,
+			Unit:     unit,
+			Status:   status,
+			DaysLeft: daysLeft,
+		})
+	}
+
+	// 5. Call AI service to create recipe
+	response, err := h.service.CreateRecipeFromFridge(userID, language, aiItems)
+	if err != nil {
+		logger.Error("AI recipe creation failed",
+			zap.String("user_id", userID),
+			zap.Int("items_count", len(aiItems)),
+			zap.String("language", language),
+			zap.Error(err))
+		httpx.InternalError(w, "failed to generate recipe")
+		return
+	}
+
+	// 6. Return response
+	httpx.Success(w, response)
+}

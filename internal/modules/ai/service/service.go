@@ -36,6 +36,9 @@ type AIService interface {
 	
 	// SMART KITCHEN: AI Fridge Analysis
 	AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, fridgeItems []dto.FridgeItemDTO) (string, error)
+	
+	// SMART KITCHEN: Create Restaurant Recipe from Fridge
+	CreateRecipeFromFridge(userID string, language string, fridgeItems []dto.FridgeItemDTO) (*dto.CreateRecipeFromFridgeResponse, error)
 }
 
 type aiService struct {
@@ -739,4 +742,168 @@ Proszę o konkretne rekomendacje.`,
 		strings.Join(itemsList, "\n"))
 
 	return prompt
+}
+
+// CreateRecipeFromFridge creates a restaurant-grade recipe from fridge products only
+func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridgeItems []dto.FridgeItemDTO) (*dto.CreateRecipeFromFridgeResponse, error) {
+	// 1. Validate language
+	language = prompts.NormalizeLanguage(language)
+	
+	// 2. Check if fridge is empty
+	if len(fridgeItems) == 0 {
+		messages := map[string]string{
+			"pl": "Twoja lodówka jest pusta. Dodaj produkty, aby stworzyć przepis!",
+			"en": "Your fridge is empty. Add products to create a recipe!",
+			"ru": "Твой холодильник пуст. Добавь продукты, чтобы создать рецепт!",
+		}
+		return &dto.CreateRecipeFromFridgeResponse{
+			Success: false,
+			Message: messages[language],
+		}, nil
+	}
+	
+	// 3. Filter and prioritize products by expiry
+	type PrioritizedProduct struct {
+		Item     dto.FridgeItemDTO
+		Priority int // 1=critical, 2=warning, 3=ok
+	}
+	
+	var products []PrioritizedProduct
+	for _, item := range fridgeItems {
+		if item.Quantity <= 0 {
+			continue // Skip products with zero quantity
+		}
+		if item.Status == "expired" {
+			continue // Skip expired products
+		}
+		
+		priority := 3 // default: ok
+		switch item.Status {
+		case "critical":
+			priority = 1
+		case "warning":
+			priority = 2
+		}
+		
+		products = append(products, PrioritizedProduct{
+			Item:     item,
+			Priority: priority,
+		})
+	}
+	
+	if len(products) == 0 {
+		messages := map[string]string{
+			"pl": "Brak dostępnych produktów do użycia. Wszystkie produkty są przeterminowane lub ich ilość wynosi 0.",
+			"en": "No available products to use. All products are expired or have zero quantity.",
+			"ru": "Нет доступных продуктов для использования. Все продукты просрочены или их количество равно 0.",
+		}
+		return &dto.CreateRecipeFromFridgeResponse{
+			Success: false,
+			Message: messages[language],
+		}, nil
+	}
+	
+	// Sort by priority (critical first)
+	for i := 0; i < len(products)-1; i++ {
+		for j := i + 1; j < len(products); j++ {
+			if products[j].Priority < products[i].Priority {
+				products[i], products[j] = products[j], products[i]
+			}
+		}
+	}
+	
+	// 4. Build "kitchen context" for AI with formatted product list
+	var fridgeContext strings.Builder
+	for idx, prod := range products {
+		item := prod.Item
+		
+		// Format expiry date
+		expiryText := ""
+		priorityLabel := ""
+		if item.DaysLeft != nil {
+			daysLeft := *item.DaysLeft
+			if daysLeft <= 2 {
+				priorityLabel = " (PRIORITY)"
+				switch language {
+				case "pl":
+					expiryText = fmt.Sprintf("termin: %d dzień/dni", daysLeft)
+				case "en":
+					expiryText = fmt.Sprintf("expiry: %d day(s)", daysLeft)
+				case "ru":
+					expiryText = fmt.Sprintf("срок: %d день/дней", daysLeft)
+				}
+			} else {
+				switch language {
+				case "pl":
+					expiryText = fmt.Sprintf("termin: %d dni", daysLeft)
+				case "en":
+					expiryText = fmt.Sprintf("expiry: %d days", daysLeft)
+				case "ru":
+					expiryText = fmt.Sprintf("срок: %d дней", daysLeft)
+				}
+			}
+		}
+		
+		fridgeContext.WriteString(fmt.Sprintf("\n%d. %s%s\n", idx+1, item.Name, priorityLabel))
+		fridgeContext.WriteString(fmt.Sprintf("   ilość: %.0f %s\n", item.Quantity, item.Unit))
+		if expiryText != "" {
+			fridgeContext.WriteString(fmt.Sprintf("   %s\n", expiryText))
+		}
+	}
+	
+	// 5. Get prompt template for language
+	promptTemplate, ok := prompts.RestaurantRecipePrompt[language]
+	if !ok {
+		promptTemplate = prompts.RestaurantRecipePrompt["pl"] // fallback to Polish
+	}
+	
+	// Inject product list into prompt
+	prompt := fmt.Sprintf(promptTemplate, fridgeContext.String())
+	
+	// 6. Call AI (temperature: 0.3 for stability)
+	response, err := s.groqClient.SimpleChat("", prompt)
+	if err != nil {
+		return nil, fmt.Errorf("AI recipe generation failed: %w", err)
+	}
+	
+	// 7. Parse JSON response
+	parsedJSON, isJSON, parseErr := parseAIResponse(response, "create_recipe")
+	
+	if !isJSON || parseErr != nil {
+		// AI returned invalid JSON
+		return &dto.CreateRecipeFromFridgeResponse{
+			Success: false,
+			Message: "Failed to generate recipe in valid format. Please try again.",
+		}, nil
+	}
+	
+	// 8. Decode into RestaurantRecipe
+	var recipe dto.RestaurantRecipe
+	if err := json.Unmarshal([]byte(parsedJSON), &recipe); err != nil {
+		return &dto.CreateRecipeFromFridgeResponse{
+			Success: false,
+			Message: "Failed to parse recipe data. Please try again.",
+		}, nil
+	}
+	
+	// 9. Build list of used products
+	usedProducts := make([]dto.UsedProductInfo, 0)
+	for _, prod := range products {
+		// For simplicity, assume AI used all critical/warning products
+		if prod.Priority <= 2 {
+			usedProducts = append(usedProducts, dto.UsedProductInfo{
+				Name:         prod.Item.Name,
+				QuantityUsed: prod.Item.Quantity,
+				Unit:         prod.Item.Unit,
+				DaysLeft:     prod.Item.DaysLeft,
+			})
+		}
+	}
+	
+	// 10. Return successful result
+	return &dto.CreateRecipeFromFridgeResponse{
+		Success:      true,
+		Recipe:       &recipe,
+		UsedProducts: usedProducts,
+	}, nil
 }

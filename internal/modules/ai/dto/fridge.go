@@ -25,3 +25,35 @@ type FridgeItemDTO struct {
 	TotalPrice *float64 `json:"totalPrice,omitempty"` // Общая стоимость (если известна)
 	Currency   string   `json:"currency,omitempty"`   // PLN, EUR, USD
 }
+
+// CreateRecipeFromFridgeRequest запрос на создание рецепта из холодильника
+type CreateRecipeFromFridgeRequest struct {
+	Language string `json:"language,omitempty"` // "pl" | "en" | "ru" (default: "pl")
+}
+
+// CreateRecipeFromFridgeResponse ответ с созданным рецептом
+type CreateRecipeFromFridgeResponse struct {
+	Success      bool                `json:"success"`
+	Recipe       *RestaurantRecipe   `json:"recipe,omitempty"`
+	UsedProducts []UsedProductInfo   `json:"usedProducts,omitempty"` // Какие продукты использованы
+	Message      string              `json:"message,omitempty"`      // Сообщение об ошибке или предупреждение
+}
+
+// RestaurantRecipe профессиональный ресторанный рецепт
+type RestaurantRecipe struct {
+	Name            string   `json:"name"`            // Название блюда
+	Description     string   `json:"description"`     // Короткий описание
+	Ingredients     []string `json:"ingredients"`     // Список ингредиентов с граммовкой
+	Steps           []string `json:"steps"`           // Пошаговая инструкция
+	CookingTime     int      `json:"cookingTime"`     // Время приготовления (минуты)
+	ChefTips        []string `json:"chefTips"`        // Советы шефа
+	ExpiryPriority  string   `json:"expiryPriority"`  // "critical" | "warning" | "ok"
+}
+
+// UsedProductInfo информация об использованном продукте
+type UsedProductInfo struct {
+	Name         string  `json:"name"`
+	QuantityUsed float64 `json:"quantityUsed"`
+	Unit         string  `json:"unit"`
+	DaysLeft     *int    `json:"daysLeft,omitempty"`
+}

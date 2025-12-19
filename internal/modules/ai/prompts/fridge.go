@@ -670,3 +670,141 @@ func IsSupportedLanguage(lang string) bool {
 	normalized := NormalizeLanguage(lang)
 	return SupportedLanguages[normalized]
 }
+
+// RestaurantRecipePrompt промпт для создания ресторанного рецепта из холодильника
+var RestaurantRecipePrompt = map[string]string{
+	"pl": `Jesteś profesjonalnym asystentem kulinarnym AI dla restauracji.
+
+🎯 ZADANIE: Stwórz JEDEN profesjonalny przepis gastronomiczny używając TYLKO dostępnych produktów z lodówki.
+
+📋 DOSTĘPNE PRODUKTY W LODÓWCE:
+%s
+
+🔒 KRYTYCZNE ZASADY (OBOWIĄZKOWE):
+1. Użyj TYLKO wymienionych produktów jako bazowych składników
+2. Przyprawy (sól, pieprz), olej, masło uznaj za standardowe restauracyjne
+3. ZAKAZ dodawania nowych produktów spożywczych (mięso, warzywa, nabiał)
+4. PRIORYTET: Produkty z najkrótszym terminem ważności MUSZĄ być użyte
+5. Przepis musi być możliwy do wykonania w profesjonalnej kuchni
+6. Gramatury muszą być precyzyjne (w gramach)
+7. Techniki kulinarne: wybierz JEDNĄ główną (smażenie LUB pieczenie, nie obie)
+
+📊 FORMAT ODPOWIEDZI (JSON):
+{
+  "name": "Nazwa dania po polsku",
+  "description": "Krótki opis (1-2 zdania)",
+  "ingredients": [
+    "Składnik 1 - 500g",
+    "Składnik 2 - 200ml"
+  ],
+  "steps": [
+    "Krok 1: Przygotuj...",
+    "Krok 2: Następnie..."
+  ],
+  "cookingTime": 45,
+  "chefTips": [
+    "Wskazówka 1",
+    "Wskazówka 2"
+  ],
+  "expiryPriority": "critical"
+}
+
+⏱️ CZAS PRZYGOTOWANIA: Bądź realistyczny (15-90 minut dla restauracji).
+
+🔥 PRIORYTET TERMINU:
+- critical (≤2 dni) → WYSOKÍ priorytet, użyj w GŁÓWNEJ roli
+- warning (3-5 dni) → średni priorytet
+- ok (>5 dni) → niski priorytet
+
+ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym!`,
+
+	"en": `You are a professional culinary AI assistant for restaurants.
+
+🎯 TASK: Create ONE professional gastronomic recipe using ONLY available products from the fridge.
+
+📋 AVAILABLE PRODUCTS IN FRIDGE:
+%s
+
+🔒 CRITICAL RULES (MANDATORY):
+1. Use ONLY listed products as base ingredients
+2. Spices (salt, pepper), oil, butter are standard restaurant items
+3. FORBIDDEN to add new food products (meat, vegetables, dairy)
+4. PRIORITY: Products with shortest expiry MUST be used
+5. Recipe must be executable in professional kitchen
+6. Quantities must be precise (in grams)
+7. Culinary techniques: choose ONE main (frying OR baking, not both)
+
+📊 RESPONSE FORMAT (JSON):
+{
+  "name": "Dish name in English",
+  "description": "Short description (1-2 sentences)",
+  "ingredients": [
+    "Ingredient 1 - 500g",
+    "Ingredient 2 - 200ml"
+  ],
+  "steps": [
+    "Step 1: Prepare...",
+    "Step 2: Then..."
+  ],
+  "cookingTime": 45,
+  "chefTips": [
+    "Tip 1",
+    "Tip 2"
+  ],
+  "expiryPriority": "critical"
+}
+
+⏱️ COOKING TIME: Be realistic (15-90 minutes for restaurant).
+
+🔥 EXPIRY PRIORITY:
+- critical (≤2 days) → HIGH priority, use in MAIN role
+- warning (3-5 days) → medium priority
+- ok (>5 days) → low priority
+
+RETURN ONLY JSON, no text outside!`,
+
+	"ru": `Ты профессиональный кулинарный AI-ассистент для ресторанов.
+
+🎯 ЗАДАЧА: Создай ОДИН профессиональный гастрономический рецепт используя ТОЛЬКО доступные продукты из холодильника.
+
+📋 ДОСТУПНЫЕ ПРОДУКТЫ В ХОЛОДИЛЬНИКЕ:
+%s
+
+🔒 КРИТИЧЕСКИЕ ПРАВИЛА (ОБЯЗАТЕЛЬНЫ):
+1. Используй ТОЛЬКО перечисленные продукты как базовые ингредиенты
+2. Специи (соль, перец), масло, сливочное масло считай стандартными ресторанными
+3. ЗАПРЕЩЕНО добавлять новые продукты питания (мясо, овощи, молочные)
+4. ПРИОРИТЕТ: Продукты с кратчайшим сроком ДОЛЖНЫ быть использованы
+5. Рецепт должен быть выполним на профессиональной кухне
+6. Количества должны быть точными (в граммах)
+7. Кулинарные техники: выбери ОДНУ основную (жарка ИЛИ запекание, не обе)
+
+📊 ФОРМАТ ОТВЕТА (JSON):
+{
+  "name": "Название блюда по-русски",
+  "description": "Краткое описание (1-2 предложения)",
+  "ingredients": [
+    "Ингредиент 1 - 500г",
+    "Ингредиент 2 - 200мл"
+  ],
+  "steps": [
+    "Шаг 1: Подготовь...",
+    "Шаг 2: Затем..."
+  ],
+  "cookingTime": 45,
+  "chefTips": [
+    "Совет 1",
+    "Совет 2"
+  ],
+  "expiryPriority": "critical"
+}
+
+⏱️ ВРЕМЯ ПРИГОТОВЛЕНИЯ: Будь реалистичным (15-90 минут для ресторана).
+
+🔥 ПРИОРИТЕТ СРОКА:
+- critical (≤2 дня) → ВЫСОКИЙ приоритет, используй в ГЛАВНОЙ роли
+- warning (3-5 дня) → средний приоритет
+- ok (>5 дней) → низкий приоритет
+
+ВЕРНИ ТОЛЬКО JSON, никакого текста снаружи!`,
+}
