@@ -41,13 +41,29 @@ type CreateRecipeFromFridgeResponse struct {
 
 // RestaurantRecipe профессиональный ресторанный рецепт
 type RestaurantRecipe struct {
-	Name            string   `json:"name"`            // Название блюда
-	Description     string   `json:"description"`     // Короткий описание
-	Ingredients     []string `json:"ingredients"`     // Список ингредиентов с граммовкой
-	Steps           []string `json:"steps"`           // Пошаговая инструкция
-	CookingTime     int      `json:"cookingTime"`     // Время приготовления (минуты)
-	ChefTips        []string `json:"chefTips"`        // Советы шефа
-	ExpiryPriority  string   `json:"expiryPriority"`  // "critical" | "warning" | "ok"
+	Name               string              `json:"name"`               // Название блюда
+	Description        string              `json:"description"`        // Короткий описание
+	IngredientsUsed    []RecipeIngredient  `json:"ingredientsUsed"`    // Продукты ИЗ холодильника
+	IngredientsMissing []RecipeIngredient  `json:"ingredientsMissing"` // Продукты которые нужно ДОКУПИТЬ
+	Steps              []string            `json:"steps"`              // Пошаговая инструкция
+	CookingTime        int                 `json:"cookingTime"`        // Время приготовления (минуты)
+	ChefTips           []string            `json:"chefTips"`           // Советы шефа
+	ExpiryPriority     string              `json:"expiryPriority"`     // "critical" | "warning" | "ok"
+	Economy            *RecipeEconomy      `json:"economy,omitempty"`  // Экономическая выгода
+}
+
+// RecipeIngredient ингредиент в рецепте с точным количеством
+type RecipeIngredient struct {
+	Name     string  `json:"name"`     // Название ингредиента
+	Quantity float64 `json:"quantity"` // Количество
+	Unit     string  `json:"unit"`     // Единица измерения (g, ml, szt)
+}
+
+// RecipeEconomy экономическая информация о рецепте
+type RecipeEconomy struct {
+	UsedFromFridge     bool    `json:"usedFromFridge"`     // Использованы продукты из холодильника
+	EstimatedExtraCost float64 `json:"estimatedExtraCost"` // Примерная стоимость недостающих продуктов
+	Currency           string  `json:"currency"`           // Валюта (PLN, EUR, USD)
 }
 
 // UsedProductInfo информация об использованном продукте
