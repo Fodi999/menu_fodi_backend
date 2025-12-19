@@ -689,13 +689,17 @@ var RestaurantRecipePrompt = map[string]string{
 6. Gramatury muszą być precyzyjne (w gramach)
 7. Techniki kulinarne: wybierz JEDNĄ główną (smażenie LUB pieczenie, nie obie)
 
-📊 FORMAT ODPOWIEDZI (JSON):
+📊 FORMAT ODPOWIEDZI (JSON) - OBOWIĄZKOWY:
 {
   "name": "Nazwa dania po polsku",
   "description": "Krótki opis (1-2 zdania)",
-  "ingredients": [
-    "Składnik 1 - 500g",
-    "Składnik 2 - 200ml"
+  "ingredientsUsed": [
+    {"name": "Składnik z lodówki 1", "quantity": 300, "unit": "g"},
+    {"name": "Składnik z lodówki 2", "quantity": 200, "unit": "ml"}
+  ],
+  "ingredientsMissing": [
+    {"name": "Sól", "quantity": 5, "unit": "g"},
+    {"name": "Olej roślinny", "quantity": 30, "unit": "ml"}
   ],
   "steps": [
     "Krok 1: Przygotuj...",
@@ -706,8 +710,23 @@ var RestaurantRecipePrompt = map[string]string{
     "Wskazówka 1",
     "Wskazówka 2"
   ],
-  "expiryPriority": "critical"
+  "expiryPriority": "critical",
+  "economy": {
+    "usedFromFridge": true,
+    "estimatedExtraCost": 1.50,
+    "currency": "PLN"
+  }
 }
+
+🔑 KLUCZOWE WYMAGANIA FORMATU:
+- "ingredientsUsed" = TYLKO produkty Z LODÓWKI (wymienione w DOSTĘPNE PRODUKTY)
+- "ingredientsMissing" = TYLKO produkty PANTRY które trzeba DOKUPIĆ (sól, olej, masło, przyprawy, mąka)
+- "quantity" musi być LICZBĄ (number), nie stringiem
+- "unit" = "g", "ml", "szt", "łyżka", "szczypta"
+- "economy.estimatedExtraCost" = szacunkowy koszt brakujących składników w PLN
+- "economy.usedFromFridge" = true jeśli główne składniki są z lodówki
+
+⚠️ ZASADA PANTRY: JEŚLI JAKIŚ SKŁADNIK JEST PANTRY (sól, pieprz, olej, masło, przyprawy, mąka) → DODAJ GO DO "ingredientsMissing"
 
 ⏱️ CZAS PRZYGOTOWANIA: Bądź realistyczny (15-90 minut dla restauracji).
 
@@ -716,7 +735,7 @@ var RestaurantRecipePrompt = map[string]string{
 - warning (3-5 dni) → średni priorytet
 - ok (>5 dni) → niski priorytet
 
-ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym!`,
+❗ ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym! Żadnego markdown, żadnych bloków json!`,
 
 	"en": `You are a professional culinary AI assistant for restaurants.
 
@@ -734,13 +753,17 @@ ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym!`,
 6. Quantities must be precise (in grams)
 7. Culinary techniques: choose ONE main (frying OR baking, not both)
 
-📊 RESPONSE FORMAT (JSON):
+📊 RESPONSE FORMAT (JSON) - MANDATORY:
 {
   "name": "Dish name in English",
   "description": "Short description (1-2 sentences)",
-  "ingredients": [
-    "Ingredient 1 - 500g",
-    "Ingredient 2 - 200ml"
+  "ingredientsUsed": [
+    {"name": "Fridge ingredient 1", "quantity": 300, "unit": "g"},
+    {"name": "Fridge ingredient 2", "quantity": 200, "unit": "ml"}
+  ],
+  "ingredientsMissing": [
+    {"name": "Salt", "quantity": 5, "unit": "g"},
+    {"name": "Vegetable oil", "quantity": 30, "unit": "ml"}
   ],
   "steps": [
     "Step 1: Prepare...",
@@ -751,8 +774,23 @@ ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym!`,
     "Tip 1",
     "Tip 2"
   ],
-  "expiryPriority": "critical"
+  "expiryPriority": "critical",
+  "economy": {
+    "usedFromFridge": true,
+    "estimatedExtraCost": 1.50,
+    "currency": "PLN"
+  }
 }
+
+🔑 KEY FORMAT REQUIREMENTS:
+- "ingredientsUsed" = ONLY products FROM FRIDGE (listed in AVAILABLE PRODUCTS)
+- "ingredientsMissing" = ONLY PANTRY products to BUY (salt, oil, butter, spices, flour)
+- "quantity" must be NUMBER (number type), not string
+- "unit" = "g", "ml", "pcs", "tbsp", "pinch"
+- "economy.estimatedExtraCost" = estimated cost of missing ingredients in PLN
+- "economy.usedFromFridge" = true if main ingredients are from fridge
+
+⚠️ PANTRY RULE: IF ANY INGREDIENT IS PANTRY (salt, pepper, oil, butter, spices, flour) → ADD IT TO "ingredientsMissing"
 
 ⏱️ COOKING TIME: Be realistic (15-90 minutes for restaurant).
 
@@ -761,7 +799,7 @@ ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym!`,
 - warning (3-5 days) → medium priority
 - ok (>5 days) → low priority
 
-RETURN ONLY JSON, no text outside!`,
+❗ RETURN ONLY JSON, no text outside! No markdown, no json blocks!`,
 
 	"ru": `Ты профессиональный кулинарный AI-ассистент для ресторанов.
 
@@ -779,13 +817,17 @@ RETURN ONLY JSON, no text outside!`,
 6. Количества должны быть точными (в граммах)
 7. Кулинарные техники: выбери ОДНУ основную (жарка ИЛИ запекание, не обе)
 
-📊 ФОРМАТ ОТВЕТА (JSON):
+📊 ФОРМАТ ОТВЕТА (JSON) - ОБЯЗАТЕЛЬНЫЙ:
 {
   "name": "Название блюда по-русски",
   "description": "Краткое описание (1-2 предложения)",
-  "ingredients": [
-    "Ингредиент 1 - 500г",
-    "Ингредиент 2 - 200мл"
+  "ingredientsUsed": [
+    {"name": "Ингредиент из холодильника 1", "quantity": 300, "unit": "г"},
+    {"name": "Ингредиент из холодильника 2", "quantity": 200, "unit": "мл"}
+  ],
+  "ingredientsMissing": [
+    {"name": "Соль", "quantity": 5, "unit": "г"},
+    {"name": "Растительное масло", "quantity": 30, "unit": "мл"}
   ],
   "steps": [
     "Шаг 1: Подготовь...",
@@ -796,8 +838,23 @@ RETURN ONLY JSON, no text outside!`,
     "Совет 1",
     "Совет 2"
   ],
-  "expiryPriority": "critical"
+  "expiryPriority": "critical",
+  "economy": {
+    "usedFromFridge": true,
+    "estimatedExtraCost": 1.50,
+    "currency": "PLN"
+  }
 }
+
+🔑 КЛЮЧЕВЫЕ ТРЕБОВАНИЯ К ФОРМАТУ:
+- "ingredientsUsed" = ТОЛЬКО продукты ИЗ ХОЛОДИЛЬНИКА (перечисленные в ДОСТУПНЫЕ ПРОДУКТЫ)
+- "ingredientsMissing" = ТОЛЬКО продукты PANTRY которые нужно КУПИТЬ (соль, масло, специи, мука)
+- "quantity" должно быть ЧИСЛОМ (number), не строкой
+- "unit" = "г", "мл", "шт", "ст.л.", "щепотка"
+- "economy.estimatedExtraCost" = примерная стоимость недостающих ингредиентов в PLN
+- "economy.usedFromFridge" = true если основные ингредиенты из холодильника
+
+⚠️ ПРАВИЛО PANTRY: ЕСЛИ ИНГРЕДИЕНТ ОТНОСИТСЯ К PANTRY (соль, перец, масло, специи, мука) → ДОБАВЬ ЕГО В "ingredientsMissing"
 
 ⏱️ ВРЕМЯ ПРИГОТОВЛЕНИЯ: Будь реалистичным (15-90 минут для ресторана).
 
@@ -806,5 +863,5 @@ RETURN ONLY JSON, no text outside!`,
 - warning (3-5 дня) → средний приоритет
 - ok (>5 дней) → низкий приоритет
 
-ВЕРНИ ТОЛЬКО JSON, никакого текста снаружи!`,
+❗ ВЕРНИ ТОЛЬКО JSON, никакого текста снаружи! Никакого markdown, никаких json блоков!`,
 }
