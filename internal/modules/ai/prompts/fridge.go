@@ -724,9 +724,15 @@ var RestaurantRecipePrompt = map[string]string{
 - "quantity" musi być LICZBĄ (number), nie stringiem
 - "unit" = "g", "ml", "szt", "łyżka", "szczypta"
 - "economy.estimatedExtraCost" = szacunkowy koszt brakujących składników w PLN
+  * JEŚLI TYLKO podstawowe pantry (sól, pieprz, olej) → ustaw 0 lub 0.5
+  * JEŚLI są drogie składniki (masło, śmietana) → policz realny koszt
 - "economy.usedFromFridge" = true jeśli główne składniki są z lodówki
 
 ⚠️ ZASADA PANTRY: JEŚLI JAKIŚ SKŁADNIK JEST PANTRY (sól, pieprz, olej, masło, przyprawy, mąka) → DODAJ GO DO "ingredientsMissing"
+
+💡 ZASADA KOSZTÓW:
+- Podstawowe pantry (sól, pieprz, olej roślinny) = 0 PLN (zakładamy że są w domu)
+- Drogie pantry (masło, oliwa, śmietana) = policz realny koszt (np. masło 50g = ~1-2 PLN)
 
 ⏱️ CZAS PRZYGOTOWANIA: Bądź realistyczny (15-90 minut dla restauracji).
 
@@ -788,9 +794,15 @@ var RestaurantRecipePrompt = map[string]string{
 - "quantity" must be NUMBER (number type), not string
 - "unit" = "g", "ml", "pcs", "tbsp", "pinch"
 - "economy.estimatedExtraCost" = estimated cost of missing ingredients in PLN
+  * IF ONLY basic pantry (salt, pepper, oil) → set 0 or 0.5
+  * IF expensive ingredients (butter, cream) → calculate real cost
 - "economy.usedFromFridge" = true if main ingredients are from fridge
 
 ⚠️ PANTRY RULE: IF ANY INGREDIENT IS PANTRY (salt, pepper, oil, butter, spices, flour) → ADD IT TO "ingredientsMissing"
+
+💡 COST RULE:
+- Basic pantry (salt, pepper, vegetable oil) = 0 PLN (assume already at home)
+- Expensive pantry (butter, olive oil, cream) = calculate real cost (e.g. butter 50g = ~1-2 PLN)
 
 ⏱️ COOKING TIME: Be realistic (15-90 minutes for restaurant).
 
@@ -852,9 +864,15 @@ var RestaurantRecipePrompt = map[string]string{
 - "quantity" должно быть ЧИСЛОМ (number), не строкой
 - "unit" = "г", "мл", "шт", "ст.л.", "щепотка"
 - "economy.estimatedExtraCost" = примерная стоимость недостающих ингредиентов в PLN
+  * ЕСЛИ ТОЛЬКО базовые pantry (соль, перец, масло) → установи 0 или 0.5
+  * ЕСЛИ есть дорогие ингредиенты (масло сливочное, сметана) → посчитай реальную стоимость
 - "economy.usedFromFridge" = true если основные ингредиенты из холодильника
 
 ⚠️ ПРАВИЛО PANTRY: ЕСЛИ ИНГРЕДИЕНТ ОТНОСИТСЯ К PANTRY (соль, перец, масло, специи, мука) → ДОБАВЬ ЕГО В "ingredientsMissing"
+
+💡 ПРАВИЛО СТОИМОСТИ:
+- Базовые pantry (соль, перец, растительное масло) = 0 PLN (предполагаем что уже есть дома)
+- Дорогие pantry (сливочное масло, оливковое масло, сметана) = посчитай реальную стоимость (напр. масло 50г = ~1-2 PLN)
 
 ⏱️ ВРЕМЯ ПРИГОТОВЛЕНИЯ: Будь реалистичным (15-90 минут для ресторана).
 
