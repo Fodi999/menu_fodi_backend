@@ -956,17 +956,18 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 		savedMoney = 0 // Can't have negative savings
 	}
 	
-	// Override economy block with backend-calculated values
+	// ALWAYS override economy block with backend-calculated values (even if prices missing)
+	// This ensures frontend always receives economy structure
 	recipe.Economy = &dto.RecipeEconomy{
 		UsedFromFridge:     len(usedProducts) > 0,
-		UsedValue:          totalUsedCost,
+		UsedValue:          totalUsedCost,          // 0.0 if no prices
 		EstimatedExtraCost: estimatedExtraCost,
-		SavedMoney:         savedMoney,
+		SavedMoney:         savedMoney,             // 0.0 if no prices
 		Currency:           currency,
 	}
 	
-	fmt.Printf("[AI][ECONOMY] Used cost: %.2f %s, Extra cost: %.2f %s, Saved: %.2f %s\n",
-		totalUsedCost, currency, estimatedExtraCost, currency, savedMoney, currency)
+	fmt.Printf("[AI][ECONOMY] Used cost: %.2f %s, Extra cost: %.2f %s, Saved: %.2f %s (prices available: %d products)\n",
+		totalUsedCost, currency, estimatedExtraCost, currency, savedMoney, currency, len(usedProducts))
 	
 	// 11. Return successful result
 	return &dto.CreateRecipeFromFridgeResponse{
