@@ -376,22 +376,25 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Вычисляем TOTAL PRICE (quantity × pricePerUnit)
-		var totalPrice *float64
+		// Get price per unit from cache
+		var pricePerUnit *float64
+		currency := "PLN"
 		if item.CurrentPricePerUnit != nil && *item.CurrentPricePerUnit > 0 {
-			total := item.Quantity * (*item.CurrentPricePerUnit)
-			totalPrice = &total
+			pricePerUnit = item.CurrentPricePerUnit
+			if item.CurrentPriceCurrency != "" {
+				currency = item.CurrentPriceCurrency
+			}
 		}
 
 		aiItems = append(aiItems, dto.FridgeItemDTO{
-			Name:       item.Ingredient.Name,
-			Category:   item.Ingredient.Category,
-			Quantity:   item.Quantity,
-			Unit:       item.Unit,
-			DaysLeft:   daysLeft,
-			Status:     status,
-			TotalPrice: totalPrice, // ✅ TOTAL COST = quantity × pricePerUnit
-			Currency:   item.CurrentPriceCurrency,
+			Name:         item.Ingredient.Name,
+			Category:     item.Ingredient.Category,
+			Quantity:     item.Quantity,
+			Unit:         item.Unit,
+			DaysLeft:     daysLeft,
+			Status:       status,
+			PricePerUnit: pricePerUnit,
+			Currency:     currency,
 		})
 	}
 
@@ -546,12 +549,24 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 			unit = "szt."
 		}
 
+		// Get price per unit from current cache
+		var pricePerUnit *float64
+		currency := "PLN" // default currency
+		if item.CurrentPricePerUnit != nil && *item.CurrentPricePerUnit > 0 {
+			pricePerUnit = item.CurrentPricePerUnit
+			if item.CurrentPriceCurrency != "" {
+				currency = item.CurrentPriceCurrency
+			}
+		}
+
 		aiItems = append(aiItems, dto.FridgeItemDTO{
-			Name:     item.Ingredient.Name,
-			Quantity: item.Quantity,
-			Unit:     unit,
-			Status:   status,
-			DaysLeft: daysLeft,
+			Name:         item.Ingredient.Name,
+			Quantity:     item.Quantity,
+			Unit:         unit,
+			Status:       status,
+			DaysLeft:     daysLeft,
+			PricePerUnit: pricePerUnit,
+			Currency:     currency,
 		})
 	}
 

@@ -550,8 +550,10 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 	expensiveItems := make([]expensiveItem, 0)
 
 	for _, item := range items {
-		if item.TotalPrice != nil && *item.TotalPrice > 0 {
-			totalValue += *item.TotalPrice
+		// Calculate total price: quantity * pricePerUnit
+		if item.PricePerUnit != nil && *item.PricePerUnit > 0 && item.Quantity > 0 {
+			itemTotalPrice := item.Quantity * (*item.PricePerUnit)
+			totalValue += itemTotalPrice
 			
 			risk := "ok"
 			daysLeft := 999
@@ -566,7 +568,7 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 			
 			expensiveItems = append(expensiveItems, expensiveItem{
 				name:       item.Name,
-				totalPrice: *item.TotalPrice,
+				totalPrice: itemTotalPrice,
 				daysLeft:   daysLeft,
 				risk:       risk,
 			})
@@ -705,8 +707,9 @@ func buildFridgeAnalysisPrompt(goal string, language string, items []dto.FridgeI
 		}
 		
 		priceInfo := ""
-		if item.TotalPrice != nil && *item.TotalPrice > 0 {
-			priceInfo = fmt.Sprintf(" [%.2f %s]", *item.TotalPrice, item.Currency)
+		if item.PricePerUnit != nil && *item.PricePerUnit > 0 && item.Quantity > 0 {
+			totalPrice := item.Quantity * (*item.PricePerUnit)
+			priceInfo = fmt.Sprintf(" [%.2f %s]", totalPrice, item.Currency)
 		}
 		
 		itemsList = append(itemsList, fmt.Sprintf("- %s: %.1f %s [%s]%s", 
@@ -907,21 +910,65 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 		len(recipe.IngredientsUsed), len(recipe.IngredientsMissing))
 	fmt.Printf("[AI][SUCCESS] Economy: %+v\n", recipe.Economy)
 	
-	// 9. Build list of used products
+	// 9. Build list of used products with cost calculation
 	usedProducts := make([]dto.UsedProductInfo, 0)
+	totalUsedCost := 0.0
+	currency := "PLN" // default
+	
 	for _, prod := range products {
 		// For simplicity, assume AI used all critical/warning products
 		if prod.Priority <= 2 {
+			// Calculate cost of used product
+			usedCost := 0.0
+			pricePerUnit := 0.0
+			
+			if prod.Item.PricePerUnit != nil && *prod.Item.PricePerUnit > 0 {
+				pricePerUnit = *prod.Item.PricePerUnit
+				usedCost = prod.Item.Quantity * pricePerUnit
+				totalUsedCost += usedCost
+				
+				if prod.Item.Currency != "" {
+					currency = prod.Item.Currency
+				}
+			}
+			
 			usedProducts = append(usedProducts, dto.UsedProductInfo{
 				Name:         prod.Item.Name,
 				QuantityUsed: prod.Item.Quantity,
 				Unit:         prod.Item.Unit,
+				PricePerUnit: pricePerUnit,
+				UsedCost:     usedCost,
+				Currency:     currency,
 				DaysLeft:     prod.Item.DaysLeft,
 			})
 		}
 	}
 	
-	// 10. Return successful result
+	// 10. Calculate economy and override AI's estimatedExtraCost
+	// AI may return pantry cost, but we trust backend calculation more
+	estimatedExtraCost := 0.0
+	if recipe.Economy != nil && recipe.Economy.EstimatedExtraCost > 0 {
+		estimatedExtraCost = recipe.Economy.EstimatedExtraCost
+	}
+	
+	savedMoney := totalUsedCost - estimatedExtraCost
+	if savedMoney < 0 {
+		savedMoney = 0 // Can't have negative savings
+	}
+	
+	// Override economy block with backend-calculated values
+	recipe.Economy = &dto.RecipeEconomy{
+		UsedFromFridge:     len(usedProducts) > 0,
+		UsedValue:          totalUsedCost,
+		EstimatedExtraCost: estimatedExtraCost,
+		SavedMoney:         savedMoney,
+		Currency:           currency,
+	}
+	
+	fmt.Printf("[AI][ECONOMY] Used cost: %.2f %s, Extra cost: %.2f %s, Saved: %.2f %s\n",
+		totalUsedCost, currency, estimatedExtraCost, currency, savedMoney, currency)
+	
+	// 11. Return successful result
 	return &dto.CreateRecipeFromFridgeResponse{
 		Success:      true,
 		Recipe:       &recipe,
