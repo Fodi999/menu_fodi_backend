@@ -871,6 +871,9 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 	
 	if !isJSON || parseErr != nil {
 		// AI returned invalid JSON
+		fmt.Printf("[AI][ERROR] Failed to parse AI response as JSON\n")
+		fmt.Printf("[AI][ERROR] Raw response: %s\n", response)
+		fmt.Printf("[AI][ERROR] Is JSON: %v, Parse error: %v\n", isJSON, parseErr)
 		return &dto.CreateRecipeFromFridgeResponse{
 			Success: false,
 			Message: "Failed to generate recipe in valid format. Please try again.",
@@ -880,11 +883,29 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 	// 8. Decode into RestaurantRecipe
 	var recipe dto.RestaurantRecipe
 	if err := json.Unmarshal([]byte(parsedJSON), &recipe); err != nil {
+		fmt.Printf("[AI][ERROR] Failed to unmarshal JSON into RestaurantRecipe\n")
+		fmt.Printf("[AI][ERROR] Parsed JSON: %s\n", parsedJSON)
+		fmt.Printf("[AI][ERROR] Unmarshal error: %v\n", err)
 		return &dto.CreateRecipeFromFridgeResponse{
 			Success: false,
 			Message: "Failed to parse recipe data. Please try again.",
 		}, nil
 	}
+	
+	// Validate critical fields
+	if recipe.Name == "" {
+		fmt.Printf("[AI][ERROR] Recipe name is empty\n")
+		fmt.Printf("[AI][ERROR] Parsed JSON: %s\n", parsedJSON)
+		return &dto.CreateRecipeFromFridgeResponse{
+			Success: false,
+			Message: "Recipe missing required field: name.",
+		}, nil
+	}
+	
+	fmt.Printf("[AI][SUCCESS] Recipe parsed successfully: %s\n", recipe.Name)
+	fmt.Printf("[AI][SUCCESS] IngredientsUsed: %d, IngredientsMissing: %d\n", 
+		len(recipe.IngredientsUsed), len(recipe.IngredientsMissing))
+	fmt.Printf("[AI][SUCCESS] Economy: %+v\n", recipe.Economy)
 	
 	// 9. Build list of used products
 	usedProducts := make([]dto.UsedProductInfo, 0)
