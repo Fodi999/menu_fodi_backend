@@ -471,10 +471,11 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		zap.String("userId", userID),
 		zap.String("mode", req.Mode),
 		zap.Int("limit", req.Limit),
+		zap.Int("excludeCount", len(req.ExcludeRecipeIds)),
 	)
 
-	// Get best recipe match
-	bestMatch, err := h.matchService.GetBestRecommendation(userID, req.Limit)
+	// Get best recipe match (excluding already shown recipes)
+	bestMatch, err := h.matchService.GetBestRecommendation(userID, req.Limit, req.ExcludeRecipeIds)
 	if err != nil {
 		h.logger.Error("Failed to get recommendation", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")

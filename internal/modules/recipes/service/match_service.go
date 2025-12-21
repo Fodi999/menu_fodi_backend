@@ -340,15 +340,16 @@ func (s *RecipeMatchService) loadFridgeWithPrices(userID string) ([]FridgeItem, 
 
 // RecipeFilters for filtering recipe catalog
 type RecipeFilters struct {
-	Country        string   // "Poland", "Italy", etc.
-	Category       string   // "main", "dessert", etc.
-	Difficulty     string   // "easy", "medium", "hard"
-	MaxTime        int      // Maximum time in minutes
+	Country          string   // "Poland", "Italy", etc.
+	Category         string   // "main", "dessert", etc.
+	Difficulty       string   // "easy", "medium", "hard"
+	MaxTime          int      // Maximum time in minutes
 	ExcludeAllergens []string // ["gluten", "lactose"]
 	IncludeDietTags  []string // ["vegetarian", "keto"]
-	MinScore       float64  // Minimum match score (0-100), default: 0
-	OnlyCookable   bool     // Only show recipes that can be cooked now (all required ingredients available)
-	Limit          int      // Max results
+	MinScore         float64  // Minimum match score (0-100), default: 0
+	OnlyCookable     bool     // Only show recipes that can be cooked now (all required ingredients available)
+	Limit            int      // Max results
+	ExcludeRecipeIds []string // Recipe UUIDs to exclude from results (for "show next" functionality)
 }
 
 // loadRecipesWithFilters loads recipes from catalog with filters
@@ -388,6 +389,11 @@ func (s *RecipeMatchService) loadRecipesWithFilters(filters RecipeFilters) ([]mo
 			JOIN "DietTag" dt ON dt.id = rdt."dietTagId"
 			WHERE dt.name IN ?
 		)`, filters.IncludeDietTags)
+	}
+
+	// Exclude specific recipe IDs (for "show next" functionality)
+	if len(filters.ExcludeRecipeIds) > 0 {
+		query = query.Where("id NOT IN ?", filters.ExcludeRecipeIds)
 	}
 
 	var recipes []models.RecipeCatalog
@@ -463,6 +469,7 @@ func roundToTwoDecimals(value float64) float64 {
 func (s *RecipeMatchService) GetBestRecommendation(
 	userID string,
 	limit int,
+	excludeRecipeIds []string,
 ) (*RecipeMatch, error) {
 	if limit <= 0 {
 		limit = 5 // default: рассматриваем топ-5 кандидатов
@@ -470,9 +477,10 @@ func (s *RecipeMatchService) GetBestRecommendation(
 
 	// 1. Используем существующий матчинг с минимальными фильтрами
 	filters := RecipeFilters{
-		MinScore:      0,    // Берем всё
-		OnlyCookable:  false, // Показываем даже если чего-то не хватает
-		Limit:         limit, // Ограничение на кандидатов
+		MinScore:         0,                // Берем всё
+		OnlyCookable:     false,            // Показываем даже если чего-то не хватает
+		Limit:            limit,            // Ограничение на кандидатов
+		ExcludeRecipeIds: excludeRecipeIds, // Исключаем уже показанные рецепты
 	}
 
 	matches, err := s.MatchRecipesWithFridge(userID, filters)

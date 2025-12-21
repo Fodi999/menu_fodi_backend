@@ -2,8 +2,9 @@ package dto
 
 // RecommendationRequest - запрос на получение рекомендации рецепта
 type RecommendationRequest struct {
-	Mode  string `json:"mode" binding:"required"` // "fridge" - подбор по холодильнику
-	Limit int    `json:"limit,omitempty"`         // default: 5
+	Mode             string   `json:"mode" binding:"required"`   // "fridge" - подбор по холодильнику
+	Limit            int      `json:"limit,omitempty"`           // default: 5
+	ExcludeRecipeIds []string `json:"excludeRecipeIds,omitempty"` // UUIDs рецептов для исключения
 }
 
 // RecommendationResponse - response в формате совместимом с текущим UI
