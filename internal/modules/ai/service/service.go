@@ -915,12 +915,22 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 	totalUsedCost := 0.0
 	currency := "PLN" // default
 	
+	fmt.Printf("[AI][ECONOMY DEBUG] Starting cost calculation for %d products\n", len(products))
+	
 	for _, prod := range products {
 		// For simplicity, assume AI used all critical/warning products
 		if prod.Priority <= 2 {
 			// Calculate cost of used product
 			usedCost := 0.0
 			pricePerUnit := 0.0
+			
+			// DEBUG: Log each product before calculation
+			priceStr := "NULL"
+			if prod.Item.PricePerUnit != nil {
+				priceStr = fmt.Sprintf("%.6f", *prod.Item.PricePerUnit)
+			}
+			fmt.Printf("[ECONOMY] Product: %s | qty=%.2f %s | price=%s | priority=%d\n",
+				prod.Item.Name, prod.Item.Quantity, prod.Item.Unit, priceStr, prod.Priority)
 			
 			if prod.Item.PricePerUnit != nil && *prod.Item.PricePerUnit > 0 {
 				pricePerUnit = *prod.Item.PricePerUnit
@@ -930,6 +940,13 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 				if prod.Item.Currency != "" {
 					currency = prod.Item.Currency
 				}
+				
+				// DEBUG: Log successful calculation
+				fmt.Printf("[ECONOMY] ✅ Calculated cost: %.2f %s (%.2f × %.6f)\n",
+					usedCost, currency, prod.Item.Quantity, pricePerUnit)
+			} else {
+				// DEBUG: Log when price is missing
+				fmt.Printf("[ECONOMY] ⚠️ NO PRICE DATA - skipping cost calculation\n")
 			}
 			
 			usedProducts = append(usedProducts, dto.UsedProductInfo{
@@ -943,6 +960,9 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 			})
 		}
 	}
+	
+	fmt.Printf("[AI][ECONOMY DEBUG] Total products processed: %d, Total cost: %.2f %s\n",
+		len(usedProducts), totalUsedCost, currency)
 	
 	// 10. Calculate economy and override AI's estimatedExtraCost
 	// AI may return pantry cost, but we trust backend calculation more
@@ -968,6 +988,7 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 	
 	fmt.Printf("[AI][ECONOMY] Used cost: %.2f %s, Extra cost: %.2f %s, Saved: %.2f %s (prices available: %d products)\n",
 		totalUsedCost, currency, estimatedExtraCost, currency, savedMoney, currency, len(usedProducts))
+	fmt.Printf("[AI][ECONOMY] ✅ Economy object created: %+v\n", recipe.Economy)
 	
 	// 11. Return successful result
 	return &dto.CreateRecipeFromFridgeResponse{
