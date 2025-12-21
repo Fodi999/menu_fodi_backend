@@ -634,6 +634,29 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// DEBUG: Log price data from database
+	logger.Info("Loaded fridge items with prices",
+		zap.String("user_id", userID),
+		zap.Int("total_items", len(fridgeItems)))
+	for _, item := range fridgeItems {
+		priceStr := "NULL"
+		if item.CurrentPricePerUnit != nil {
+			priceStr = fmt.Sprintf("%.4f %s", *item.CurrentPricePerUnit, item.CurrentPriceCurrency)
+		}
+		logger.Info("Fridge item price",
+			zap.String("user_id", userID),
+			zap.String("ingredient_id", item.IngredientID),
+			zap.String("ingredient_name", func() string {
+				if item.Ingredient != nil {
+					return item.Ingredient.Name
+				}
+				return "unknown"
+			}()),
+			zap.Float64("quantity", item.Quantity),
+			zap.String("unit", item.Unit),
+			zap.String("current_price_per_unit", priceStr))
+	}
+
 	// 4. Convert to DTO format with expiry calculation
 	aiItems := make([]dto.FridgeItemDTO, 0, len(fridgeItems))
 	for _, item := range fridgeItems {
@@ -679,6 +702,16 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 			if item.CurrentPriceCurrency != "" {
 				currency = item.CurrentPriceCurrency
 			}
+			logger.Info("Price data found for item",
+				zap.String("user_id", userID),
+				zap.String("name", item.Ingredient.Name),
+				zap.Float64("price_per_unit", *pricePerUnit),
+				zap.String("currency", currency))
+		} else {
+			logger.Warn("No price data for item",
+				zap.String("user_id", userID),
+				zap.String("name", item.Ingredient.Name),
+				zap.Any("current_price_per_unit", item.CurrentPricePerUnit))
 		}
 
 		aiItems = append(aiItems, dto.FridgeItemDTO{
