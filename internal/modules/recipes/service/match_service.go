@@ -71,11 +71,17 @@ func (s *RecipeMatchService) MatchRecipesWithFridge(
 		return []RecipeMatch{}, nil
 	}
 
-	// 2. Build ingredient map for fast lookup
+	// 2. Build ingredient map for fast lookup by ingredientId
 	fridgeMap := make(map[string]*FridgeItem)
 	for i := range fridgeItems {
+		// Use ingredientId as key for precise matching
+		fridgeMap[fridgeItems[i].ID] = &fridgeItems[i]
+		
+		// Also add normalized name as fallback for compatibility
 		key := normalizeIngredientName(fridgeItems[i].Name)
-		fridgeMap[key] = &fridgeItems[i]
+		if _, exists := fridgeMap[key]; !exists {
+			fridgeMap[key] = &fridgeItems[i]
+		}
 	}
 
 	// 3. Load recipes from catalog with filters
@@ -242,23 +248,30 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 	return match
 }
 
-// findIngredientInFridge finds ingredient in fridge by normalized name
+// findIngredientInFridge finds ingredient in fridge by ingredientId (primary) or normalized name (fallback)
 func (s *RecipeMatchService) findIngredientInFridge(
 	recipeIng models.CatalogIngredient,
 	fridgeMap map[string]*FridgeItem,
 ) *FridgeItem {
-	// Try exact match first
+	// 1. Try exact match by ingredientId (MOST RELIABLE)
+	if recipeIng.IngredientID != "" {
+		if item, ok := fridgeMap[recipeIng.IngredientID]; ok {
+			return item
+		}
+	}
+	
+	// 2. Try by ingredient key (legacy compatibility)
+	if item, ok := fridgeMap[recipeIng.IngredientKey]; ok {
+		return item
+	}
+	
+	// 3. Try normalized name match (fallback for backwards compatibility)
 	key := normalizeIngredientName(recipeIng.Ingredient.Name)
 	if item, ok := fridgeMap[key]; ok {
 		return item
 	}
 
-	// Try by ingredient key
-	if item, ok := fridgeMap[recipeIng.IngredientKey]; ok {
-		return item
-	}
-
-	// Try fuzzy match (contains)
+	// 4. Try fuzzy match (contains) - last resort
 	for fridgeKey, item := range fridgeMap {
 		if strings.Contains(fridgeKey, key) || strings.Contains(key, fridgeKey) {
 			return item
@@ -312,7 +325,7 @@ func (s *RecipeMatchService) loadFridgeWithPrices(userID string) ([]FridgeItem, 
 		}
 
 		items = append(items, FridgeItem{
-			ID:             item.ID,
+			ID:             item.Ingredient.ID, // Use ingredientId, not fridgeItemId
 			Name:           item.Ingredient.Name,
 			Quantity:       item.Quantity,
 			Unit:           item.Ingredient.Unit,
