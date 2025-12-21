@@ -444,3 +444,36 @@ func sortRecipeMatches(matches []RecipeMatch) {
 func roundToTwoDecimals(value float64) float64 {
 	return math.Round(value*100) / 100
 }
+
+// GetBestRecommendation возвращает ОДИН лучший рецепт для фронтенда
+// Использует тот же алгоритм матчинга и сортировки (4-level ranking)
+func (s *RecipeMatchService) GetBestRecommendation(
+	userID string,
+	limit int,
+) (*RecipeMatch, error) {
+	if limit <= 0 {
+		limit = 5 // default: рассматриваем топ-5 кандидатов
+	}
+
+	// 1. Используем существующий матчинг с минимальными фильтрами
+	filters := RecipeFilters{
+		MinScore:      0,    // Берем всё
+		OnlyCookable:  false, // Показываем даже если чего-то не хватает
+		Limit:         limit, // Ограничение на кандидатов
+	}
+
+	matches, err := s.MatchRecipesWithFridge(userID, filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to match recipes: %w", err)
+	}
+
+	if len(matches) == 0 {
+		return nil, fmt.Errorf("no recipes found in catalog")
+	}
+
+	// 2. Уже отсортировано в MatchRecipesWithFridge:
+	//    canCookNow DESC → score DESC → costToComplete ASC → timeMinutes ASC
+	
+	// 3. Возвращаем первый (лучший) рецепт
+	return &matches[0], nil
+}

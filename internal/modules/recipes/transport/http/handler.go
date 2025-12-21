@@ -419,3 +419,171 @@ func convertToRecipeMatchItem(match service.RecipeMatch) dto.RecipeMatchItem {
 func roundToTwoDecimals(value float64) float64 {
 	return math.Round(value*100) / 100
 }
+
+// GetRecommendation возвращает ОДИН лучший рецепт для замены AI-генерации
+// POST /api/recipes/recommendations
+func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from context (set by auth middleware)
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok || userID == "" {
+		// DEV MODE: Allow testing without auth
+		testUserID := r.URL.Query().Get("testUserID")
+		if testUserID != "" {
+			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
+			userID = testUserID
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	// Parse request body
+	var req dto.RecommendationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.RecommendationResponse{
+			Success: false,
+			Error:   "Invalid request format",
+		})
+		return
+	}
+
+	// Validate mode
+	if req.Mode != "fridge" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.RecommendationResponse{
+			Success: false,
+			Error:   "Only 'fridge' mode is supported",
+		})
+		return
+	}
+
+	// Set default limit
+	if req.Limit <= 0 {
+		req.Limit = 5
+	}
+
+	h.logger.Info("Getting recipe recommendation",
+		zap.String("userId", userID),
+		zap.String("mode", req.Mode),
+		zap.Int("limit", req.Limit),
+	)
+
+	// Get best recipe match
+	bestMatch, err := h.matchService.GetBestRecommendation(userID, req.Limit)
+	if err != nil {
+		h.logger.Error("Failed to get recommendation", zap.Error(err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(dto.RecommendationResponse{
+			Success: false,
+			Error:   "No recipes found in catalog",
+			Message: "Try adding more ingredients to your fridge",
+		})
+		return
+	}
+
+	h.logger.Info("Found best recipe",
+		zap.String("userId", userID),
+		zap.String("recipeId", bestMatch.Recipe.ID.String()),
+		zap.String("recipeName", bestMatch.Recipe.LocalName),
+		zap.Float64("score", bestMatch.MatchScore),
+		zap.Bool("canCookNow", bestMatch.CanMakeNow),
+	)
+
+	// Convert to recommendation response format (UI-compatible)
+	response := convertToRecommendationResponse(bestMatch)
+
+	// Return result
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// convertToRecommendationResponse преобразует RecipeMatch в формат совместимый с текущим UI
+func convertToRecommendationResponse(match *service.RecipeMatch) dto.RecommendationResponse {
+	// Recipe info
+	recipeInfo := dto.RecipeInfo{
+		ID:            match.Recipe.ID.String(),
+		CanonicalName: match.Recipe.CanonicalName,
+		LocalName:     match.Recipe.LocalName,
+		Country:       match.Recipe.Country,
+		Category:      match.Recipe.Category,
+		Difficulty:    match.Recipe.Difficulty,
+		TimeMinutes:   match.Recipe.TimeMinutes,
+		Servings:      match.Recipe.Servings,
+	}
+
+	// Convert Steps from JSON to []string
+	var steps []string
+	if err := json.Unmarshal(match.Recipe.Steps, &steps); err == nil {
+		recipeInfo.Steps = steps
+	} else {
+		recipeInfo.Steps = []string{} // Fallback to empty array
+	}
+
+	// Allergens
+	allergens := make([]string, len(match.Recipe.Allergens))
+	for i, allergen := range match.Recipe.Allergens {
+		allergens[i] = allergen.Name
+	}
+	recipeInfo.Allergens = allergens
+
+	// Diet tags
+	dietTags := make([]string, len(match.Recipe.DietTags))
+	for i, tag := range match.Recipe.DietTags {
+		dietTags[i] = tag.Name
+	}
+	recipeInfo.DietTags = dietTags
+
+	// Missing ingredients (required only, no optional)
+	missingRequired := []dto.MissingIngredient{}
+	for _, missing := range match.MissingIngredients {
+		if !missing.Optional {
+			missingRequired = append(missingRequired, dto.MissingIngredient{
+				IngredientID:  missing.IngredientID,
+				Name:          missing.Name,
+				Quantity:      missing.Required,
+				Unit:          missing.Unit,
+				EstimatedCost: missing.EstimatedCost,
+			})
+		}
+	}
+
+	// Used ingredients
+	usedIngredients := make([]dto.UsedIngredient, len(match.MatchedIngredients))
+	for i, matched := range match.MatchedIngredients {
+		usedIngredients[i] = dto.UsedIngredient{
+			IngredientID:   matched.IngredientID,
+			Name:           matched.Name,
+			Quantity:       matched.Required,
+			Unit:           matched.Unit,
+			Available:      matched.Available,
+			IsExpiringSoon: matched.IsExpiringSoon,
+		}
+	}
+
+	// Match info
+	matchInfo := dto.MatchInfo{
+		CanCookNow:      match.CanMakeNow,
+		MissingRequired: missingRequired,
+		UsedIngredients: usedIngredients,
+	}
+
+	// Economy info
+	economyInfo := dto.EconomyInfo{
+		UsedFromFridge: match.UsedValue,
+		Saved:          match.SavedMoney,
+	}
+
+	return dto.RecommendationResponse{
+		Success: true,
+		Data: &dto.RecommendationData{
+			Recipe:  recipeInfo,
+			Match:   matchInfo,
+			Economy: economyInfo,
+		},
+	}
+}
+

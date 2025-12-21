@@ -52,6 +52,8 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	// TODO: Remove public access after testing - these should be protected
 	// Recipe matching (finds recipes based on fridge) - TEMPORARILY PUBLIC FOR TESTING
 	r.Get("/recipes/match", m.catalogHandler.MatchRecipes)
+	// Recipe recommendation (returns 1 best recipe for UI) - TEMPORARILY PUBLIC FOR TESTING
+	r.Post("/recipes/recommendations", m.catalogHandler.GetRecommendation)
 	// Recipe cooking - TEMPORARILY PUBLIC FOR TESTING (uses testUserID)
 	r.Post("/recipes/{id}/cook", m.catalogHandler.CookRecipe)
 	
