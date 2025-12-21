@@ -42,6 +42,7 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 			r.Post("/fridge/analyze", m.handlers.AnalyzeFridge)
 			r.Post("/create-recipe-from-fridge", m.handlers.CreateRecipeFromFridge)
 			r.Post("/add-missing-ingredients", m.handlers.AddMissingIngredients) // NEW: Add ingredientsMissing to fridge
+			r.Post("/recipe/recalculate", m.handlers.RecalculateRecipe)          // NEW: Recalculate recipe economy
 		})
 	})
 }

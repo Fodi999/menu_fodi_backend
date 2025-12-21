@@ -79,6 +79,20 @@ type UsedProductInfo struct {
 	DaysLeft     *int    `json:"daysLeft,omitempty"`
 }
 
+// RecalculateRecipeRequest запрос на пересчёт экономики рецепта
+type RecalculateRecipeRequest struct {
+	Recipe   RestaurantRecipe `json:"recipe" binding:"required"`  // Текущий рецепт (с steps, title и т.д.)
+	Language string           `json:"language,omitempty"`         // "pl" | "en" | "ru" (для AI запросов, если нужны)
+}
+
+// RecalculateRecipeResponse ответ с пересчитанным рецептом
+type RecalculateRecipeResponse struct {
+	Success      bool              `json:"success"`
+	Recipe       *RestaurantRecipe `json:"recipe,omitempty"`       // Обновлённый рецепт
+	UsedProducts []UsedProductInfo `json:"usedProducts,omitempty"` // Обновлённый список использованных продуктов
+	Message      string            `json:"message,omitempty"`      // Сообщение об ошибке
+}
+
 // AddMissingIngredientsRequest запрос на добавление недостающих ингредиентов в холодильник
 type AddMissingIngredientsRequest struct {
 	Ingredients []RecipeIngredient `json:"ingredients" binding:"required"` // Список ingredientsMissing из рецепта

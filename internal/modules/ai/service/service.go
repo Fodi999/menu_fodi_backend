@@ -39,6 +39,9 @@ type AIService interface {
 	
 	// SMART KITCHEN: Create Restaurant Recipe from Fridge
 	CreateRecipeFromFridge(userID string, language string, fridgeItems []dto.FridgeItemDTO) (*dto.CreateRecipeFromFridgeResponse, error)
+	
+	// SMART KITCHEN: Recalculate Recipe Economy
+	RecalculateRecipe(userID string, recipe dto.RestaurantRecipe, fridgeItems []dto.FridgeItemDTO) (*dto.RecalculateRecipeResponse, error)
 }
 
 type aiService struct {
@@ -1060,6 +1063,132 @@ Return ONLY the fixed JSON:`, response)
 	return &dto.CreateRecipeFromFridgeResponse{
 		Success:      true,
 		Recipe:       &recipe,
+		UsedProducts: usedProducts,
+	}, nil
+}
+
+// RecalculateRecipe пересчитывает экономику рецепта на основе обновлённой холодильника
+// НЕ меняет steps, title, description - только economy, ingredientsMissing, expiryPriority
+func (s *aiService) RecalculateRecipe(userID string, recipe dto.RestaurantRecipe, fridgeItems []dto.FridgeItemDTO) (*dto.RecalculateRecipeResponse, error) {
+	fmt.Printf("[AI][RECALC] Starting recalculation for recipe: %s\n", recipe.Name)
+	fmt.Printf("[AI][RECALC] User: %s, Fridge items: %d\n", userID, len(fridgeItems))
+	
+	// 1. Create map of fridge items by name for quick lookup
+	fridgeMap := make(map[string]dto.FridgeItemDTO)
+	for _, item := range fridgeItems {
+		fridgeMap[strings.ToLower(item.Name)] = item
+	}
+	
+	// 2. Recalculate ingredientsUsed with updated fridge data
+	usedProducts := make([]dto.UsedProductInfo, 0)
+	totalUsedCost := 0.0
+	currency := "PLN"
+	criticalPriority := false
+	warningPriority := false
+	
+	fmt.Printf("[AI][RECALC] Processing %d ingredients used in recipe\n", len(recipe.IngredientsUsed))
+	
+	for _, ingredient := range recipe.IngredientsUsed {
+		ingredientNameLower := strings.ToLower(ingredient.Name)
+		
+		// Check if ingredient exists in current fridge
+		if fridgeItem, exists := fridgeMap[ingredientNameLower]; exists {
+			usedCost := 0.0
+			pricePerUnit := 0.0
+			
+			// Calculate cost if price available
+			if fridgeItem.PricePerUnit != nil && *fridgeItem.PricePerUnit > 0 {
+				pricePerUnit = *fridgeItem.PricePerUnit
+				usedCost = ingredient.Quantity * pricePerUnit
+				totalUsedCost += usedCost
+				
+				if fridgeItem.Currency != "" {
+					currency = fridgeItem.Currency
+				}
+				
+				fmt.Printf("[AI][RECALC] ✅ %s: %.2f %s × %.6f = %.2f %s\n",
+					ingredient.Name, ingredient.Quantity, ingredient.Unit, pricePerUnit, usedCost, currency)
+			} else {
+				fmt.Printf("[AI][RECALC] ⚠️ %s: No price data\n", ingredient.Name)
+			}
+			
+			// Track expiry priority
+			if fridgeItem.Status == "critical" {
+				criticalPriority = true
+			} else if fridgeItem.Status == "warning" {
+				warningPriority = true
+			}
+			
+			usedProducts = append(usedProducts, dto.UsedProductInfo{
+				Name:         ingredient.Name,
+				QuantityUsed: ingredient.Quantity,
+				Unit:         ingredient.Unit,
+				PricePerUnit: pricePerUnit,
+				UsedCost:     usedCost,
+				Currency:     currency,
+				DaysLeft:     fridgeItem.DaysLeft,
+			})
+		} else {
+			// Ingredient not in fridge anymore - move to ingredientsMissing
+			fmt.Printf("[AI][RECALC] ⚠️ %s: Not in fridge, moving to missing\n", ingredient.Name)
+		}
+	}
+	
+	// 3. Update ingredientsMissing - remove items now in fridge
+	updatedMissing := make([]dto.RecipeIngredient, 0)
+	for _, missing := range recipe.IngredientsMissing {
+		missingNameLower := strings.ToLower(missing.Name)
+		
+		// If now in fridge, skip (already in usedProducts)
+		if _, inFridge := fridgeMap[missingNameLower]; inFridge {
+			fmt.Printf("[AI][RECALC] ✅ %s: Now in fridge, removed from missing\n", missing.Name)
+			continue
+		}
+		
+		// Keep in missing list
+		updatedMissing = append(updatedMissing, missing)
+	}
+	
+	// 4. Recalculate economy
+	estimatedExtraCost := 0.0
+	if recipe.Economy != nil && recipe.Economy.EstimatedExtraCost > 0 {
+		estimatedExtraCost = recipe.Economy.EstimatedExtraCost
+	}
+	
+	savedMoney := totalUsedCost - estimatedExtraCost
+	if savedMoney < 0 {
+		savedMoney = 0
+	}
+	
+	// 5. Determine expiryPriority
+	expiryPriority := "ok"
+	if criticalPriority {
+		expiryPriority = "critical"
+	} else if warningPriority {
+		expiryPriority = "warning"
+	}
+	
+	fmt.Printf("[AI][RECALC] Economy: UsedValue=%.2f, SavedMoney=%.2f, ExpiryPriority=%s\n",
+		totalUsedCost, savedMoney, expiryPriority)
+	
+	// 6. Create updated recipe (preserve steps, title, description)
+	updatedRecipe := recipe
+	updatedRecipe.IngredientsMissing = updatedMissing
+	updatedRecipe.ExpiryPriority = expiryPriority
+	updatedRecipe.Economy = &dto.RecipeEconomy{
+		UsedFromFridge:     len(usedProducts) > 0,
+		UsedValue:          totalUsedCost,
+		EstimatedExtraCost: estimatedExtraCost,
+		SavedMoney:         savedMoney,
+		Currency:           currency,
+	}
+	
+	fmt.Printf("[AI][RECALC] ✅ Recalculation complete: %d used products, %.2f %s total value\n",
+		len(usedProducts), totalUsedCost, currency)
+	
+	return &dto.RecalculateRecipeResponse{
+		Success:      true,
+		Recipe:       &updatedRecipe,
 		UsedProducts: usedProducts,
 	}, nil
 }

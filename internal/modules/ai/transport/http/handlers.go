@@ -409,6 +409,149 @@ func (h *AIHandlers) AddMissingIngredients(w http.ResponseWriter, r *http.Reques
 	})
 }
 
+// RecalculateRecipe godoc
+// @Summary Recalculate Recipe Economy
+// @Description Recalculate recipe economy, ingredientsMissing, and expiryPriority based on updated fridge
+// @Tags ai
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.RecalculateRecipeRequest true "Recalculate request with current recipe"
+// @Success 200 {object} dto.RecalculateRecipeResponse
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/ai/recipe/recalculate [post]
+func (h *AIHandlers) RecalculateRecipe(w http.ResponseWriter, r *http.Request) {
+	// 1. Authenticate user
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// 2. Parse request
+	var req dto.RecalculateRecipeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode recalculate recipe request", zap.Error(err))
+		httpx.BadRequest(w, "invalid request body")
+		return
+	}
+
+	// Validate recipe
+	if req.Recipe.Name == "" {
+		httpx.BadRequest(w, "recipe name is required")
+		return
+	}
+
+	logger.Info("Recalculating recipe economy",
+		zap.String("user_id", userID),
+		zap.String("recipe_name", req.Recipe.Name),
+		zap.Int("ingredients_used", len(req.Recipe.IngredientsUsed)))
+
+	// 3. Load current fridge items from database
+	var fridgeItems []models.UserFridgeItem
+	err := h.db.Preload("Ingredient").
+		Where("user_id = ?", userID).
+		Find(&fridgeItems).Error
+
+	if err != nil {
+		logger.Error("failed to load fridge items for recalculation",
+			zap.String("user_id", userID),
+			zap.Error(err))
+		httpx.InternalError(w, "failed to load fridge data")
+		return
+	}
+
+	logger.Info("Loaded fridge items for recalculation",
+		zap.String("user_id", userID),
+		zap.Int("total_items", len(fridgeItems)))
+
+	// 4. Convert to DTO
+	aiItems := make([]dto.FridgeItemDTO, 0, len(fridgeItems))
+	for _, item := range fridgeItems {
+		if item.Ingredient == nil {
+			continue
+		}
+
+		// Calculate days left
+		var daysLeft *int
+		status := "ok"
+		if item.ExpiresAt != nil {
+			days := int(time.Until(*item.ExpiresAt).Hours() / 24)
+			daysLeft = &days
+
+			if days < 0 {
+				status = "expired"
+			} else if days <= 2 {
+				status = "critical"
+			} else if days <= 5 {
+				status = "warning"
+			}
+		}
+
+		// Extract price data
+		var pricePerUnit *float64
+		var currency string
+
+		if item.CurrentPricePerUnit != nil && *item.CurrentPricePerUnit > 0 {
+			pricePerUnit = item.CurrentPricePerUnit
+			currency = item.CurrentPriceCurrency
+			if currency == "" {
+				currency = "PLN"
+			}
+
+			logger.Info("Price data found for recalculation",
+				zap.String("user_id", userID),
+				zap.String("name", item.Ingredient.Name),
+				zap.Float64("price_per_unit", *pricePerUnit),
+				zap.String("currency", currency))
+		}
+
+		aiItems = append(aiItems, dto.FridgeItemDTO{
+			Name:         item.Ingredient.Name,
+			Category:     item.Ingredient.Category,
+			Quantity:     item.Quantity,
+			Unit:         item.Unit,
+			DaysLeft:     daysLeft,
+			Status:       status,
+			PricePerUnit: pricePerUnit,
+			Currency:     currency,
+		})
+	}
+
+	// 5. Call service to recalculate
+	response, err := h.service.RecalculateRecipe(userID, req.Recipe, aiItems)
+	if err != nil {
+		logger.Error("recalculation failed",
+			zap.String("user_id", userID),
+			zap.String("recipe_name", req.Recipe.Name),
+			zap.Error(err))
+		httpx.InternalError(w, "failed to recalculate recipe")
+		return
+	}
+
+	// 6. Return response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": response.Success,
+		"data": map[string]interface{}{
+			"recipe":       response.Recipe,
+			"usedProducts": response.UsedProducts,
+		},
+	})
+
+	logger.Info("Recipe recalculation successful",
+		zap.String("user_id", userID),
+		zap.String("recipe_name", req.Recipe.Name),
+		zap.Float64("used_value", response.Recipe.Economy.UsedValue),
+		zap.String("expiry_priority", response.Recipe.ExpiryPriority))
+}
+
 // AnalyzeFridge godoc
 // @Summary AI Fridge Analysis (Smart Kitchen)
 // @Description Analyze user's fridge and provide AI-powered recommendations based on goal
