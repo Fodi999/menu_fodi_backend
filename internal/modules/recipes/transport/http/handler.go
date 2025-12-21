@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
+	"gorm.io/datatypes"
 )
 
 type RecipeHandler struct {
@@ -515,13 +517,8 @@ func convertToRecommendationResponse(match *service.RecipeMatch) dto.Recommendat
 		Servings:      match.Recipe.Servings,
 	}
 
-	// Convert Steps from JSON to []string
-	var steps []string
-	if err := json.Unmarshal(match.Recipe.Steps, &steps); err == nil {
-		recipeInfo.Steps = steps
-	} else {
-		recipeInfo.Steps = []string{} // Fallback to empty array
-	}
+	// Convert Steps from JSON to []string (support both formats)
+	recipeInfo.Steps = parseStepsFromJSON(match.Recipe.Steps)
 
 	// Allergens
 	allergens := make([]string, len(match.Recipe.Allergens))
@@ -582,8 +579,39 @@ func convertToRecommendationResponse(match *service.RecipeMatch) dto.Recommendat
 		Data: &dto.RecommendationData{
 			Recipe:  recipeInfo,
 			Match:   matchInfo,
-			Economy: economyInfo,
-		},
-	}
+		Economy: economyInfo,
+	},
+}
 }
 
+// parseStepsFromJSON parses steps from JSON supporting both formats:
+// 1. Simple string array: ["1. Step one", "2. Step two", ...]
+// 2. Object array: [{"step": 1, "instruction": "Step one"}, ...]
+func parseStepsFromJSON(stepsJSON datatypes.JSON) []string {
+	if len(stepsJSON) == 0 {
+		return []string{}
+	}
+
+	// Try parsing as simple string array first (most common)
+	var stringSteps []string
+	if err := json.Unmarshal(stepsJSON, &stringSteps); err == nil {
+		return stringSteps
+	}
+
+	// Try parsing as object array with {step, instruction} structure
+	var objectSteps []struct {
+		Step        int    `json:"step"`
+		Instruction string `json:"instruction"`
+	}
+	if err := json.Unmarshal(stepsJSON, &objectSteps); err == nil {
+		result := make([]string, len(objectSteps))
+		for i, obj := range objectSteps {
+			// Format as "1. instruction text"
+			result[i] = fmt.Sprintf("%d. %s", obj.Step, obj.Instruction)
+		}
+		return result
+	}
+
+	// Fallback to empty array if both formats fail
+	return []string{}
+}
