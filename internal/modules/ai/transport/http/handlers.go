@@ -756,6 +756,12 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 	}
 	
 	// Success case: recipe generated
+	logger.Info("Returning recipe to frontend",
+		zap.String("user_id", userID),
+		zap.String("recipe_name", response.Recipe.Name),
+		zap.Bool("economy_nil", response.Recipe.Economy == nil),
+		zap.Any("economy_value", response.Recipe.Economy))
+	
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{

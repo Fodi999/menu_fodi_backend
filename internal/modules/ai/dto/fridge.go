@@ -49,7 +49,7 @@ type RestaurantRecipe struct {
 	CookingTime        int                 `json:"cookingTime"`        // Время приготовления (минуты)
 	ChefTips           []string            `json:"chefTips"`           // Советы шефа
 	ExpiryPriority     string              `json:"expiryPriority"`     // "critical" | "warning" | "ok"
-	Economy            *RecipeEconomy      `json:"economy,omitempty"`  // Экономическая выгода
+	Economy            *RecipeEconomy      `json:"economy"`            // Экономическая выгода (ALWAYS included, even if nil values)
 }
 
 // RecipeIngredient ингредиент в рецепте с точным количеством
