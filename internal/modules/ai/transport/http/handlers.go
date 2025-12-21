@@ -604,6 +604,15 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} httpx.ErrorResponse
 // @Router /api/ai/create-recipe-from-fridge [post]
 func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Request) {
+	// 🔥 CRITICAL: Recover from panic to prevent 500 without logs
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("PANIC in CreateRecipeFromFridge",
+				zap.Any("panic", r),
+				zap.Stack("stack"))
+			httpx.InternalError(w, "internal server error during recipe generation")
+		}
+	}()
 	// 1. Get authenticated user ID
 	userIDPtr := middleware.GetUserID(r)
 	if userIDPtr == nil {
@@ -738,12 +747,19 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 	}
 	
 	// 🔥 DEBUG: Log what service returned
+	var economyVal interface{} = nil
+	economyIsNil := true
+	if response.Recipe != nil {
+		economyIsNil = response.Recipe.Economy == nil
+		economyVal = response.Recipe.Economy
+	}
+	
 	logger.Info("Service returned response",
 		zap.String("user_id", userID),
 		zap.Bool("success", response.Success),
 		zap.Bool("recipe_nil", response.Recipe == nil),
-		zap.Bool("economy_nil", response.Recipe != nil && response.Recipe.Economy == nil),
-		zap.Any("economy", response.Recipe.Economy))
+		zap.Bool("economy_nil", economyIsNil),
+		zap.Any("economy", economyVal))
 
 	// 6. Return response directly (it already has proper structure)
 	// Response structure:
@@ -764,11 +780,16 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 	}
 	
 	// Success case: recipe generated
-	logger.Info("Returning recipe to frontend",
-		zap.String("user_id", userID),
-		zap.String("recipe_name", response.Recipe.Name),
-		zap.Bool("economy_nil", response.Recipe.Economy == nil),
-		zap.Any("economy_value", response.Recipe.Economy))
+	if response.Recipe != nil {
+		logger.Info("Returning recipe to frontend",
+			zap.String("user_id", userID),
+			zap.String("recipe_name", response.Recipe.Name),
+			zap.Bool("economy_nil", response.Recipe.Economy == nil),
+			zap.Any("economy_value", response.Recipe.Economy))
+	} else {
+		logger.Error("Success=true but recipe is nil",
+			zap.String("user_id", userID))
+	}
 	
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,

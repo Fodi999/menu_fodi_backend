@@ -129,7 +129,8 @@ func (c *GroqClient) SimpleChat(systemPrompt, userMessage string) (string, error
 		{Role: "user", Content: userMessage},
 	}
 
-	resp, err := c.Chat(messages, 0.7, 1024)
+	// Increased from 1024 to 4096 tokens to allow complete recipe JSON responses
+	resp, err := c.Chat(messages, 0.7, 4096)
 	if err != nil {
 		return "", err
 	}

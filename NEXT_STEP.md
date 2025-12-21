@@ -1,138 +1,93 @@
-# 🎯 IMMEDIATE ACTION REQUIRED
+# 🎯 IMMEDIATE ACTION - Economy Null Debug
 
-## ✅ Что Сделано
+## 🔥 CRITICAL: Economy Still Returns Null!
 
-1. **Backend код проверен** - economy calculation на 100% правильный
-2. **Debug logging добавлен** (commits a36bdfb, ec816c1, e550c9b) - деплоится СЕЙЧАС
-3. **БД проверена** - ЦЕНЫ ЕСТЬ! 9 продуктов с ценами у разных пользователей
-4. **Добавлено детальное логирование** - для каждого продукта отдельно
-
-## 🔥 КРИТИЧНО: Следующий Шаг
-
-### Подожди 2-3 минуты и сделай это:
-
-#### 1. Зайди на Koyeb Dashboard:
-```
-https://app.koyeb.com/
-→ Твой сервис
-→ Logs (вкладка справа)
-→ Enable "Auto-scroll" чтобы видеть новые логи
+Frontend logs show:
+```json
+"economy": null  // ← Backend sends NULL even after fix!
 ```
 
-#### 2. Сгенерируй рецепт:
-- Зайди на фронтенд
-- Залогинься под любым аккаунтом
-- Нажми "Сгенерировать рецепт из холодильника"
+## 🐛 What We Know
 
-#### 3. Смотри ДЕТАЛЬНЫЕ логи:
+1. ✅ Removed `omitempty` from economy field (commit 58dfa49)
+2. ✅ Code sets `recipe.Economy = &dto.RecipeEconomy{...}`
+3. ❌ But response still has `economy: null`!
 
-**✅ ОЖИДАЕМЫЕ ЛОГИ (если всё работает):**
+**This means:** Economy is being set but then lost/overwritten somewhere.
+
+## 🔍 New Debug Logging (commit 64ecc83)
+
+Added **aggressive logging** at every step:
+
+### In Service (service.go):
 ```
-INFO  Loaded fridge items with prices  total_items=4
-INFO  Fridge item price  ingredient_name="Wołowina"  current_price_per_unit="0.0206 PLN"
-INFO  Price data found for item  name="Wołowina"  price_per_unit=0.0206
-
-[AI][ECONOMY DEBUG] Starting cost calculation for 4 products
-[ECONOMY] Product: Wołowina | qty=400.00 g | price=0.020560 | priority=1
-[ECONOMY] ✅ Calculated cost: 8.22 PLN (400.00 × 0.020560)
-[ECONOMY] Product: Ogórek | qty=200.00 g | price=0.007000 | priority=2
-[ECONOMY] ✅ Calculated cost: 1.40 PLN (200.00 × 0.007000)
-[ECONOMY] Product: Mleko 3.2% | qty=250.00 ml | price=0.003240 | priority=1
-[ECONOMY] ✅ Calculated cost: 0.81 PLN (250.00 × 0.003240)
-
-[AI][ECONOMY DEBUG] Total products processed: 3, Total cost: 10.43 PLN
-[AI][ECONOMY] Used cost: 10.43 PLN, Extra cost: 0.00 PLN, Saved: 10.43 PLN
-[AI][ECONOMY] ✅ Economy object created: {UsedValue:10.43 SavedMoney:10.43 Currency:PLN}
+[AI][ECONOMY] ⚠️ BEFORE override - recipe.Economy = <nil>
+[AI][ECONOMY] ⚠️ About to set: UsedValue=10.43, SavedMoney=10.43
+[AI][ECONOMY] ✅ AFTER override - recipe.Economy = {UsedValue:10.43 ...}
+[AI][ECONOMY] ✅ Memory address of recipe: 0x...
+[AI][ECONOMY] 🚀 About to return response with recipe at address: 0x...
 ```
 
-**❌ ПЛОХОЙ СЦЕНАРИЙ 1 (цены не доходят до service):**
+### In Handler (handlers.go):
 ```
-INFO  Fridge item price  ingredient_name="Wołowina"  current_price_per_unit="0.0206 PLN"
-WARN  No price data for item  name="Wołowina"  current_price_per_unit=<nil>
+INFO Service returned response economy={UsedValue:10.43 ...}
+INFO Returning recipe to frontend economy_value={UsedValue:10.43 ...}
+```
 
-[ECONOMY] Product: Wołowina | qty=400.00 g | price=NULL | priority=1
-[ECONOMY] ⚠️ NO PRICE DATA - skipping cost calculation
-```
-→ **Проблема:** Цены загружаются из БД но теряются при передаче в DTO
+## 📋 YOUR ACTION (5 minutes)
 
-**❌ ПЛОХОЙ СЦЕНАРИЙ 2 (цены есть но не считаются):**
+### 1. Wait for deployment
+⏰ **Wait 2-3 minutes** - Koyeb is deploying commit 64ecc83
+
+### 2. Generate recipe again
+🧪 Go to frontend → "Stwórz przepis"
+
+### 3. Check Koyeb Logs
+🔍 Open: https://app.koyeb.com/ → Your service → Logs
+
+### 4. Find these critical lines:
+
+Look for:
 ```
-[ECONOMY] Product: Wołowina | qty=400.00 g | price=0.020560 | priority=1
-[ECONOMY] ⚠️ NO PRICE DATA - skipping cost calculation
+[AI][ECONOMY] ⚠️ BEFORE override - recipe.Economy = ?
+[AI][ECONOMY] ✅ AFTER override - recipe.Economy = ?
 ```
-→ **Проблема:** Логика `if prod.Item.PricePerUnit != nil` не срабатывает
+
+**Copy and send me everything with `[ECONOMY]` in it.**
+
+## 🎯 What This Will Show
+
+### Scenario A: Economy is set but lost in return
+```
+[AI][ECONOMY] ✅ AFTER override - recipe.Economy = {UsedValue:10.43 ...}  ← SET
+INFO Service returned response economy=<nil>  ← LOST!
+```
+→ **Problem:** Object doesn't survive return from service to handler
+
+### Scenario B: Economy is set and reaches handler but not frontend
+```
+INFO Service returned response economy={UsedValue:10.43 ...}  ← OK
+INFO Returning recipe to frontend economy_value={UsedValue:10.43 ...}  ← OK
+// But frontend receives: "economy": null  ← PROBLEM
+```
+→ **Problem:** JSON serialization issue
+
+### Scenario C: Economy never gets set
+```
+[AI][ECONOMY] ⚠️ BEFORE override - recipe.Economy = <nil>
+[AI][ECONOMY] ⚠️ About to set: UsedValue=10.43...
+// No "AFTER override" log
+```
+→ **Problem:** Code doesn't reach the assignment
+
+## 💡 Most Likely Issue
+
+My hypothesis: **The recipe object is being copied by value somewhere**, so when we set `recipe.Economy`, we're setting it on a copy, not the original.
+
+But the logs will confirm this!
 
 ---
 
-## 📊 Известные Пользователи с Ценами (из SQL)
-
-| Email | Продукты с ценами |
-|-------|-------------------|
-| **fodi85@gmail.ru** | Wołowina (20.56), Ogórek (7.00), Cebula (3.45), Mleko (3.24) |
-| **maks@gmail.com** | Cebula (5.00), Mleko kokosowe (3.00) |
-| **test_ai@fodi.app** | Kurczak (15.00) |
-| **dima@example.com** | Kurczak (7.34) |
-
-Можешь протестировать под любым из этих аккаунтов.
-
----
-
-## 🔍 Диагностика По Логам
-
-### ✅ Сценарий 1: Полный успех
-```
-[ECONOMY] Product: X | price=0.020560
-[ECONOMY] ✅ Calculated cost: 8.22 PLN
-[AI][ECONOMY] Total cost: 10.43 PLN
-```
-**→ 🎉 ВСЁ РАБОТАЕТ!** Economy calculation успешен!
-
-### ❌ Сценарий 2: Цены теряются между handler и service
-```
-INFO  Fridge item price ... current_price_per_unit="0.0206"  ← БД OK
-WARN  No price data for item  ← Handler теряет
-[ECONOMY] Product: X | price=NULL  ← Service не видит
-```
-**→ Проблема в handler:** `aiItems.PricePerUnit` не заполняется
-
-### ❌ Сценарий 3: Цены доходят но не используются
-```
-INFO  Price data found  price_per_unit=0.0206  ← Handler OK
-[ECONOMY] Product: X | price=NULL  ← Service не видит
-```
-**→ Проблема в передаче:** DTO не передаёт `PricePerUnit` в `products`
-
----
-
-## 💡 Что Это Покажет
-
-Новое детальное логирование покажет:
-
-1. **Загружаются ли цены из БД?** → `"Fridge item price"` logs
-2. **Передаются ли в handler DTO?** → `"Price data found"` logs  
-3. **Доходят ли до service?** → `[ECONOMY] Product: ... | price=...`
-4. **Считается ли cost?** → `[ECONOMY] ✅ Calculated cost:`
-5. **Формируется ли economy?** → `[AI][ECONOMY] ✅ Economy object created:`
-
-**Мы найдём ТОЧНОЕ место где теряются данные.**
-
----
-
-## 📞 Что Делать После Теста
-
-**Скопируй и отправь мне логи из Koyeb** (особенно строки с `[ECONOMY]`):
-
-1. Если видишь **все ✅** → Задача решена! 🎉
-2. Если видишь **price=NULL в service** → Проблема в handler, я исправлю
-3. Если видишь **price есть но не считается** → Проблема в логике if, я исправлю
-4. Если НЕ видишь логов → Deployment ещё не завершился, подожди 1-2 минуты
-
----
-
-**Commits с debug logging:**
-- `a36bdfb` - Handler logging (DB load + DTO mapping)
-- `ec816c1` - Documentation + SQL scripts
-- `e550c9b` - **Service logging (per-product calculation)** ← НОВЫЙ
-
-**Статус:** 🟡 Деплоится сейчас (commit e550c9b)  
-**ETA:** 2-3 минуты до готовности
+**Status:** 🟡 Aggressive debug deployed (commit 64ecc83)  
+**Action:** Generate recipe + send me Koyeb logs with `[ECONOMY]`  
+**ETA:** 5 minutes to identify exact issue
