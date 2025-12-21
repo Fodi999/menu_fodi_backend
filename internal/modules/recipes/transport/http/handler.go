@@ -383,11 +383,26 @@ func convertToRecipeMatchItem(match service.RecipeMatch) dto.RecipeMatchItem {
 		dietTags[i] = tag.Name
 	}
 
-	// Calculate coverage (rounded to 2 decimals)
+	// Calculate coverage: usedRequired / totalRequired (excluding optional)
 	coverage := 0.0
-	totalRequired := len(match.MatchedIngredients) + len(match.MissingIngredients)
+	usedRequired := 0
+	totalRequired := 0
+	
+	// Count only required (non-optional) ingredients
+	for _, ing := range match.MatchedIngredients {
+		if !ing.Optional {
+			usedRequired++
+			totalRequired++
+		}
+	}
+	for _, ing := range match.MissingIngredients {
+		if !ing.Optional {
+			totalRequired++
+		}
+	}
+	
 	if totalRequired > 0 {
-		coverage = float64(len(match.MatchedIngredients)) / float64(totalRequired)
+		coverage = float64(usedRequired) / float64(totalRequired)
 		coverage = roundToTwoDecimals(coverage)
 	}
 
@@ -479,11 +494,13 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		h.logger.Error("Failed to get recommendation", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		
+		// Return 200 with friendly message instead of 500
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
 			Success: false,
-			Error:   "No recipes found in catalog",
-			Message: "Try adding more ingredients to your fridge",
+			Error:   "No recipes available",
+			Message: "We couldn't find any recipes matching your fridge. Try adding more ingredients!",
 		})
 		return
 	}

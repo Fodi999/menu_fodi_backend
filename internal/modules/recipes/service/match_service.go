@@ -45,6 +45,7 @@ type MatchedIngredient struct {
 	Unit           string    `json:"unit"`
 	IsExpiringSoon bool      `json:"isExpiringSoon"`
 	ExpiresAt      *time.Time `json:"expiresAt,omitempty"`
+	Optional       bool      `json:"optional"` // Is this ingredient optional for the recipe?
 }
 
 type MissingIngredient struct {
@@ -155,6 +156,7 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 					Unit:           recipeIng.Unit,
 					IsExpiringSoon: fridgeItem.IsExpiringSoon,
 					ExpiresAt:      fridgeItem.ExpiresAt,
+					Optional:       true,
 				})
 			}
 			continue
@@ -186,6 +188,7 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 				Unit:           recipeIng.Unit,
 				IsExpiringSoon: fridgeItem.IsExpiringSoon,
 				ExpiresAt:      fridgeItem.ExpiresAt,
+				Optional:       false,
 			}
 			match.MatchedIngredients = append(match.MatchedIngredients, matched)
 		} else {
