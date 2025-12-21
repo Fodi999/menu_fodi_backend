@@ -81,7 +81,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	mealPlanModule := meal_plan.NewModule()
 	metricsModule := metrics.NewModule()
 	nutritionModule := nutrition.NewModule()
-	recipesModule := recipes.NewModule()
+	recipesModule := recipes.NewModule(a.db) // Updated: Pass DB for catalog services
 	semiFinishedModule := semi_finished.NewModule(a.db)
 	statsModule := stats.NewModule(a.db)
 	taskModule := task.NewModule()           // Task system with treasury integration

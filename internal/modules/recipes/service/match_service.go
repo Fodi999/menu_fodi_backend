@@ -1,0 +1,446 @@
+package service
+
+import (
+	"fmt"
+	"math"
+	"strings"
+	"time"
+
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"gorm.io/gorm"
+)
+
+// RecipeMatchService handles recipe matching logic
+type RecipeMatchService struct {
+	db *gorm.DB
+}
+
+func NewRecipeMatchService(db *gorm.DB) *RecipeMatchService {
+	return &RecipeMatchService{db: db}
+}
+
+// RecipeMatch represents a recipe with match score
+type RecipeMatch struct {
+	Recipe              models.RecipeCatalog    `json:"recipe"`
+	MatchScore          float64                 `json:"matchScore"` // 0-100
+	MatchedIngredients  []MatchedIngredient     `json:"matchedIngredients"`
+	MissingIngredients  []MissingIngredient     `json:"missingIngredients"`
+	CostToComplete      float64                 `json:"costToComplete"` // PLN to buy missing ingredients
+	HasExpiringItems    bool                    `json:"hasExpiringItems"`
+	ExpiringItemsCount  int                     `json:"expiringItemsCount"`
+	CanMakeNow          bool                    `json:"canMakeNow"` // All required ingredients available
+	
+	// Economy calculations (clear semantics for frontend)
+	UsedValue           float64                 `json:"usedValue"`       // PLN: cost of ingredients used from fridge
+	SavedMoney          float64                 `json:"savedMoney"`      // PLN: money saved by having ingredients (= usedValue, "Wartość z lodówki")
+	TotalRecipeCost     float64                 `json:"totalRecipeCost"` // PLN: full recipe cost (usedValue + costToComplete)
+	WasteRiskSaved      float64                 `json:"wasteRiskSaved"`  // PLN: value of expiring items used (prevents food waste)
+}
+
+type MatchedIngredient struct {
+	IngredientID   string    `json:"ingredientId"`
+	Name           string    `json:"name"`
+	Required       float64   `json:"required"`
+	Available      float64   `json:"available"`
+	Unit           string    `json:"unit"`
+	IsExpiringSoon bool      `json:"isExpiringSoon"`
+	ExpiresAt      *time.Time `json:"expiresAt,omitempty"`
+}
+
+type MissingIngredient struct {
+	IngredientID  string  `json:"ingredientId"`
+	Name          string  `json:"name"`
+	Required      float64 `json:"required"`
+	Unit          string  `json:"unit"`
+	EstimatedCost float64 `json:"estimatedCost"` // PLN
+	Optional      bool    `json:"optional"`
+}
+
+// MatchRecipesWithFridge finds recipes that match user's fridge contents
+func (s *RecipeMatchService) MatchRecipesWithFridge(
+	userID string,
+	filters RecipeFilters,
+) ([]RecipeMatch, error) {
+	// 1. Load user's fridge with prices
+	fridgeItems, err := s.loadFridgeWithPrices(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load fridge: %w", err)
+	}
+
+	if len(fridgeItems) == 0 {
+		return []RecipeMatch{}, nil
+	}
+
+	// 2. Build ingredient map for fast lookup
+	fridgeMap := make(map[string]*FridgeItem)
+	for i := range fridgeItems {
+		key := normalizeIngredientName(fridgeItems[i].Name)
+		fridgeMap[key] = &fridgeItems[i]
+	}
+
+	// 3. Load recipes from catalog with filters
+	recipes, err := s.loadRecipesWithFilters(filters)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load recipes: %w", err)
+	}
+
+	// 4. Calculate match score for each recipe
+	matches := make([]RecipeMatch, 0, len(recipes))
+	for _, recipe := range recipes {
+		match := s.calculateRecipeMatch(recipe, fridgeMap)
+		
+		// Apply minimum score threshold
+		if match.MatchScore < filters.MinScore {
+			continue
+		}
+		
+		// Apply cookable filter if requested
+		if filters.OnlyCookable && !match.CanMakeNow {
+			continue
+		}
+		
+		matches = append(matches, match)
+	}
+
+	// 5. Sort by: canCookNow DESC -> score DESC -> costToComplete ASC -> timeMinutes ASC
+	sortRecipeMatches(matches)
+
+	// 6. Return top N results
+	if filters.Limit > 0 && len(matches) > filters.Limit {
+		matches = matches[:filters.Limit]
+	}
+
+	return matches, nil
+}
+
+// calculateRecipeMatch calculates match score and details
+func (s *RecipeMatchService) calculateRecipeMatch(
+	recipe models.RecipeCatalog,
+	fridgeMap map[string]*FridgeItem,
+) RecipeMatch {
+	match := RecipeMatch{
+		Recipe:             recipe,
+		MatchedIngredients: []MatchedIngredient{},
+		MissingIngredients: []MissingIngredient{},
+		CostToComplete:     0,
+		HasExpiringItems:   false,
+		ExpiringItemsCount: 0,
+		UsedValue:          0,
+		SavedMoney:         0,
+		TotalRecipeCost:    0,
+		WasteRiskSaved:     0,
+	}
+
+	requiredCount := 0
+	matchedCount := 0
+	optionalMatchedCount := 0
+
+	for _, recipeIng := range recipe.Ingredients {
+		if recipeIng.Optional {
+			// Optional ingredients don't affect core match score
+			fridgeItem := s.findIngredientInFridge(recipeIng, fridgeMap)
+			if fridgeItem != nil {
+				optionalMatchedCount++
+				match.MatchedIngredients = append(match.MatchedIngredients, MatchedIngredient{
+					IngredientID:   recipeIng.IngredientID,
+					Name:           recipeIng.Ingredient.Name,
+					Required:       recipeIng.Quantity,
+					Available:      fridgeItem.Quantity,
+					Unit:           recipeIng.Unit,
+					IsExpiringSoon: fridgeItem.IsExpiringSoon,
+					ExpiresAt:      fridgeItem.ExpiresAt,
+				})
+			}
+			continue
+		}
+
+		requiredCount++
+		fridgeItem := s.findIngredientInFridge(recipeIng, fridgeMap)
+
+		if fridgeItem != nil && fridgeItem.Quantity >= recipeIng.Quantity {
+			// Ingredient available in sufficient quantity
+			matchedCount++
+			
+			// Calculate value of used ingredient
+			ingredientValue := recipeIng.Quantity * fridgeItem.PricePerUnit
+			match.UsedValue += ingredientValue
+			
+			// Track expiring items value (waste prevention)
+			if fridgeItem.IsExpiringSoon {
+				match.HasExpiringItems = true
+				match.ExpiringItemsCount++
+				match.WasteRiskSaved += ingredientValue
+			}
+			
+			matched := MatchedIngredient{
+				IngredientID:   recipeIng.IngredientID,
+				Name:           recipeIng.Ingredient.Name,
+				Required:       recipeIng.Quantity,
+				Available:      fridgeItem.Quantity,
+				Unit:           recipeIng.Unit,
+				IsExpiringSoon: fridgeItem.IsExpiringSoon,
+				ExpiresAt:      fridgeItem.ExpiresAt,
+			}
+			match.MatchedIngredients = append(match.MatchedIngredients, matched)
+		} else {
+			// Ingredient missing or insufficient
+			pricePerUnit := 0.0
+			if recipeIng.Ingredient.DefaultPricePerUnit != nil {
+				pricePerUnit = *recipeIng.Ingredient.DefaultPricePerUnit
+			}
+			estimatedCost := roundToTwoDecimals(recipeIng.Quantity * pricePerUnit)
+			missing := MissingIngredient{
+				IngredientID:  recipeIng.IngredientID,
+				Name:          recipeIng.Ingredient.Name,
+				Required:      recipeIng.Quantity,
+				Unit:          recipeIng.Unit,
+				EstimatedCost: estimatedCost,
+				Optional:      recipeIng.Optional,
+			}
+			match.MissingIngredients = append(match.MissingIngredients, missing)
+			match.CostToComplete += estimatedCost
+		}
+	}
+
+	// Calculate base match score
+	if requiredCount > 0 {
+		match.MatchScore = (float64(matchedCount) / float64(requiredCount)) * 100
+	}
+
+	// Bonus for optional ingredients
+	if len(recipe.Ingredients) > requiredCount && optionalMatchedCount > 0 {
+		optionalBonus := (float64(optionalMatchedCount) / float64(len(recipe.Ingredients)-requiredCount)) * 5
+		match.MatchScore += optionalBonus
+	}
+
+	// Bonus for using expiring items (prioritize waste reduction)
+	if match.HasExpiringItems {
+		expiryBonus := float64(match.ExpiringItemsCount) * 2.0
+		match.MatchScore += expiryBonus
+	}
+
+	// Cap at 100
+	if match.MatchScore > 100 {
+		match.MatchScore = 100
+	}
+
+	// Round score to 2 decimals
+	match.MatchScore = roundToTwoDecimals(match.MatchScore)
+
+	// Round economy values to 2 decimals
+	match.CostToComplete = roundToTwoDecimals(match.CostToComplete)
+	match.UsedValue = roundToTwoDecimals(match.UsedValue)
+	match.WasteRiskSaved = roundToTwoDecimals(match.WasteRiskSaved)
+	
+	// Calculate economy semantics (clear for frontend)
+	match.SavedMoney = match.UsedValue  // Money saved by having ingredients (already rounded)
+	match.TotalRecipeCost = roundToTwoDecimals(match.UsedValue + match.CostToComplete) // Full recipe cost
+
+	// Determine if can make now
+	match.CanMakeNow = (matchedCount == requiredCount)
+
+	return match
+}
+
+// findIngredientInFridge finds ingredient in fridge by normalized name
+func (s *RecipeMatchService) findIngredientInFridge(
+	recipeIng models.CatalogIngredient,
+	fridgeMap map[string]*FridgeItem,
+) *FridgeItem {
+	// Try exact match first
+	key := normalizeIngredientName(recipeIng.Ingredient.Name)
+	if item, ok := fridgeMap[key]; ok {
+		return item
+	}
+
+	// Try by ingredient key
+	if item, ok := fridgeMap[recipeIng.IngredientKey]; ok {
+		return item
+	}
+
+	// Try fuzzy match (contains)
+	for fridgeKey, item := range fridgeMap {
+		if strings.Contains(fridgeKey, key) || strings.Contains(key, fridgeKey) {
+			return item
+		}
+	}
+
+	return nil
+}
+
+// FridgeItem represents user's fridge item with calculated data
+type FridgeItem struct {
+	ID             string
+	Name           string
+	Quantity       float64
+	Unit           string
+	PricePerUnit   float64
+	ExpiresAt      *time.Time
+	IsExpiringSoon bool // Within 3 days
+}
+
+// loadFridgeWithPrices loads user's fridge items with prices
+func (s *RecipeMatchService) loadFridgeWithPrices(userID string) ([]FridgeItem, error) {
+	var dbItems []models.UserFridgeItem
+	err := s.db.
+		Preload("Ingredient").
+		Where("user_id = ?", userID).
+		Find(&dbItems).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]FridgeItem, 0, len(dbItems))
+
+	for _, item := range dbItems {
+		if item.Ingredient == nil {
+			continue
+		}
+
+		pricePerUnit := 0.0
+		if item.CurrentPricePerUnit != nil {
+			pricePerUnit = *item.CurrentPricePerUnit
+		} else if item.Ingredient.DefaultPricePerUnit != nil {
+			pricePerUnit = *item.Ingredient.DefaultPricePerUnit
+		}
+
+		isExpiringSoon := false
+		if item.ExpiresAt != nil {
+			daysUntilExpiry := time.Until(*item.ExpiresAt).Hours() / 24
+			isExpiringSoon = daysUntilExpiry <= 3 && daysUntilExpiry > 0
+		}
+
+		items = append(items, FridgeItem{
+			ID:             item.ID,
+			Name:           item.Ingredient.Name,
+			Quantity:       item.Quantity,
+			Unit:           item.Ingredient.Unit,
+			PricePerUnit:   pricePerUnit,
+			ExpiresAt:      item.ExpiresAt,
+			IsExpiringSoon: isExpiringSoon,
+		})
+	}
+
+	return items, nil
+}
+
+// RecipeFilters for filtering recipe catalog
+type RecipeFilters struct {
+	Country        string   // "Poland", "Italy", etc.
+	Category       string   // "main", "dessert", etc.
+	Difficulty     string   // "easy", "medium", "hard"
+	MaxTime        int      // Maximum time in minutes
+	ExcludeAllergens []string // ["gluten", "lactose"]
+	IncludeDietTags  []string // ["vegetarian", "keto"]
+	MinScore       float64  // Minimum match score (0-100), default: 0
+	OnlyCookable   bool     // Only show recipes that can be cooked now (all required ingredients available)
+	Limit          int      // Max results
+}
+
+// loadRecipesWithFilters loads recipes from catalog with filters
+func (s *RecipeMatchService) loadRecipesWithFilters(filters RecipeFilters) ([]models.RecipeCatalog, error) {
+	query := s.db.Model(&models.RecipeCatalog{}).
+		Preload("Ingredients.Ingredient").
+		Preload("Allergens").
+		Preload("DietTags")
+
+	// Apply filters
+	if filters.Country != "" {
+		query = query.Where("country = ?", filters.Country)
+	}
+	if filters.Category != "" {
+		query = query.Where("category = ?", filters.Category)
+	}
+	if filters.Difficulty != "" {
+		query = query.Where("difficulty = ?", filters.Difficulty)
+	}
+	if filters.MaxTime > 0 {
+		query = query.Where("\"timeMinutes\" <= ?", filters.MaxTime)
+	}
+
+	// Exclude allergens
+	if len(filters.ExcludeAllergens) > 0 {
+		query = query.Where(`id NOT IN (
+			SELECT "recipeId" FROM "RecipeAllergen" ra
+			JOIN "Allergen" a ON a.id = ra."allergenId"
+			WHERE a.name IN ?
+		)`, filters.ExcludeAllergens)
+	}
+
+	// Include diet tags
+	if len(filters.IncludeDietTags) > 0 {
+		query = query.Where(`id IN (
+			SELECT "recipeId" FROM "RecipeDietTag" rdt
+			JOIN "DietTag" dt ON dt.id = rdt."dietTagId"
+			WHERE dt.name IN ?
+		)`, filters.IncludeDietTags)
+	}
+
+	var recipes []models.RecipeCatalog
+	err := query.Find(&recipes).Error
+	return recipes, err
+}
+
+// normalizeIngredientName normalizes ingredient name for matching
+func normalizeIngredientName(name string) string {
+	normalized := strings.ToLower(name)
+	normalized = strings.TrimSpace(normalized)
+	// Remove plural forms (basic)
+	normalized = strings.TrimSuffix(normalized, "y") // ziemniaky -> ziemniak
+	normalized = strings.TrimSuffix(normalized, "i") // pomidori -> pomidor
+	return normalized
+}
+
+// sortRecipeMatches sorts matches by: canCookNow DESC -> score DESC -> costToComplete ASC -> timeMinutes ASC
+func sortRecipeMatches(matches []RecipeMatch) {
+	// Simple bubble sort (good enough for small datasets)
+	for i := 0; i < len(matches); i++ {
+		for j := i + 1; j < len(matches); j++ {
+			// Primary sort: canCookNow (recipes you can cook NOW go first)
+			if matches[i].CanMakeNow != matches[j].CanMakeNow {
+				if matches[j].CanMakeNow {
+					matches[i], matches[j] = matches[j], matches[i]
+				}
+				continue
+			}
+			
+			// Secondary sort: score (higher is better)
+			scoreI := matches[i].MatchScore
+			scoreJ := matches[j].MatchScore
+			
+			// Bonus for expiring items (prioritize waste reduction)
+			if matches[i].HasExpiringItems {
+				scoreI += 5
+			}
+			if matches[j].HasExpiringItems {
+				scoreJ += 5
+			}
+			
+			if scoreI != scoreJ {
+				if scoreJ > scoreI {
+					matches[i], matches[j] = matches[j], matches[i]
+				}
+				continue
+			}
+			
+			// Tertiary sort: costToComplete (cheaper is better)
+			if matches[i].CostToComplete != matches[j].CostToComplete {
+				if matches[j].CostToComplete < matches[i].CostToComplete {
+					matches[i], matches[j] = matches[j], matches[i]
+				}
+				continue
+			}
+			
+			// Quaternary sort: timeMinutes (faster is better)
+			if matches[i].Recipe.TimeMinutes > matches[j].Recipe.TimeMinutes {
+				matches[i], matches[j] = matches[j], matches[i]
+			}
+		}
+	}
+}
+
+// roundToTwoDecimals rounds a float to 2 decimal places (for money)
+func roundToTwoDecimals(value float64) float64 {
+	return math.Round(value*100) / 100
+}
