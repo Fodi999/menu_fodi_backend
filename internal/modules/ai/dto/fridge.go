@@ -78,3 +78,8 @@ type UsedProductInfo struct {
 	Currency     string  `json:"currency"`             // Валюта
 	DaysLeft     *int    `json:"daysLeft,omitempty"`
 }
+
+// AddMissingIngredientsRequest запрос на добавление недостающих ингредиентов в холодильник
+type AddMissingIngredientsRequest struct {
+	Ingredients []RecipeIngredient `json:"ingredients" binding:"required"` // Список ingredientsMissing из рецепта
+}

@@ -287,6 +287,128 @@ func (h *AIHandlers) SaveRecipeIngredientsToFridge(w http.ResponseWriter, r *htt
 	})
 }
 
+// AddMissingIngredients godoc
+// @Summary Add missing ingredients from recipe to fridge
+// @Description Add ingredientsMissing from AI recipe to user's fridge (finds ingredients in catalog by name)
+// @Tags ai
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.AddMissingIngredientsRequest true "Missing ingredients from recipe"
+// @Success 200 {object} map[string]interface{} "success: true, added: count, skipped: []string"
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/ai/add-missing-ingredients [post]
+func (h *AIHandlers) AddMissingIngredients(w http.ResponseWriter, r *http.Request) {
+	// 1. Authenticate user
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// 2. Parse request
+	var req dto.AddMissingIngredientsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode add missing ingredients request", zap.Error(err))
+		httpx.BadRequest(w, "invalid request body")
+		return
+	}
+
+	if len(req.Ingredients) == 0 {
+		httpx.BadRequest(w, "ingredients list cannot be empty")
+		return
+	}
+
+	logger.Info("Adding missing ingredients to fridge",
+		zap.String("user_id", userID),
+		zap.Int("count", len(req.Ingredients)))
+
+	// 3. Find ingredients in catalog and add to fridge
+	var added int
+	var skipped []string
+
+	for _, ing := range req.Ingredients {
+		// Find ingredient in catalog by name (try Polish, English, Russian)
+		var catalogIngredient models.Ingredient
+		err := h.db.Where("LOWER(name) = LOWER(?)", ing.Name).
+			First(&catalogIngredient).Error
+
+		if err != nil {
+			// Ingredient not found in catalog - skip it
+			logger.Warn("ingredient not found in catalog",
+				zap.String("user_id", userID),
+				zap.String("ingredient", ing.Name),
+				zap.Error(err))
+			skipped = append(skipped, ing.Name)
+			continue
+		}
+
+		// Check if user already has this ingredient
+		var existingItem models.UserFridgeItem
+		err = h.db.Where("user_id = ? AND ingredient_id = ?", userID, catalogIngredient.ID).
+			First(&existingItem).Error
+
+		if err == nil {
+			// User already has this ingredient - update quantity instead of creating duplicate
+			existingItem.Quantity += ing.Quantity
+			if err := h.db.Save(&existingItem).Error; err != nil {
+				logger.Error("failed to update existing ingredient quantity",
+					zap.String("user_id", userID),
+					zap.String("ingredient", ing.Name),
+					zap.Error(err))
+				skipped = append(skipped, ing.Name)
+				continue
+			}
+			logger.Info("updated existing ingredient quantity",
+				zap.String("user_id", userID),
+				zap.String("ingredient", ing.Name),
+				zap.Float64("added_quantity", ing.Quantity),
+				zap.Float64("new_total", existingItem.Quantity))
+			added++
+			continue
+		}
+
+		// Create new fridge item
+		expiresAt := time.Now().AddDate(0, 0, 14) // Default: 14 days for pantry items
+		newItem := &models.UserFridgeItem{
+			ID:           uuid.New().String(),
+			UserID:       userID,
+			IngredientID: catalogIngredient.ID,
+			Quantity:     ing.Quantity,
+			Unit:         ing.Unit,
+			ExpiresAt:    &expiresAt,
+		}
+
+		if err := h.db.Create(newItem).Error; err != nil {
+			logger.Error("failed to create fridge item",
+				zap.String("user_id", userID),
+				zap.String("ingredient", ing.Name),
+				zap.Error(err))
+			skipped = append(skipped, ing.Name)
+			continue
+		}
+
+		logger.Info("added missing ingredient to fridge",
+			zap.String("user_id", userID),
+			zap.String("ingredient", ing.Name),
+			zap.Float64("quantity", ing.Quantity),
+			zap.String("unit", ing.Unit))
+		added++
+	}
+
+	// 4. Return result
+	httpx.Success(w, map[string]interface{}{
+		"success": true,
+		"added":   added,
+		"skipped": skipped,
+		"message": fmt.Sprintf("Added %d ingredients to fridge", added),
+	})
+}
+
 // AnalyzeFridge godoc
 // @Summary AI Fridge Analysis (Smart Kitchen)
 // @Description Analyze user's fridge and provide AI-powered recommendations based on goal
