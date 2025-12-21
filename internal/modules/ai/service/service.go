@@ -863,24 +863,76 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 	// Inject product list into prompt
 	prompt := fmt.Sprintf(promptTemplate, fridgeContext.String())
 	
-	// 6. Call AI (temperature: 0.3 for stability)
+	// 6. Call AI with retry + self-repair mechanism
 	response, err := s.groqClient.SimpleChat("", prompt)
 	if err != nil {
 		return nil, fmt.Errorf("AI recipe generation failed: %w", err)
 	}
 	
-	// 7. Parse JSON response
+	// 7. Parse JSON response with self-repair retry
 	parsedJSON, isJSON, parseErr := parseAIResponse(response, "create_recipe")
 	
 	if !isJSON || parseErr != nil {
-		// AI returned invalid JSON
-		fmt.Printf("[AI][ERROR] Failed to parse AI response as JSON\n")
-		fmt.Printf("[AI][ERROR] Raw response: %s\n", response)
-		fmt.Printf("[AI][ERROR] Is JSON: %v, Parse error: %v\n", isJSON, parseErr)
-		return &dto.CreateRecipeFromFridgeResponse{
-			Success: false,
-			Message: "Failed to generate recipe in valid format. Please try again.",
-		}, nil
+		// 🔄 RETRY: Try to repair invalid JSON with AI
+		fmt.Printf("[AI][RETRY] First attempt failed, trying self-repair...\n")
+		fmt.Printf("[AI][RETRY] Original error: %v\n", parseErr)
+		fmt.Printf("[AI][RETRY] Raw response length: %d chars\n", len(response))
+		
+		repairPrompt := fmt.Sprintf(`You are a JSON repair API.
+
+The following response is invalid JSON. Fix it and return ONLY valid JSON matching this schema:
+
+{
+  "name": "string",
+  "description": "string",
+  "ingredientsUsed": [{"name": "string", "quantity": number, "unit": "string"}],
+  "ingredientsMissing": [{"name": "string", "quantity": number, "unit": "string"}],
+  "steps": ["string"],
+  "cookingTime": number,
+  "chefTips": ["string"],
+  "expiryPriority": "critical|warning|ok",
+  "economy": {
+    "usedFromFridge": boolean,
+    "estimatedExtraCost": number,
+    "currency": "PLN"
+  }
+}
+
+CRITICAL RULES:
+1. Return ONLY valid JSON
+2. NO markdown, NO comments, NO explanations
+3. If JSON is incomplete, complete it logically
+4. All numbers must be numbers (not strings)
+5. All required fields must be present
+
+INVALID RESPONSE TO FIX:
+%s
+
+Return ONLY the fixed JSON:`, response)
+
+		repairedResponse, repairErr := s.groqClient.SimpleChat("", repairPrompt)
+		if repairErr != nil {
+			fmt.Printf("[AI][RETRY] Repair call failed: %v\n", repairErr)
+			return &dto.CreateRecipeFromFridgeResponse{
+				Success: false,
+				Message: "Failed to generate recipe in valid format. Please try again.",
+			}, nil
+		}
+		
+		// Try parsing repaired response
+		parsedJSON, isJSON, parseErr = parseAIResponse(repairedResponse, "create_recipe")
+		
+		if !isJSON || parseErr != nil {
+			fmt.Printf("[AI][RETRY] Self-repair also failed\n")
+			fmt.Printf("[AI][RETRY] Repaired response: %s\n", repairedResponse)
+			fmt.Printf("[AI][RETRY] Parse error: %v\n", parseErr)
+			return &dto.CreateRecipeFromFridgeResponse{
+				Success: false,
+				Message: "Failed to generate recipe in valid format. Please try again.",
+			}, nil
+		}
+		
+		fmt.Printf("[AI][RETRY] ✅ Self-repair succeeded!\n")
 	}
 	
 	// 8. Decode into RestaurantRecipe

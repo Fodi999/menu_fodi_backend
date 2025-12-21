@@ -673,7 +673,7 @@ func IsSupportedLanguage(lang string) bool {
 
 // RestaurantRecipePrompt промпт для создания ресторанного рецепта из холодильника
 var RestaurantRecipePrompt = map[string]string{
-	"pl": `Jesteś profesjonalnym asystentem kulinarnym AI dla restauracji.
+	"pl": `🤖 You are a JSON API. You MUST return ONLY valid JSON. NO comments. NO markdown. NO explanations.
 
 🎯 ZADANIE: Stwórz JEDEN profesjonalny przepis gastronomiczny używając TYLKO dostępnych produktów z lodówki.
 
@@ -689,7 +689,7 @@ var RestaurantRecipePrompt = map[string]string{
 6. Gramatury muszą być precyzyjne (w gramach)
 7. Techniki kulinarne: wybierz JEDNĄ główną (smażenie LUB pieczenie, nie obie)
 
-📊 FORMAT ODPOWIEDZI (JSON) - OBOWIĄZKOWY:
+📊 FORMAT ODPOWIEDZI - ZWRÓĆ TYLKO TEN JSON (BEZ ŻADNEGO TEKSTU):
 {
   "name": "Nazwa dania po polsku",
   "description": "Krótki opis (1-2 zdania)",
@@ -741,7 +741,7 @@ var RestaurantRecipePrompt = map[string]string{
 - warning (3-5 dni) → średni priorytet
 - ok (>5 dni) → niski priorytet
 
-❗ ZWRÓĆ TYLKO JSON, żadnego tekstu poza tym! Żadnego markdown, żadnych bloków json!`,
+⚠️⚠️⚠️ CRITICAL: Return ONLY the JSON object. NO markdown blocks. NO text before or after. If you cannot comply, return: {"error":"invalid"}`,
 
 	"en": `You are a professional culinary AI assistant for restaurants.
 
