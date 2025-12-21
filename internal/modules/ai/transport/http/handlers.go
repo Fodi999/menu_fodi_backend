@@ -736,6 +736,14 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		httpx.InternalError(w, "failed to generate recipe")
 		return
 	}
+	
+	// 🔥 DEBUG: Log what service returned
+	logger.Info("Service returned response",
+		zap.String("user_id", userID),
+		zap.Bool("success", response.Success),
+		zap.Bool("recipe_nil", response.Recipe == nil),
+		zap.Bool("economy_nil", response.Recipe != nil && response.Recipe.Economy == nil),
+		zap.Any("economy", response.Recipe.Economy))
 
 	// 6. Return response directly (it already has proper structure)
 	// Response structure:

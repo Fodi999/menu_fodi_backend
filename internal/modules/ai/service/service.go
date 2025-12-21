@@ -976,6 +976,11 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 		savedMoney = 0 // Can't have negative savings
 	}
 	
+	// 🔥 CRITICAL DEBUG: Log BEFORE setting economy
+	fmt.Printf("[AI][ECONOMY] ⚠️ BEFORE override - recipe.Economy = %+v\n", recipe.Economy)
+	fmt.Printf("[AI][ECONOMY] ⚠️ About to set: UsedValue=%.2f, SavedMoney=%.2f, Currency=%s\n",
+		totalUsedCost, savedMoney, currency)
+	
 	// ALWAYS override economy block with backend-calculated values (even if prices missing)
 	// This ensures frontend always receives economy structure
 	recipe.Economy = &dto.RecipeEconomy{
@@ -986,11 +991,20 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 		Currency:           currency,
 	}
 	
+	// 🔥 CRITICAL DEBUG: Log AFTER setting economy
+	fmt.Printf("[AI][ECONOMY] ✅ AFTER override - recipe.Economy = %+v\n", recipe.Economy)
+	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe: %p\n", &recipe)
+	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe.Economy: %p\n", recipe.Economy)
+	// 🔥 CRITICAL DEBUG: Log AFTER setting economy
+	fmt.Printf("[AI][ECONOMY] ✅ AFTER override - recipe.Economy = %+v\n", recipe.Economy)
+	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe: %p\n", &recipe)
+	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe.Economy: %p\n", recipe.Economy)
+	
 	fmt.Printf("[AI][ECONOMY] Used cost: %.2f %s, Extra cost: %.2f %s, Saved: %.2f %s (prices available: %d products)\n",
 		totalUsedCost, currency, estimatedExtraCost, currency, savedMoney, currency, len(usedProducts))
-	fmt.Printf("[AI][ECONOMY] ✅ Economy object created: %+v\n", recipe.Economy)
 	
 	// 11. Return successful result
+	fmt.Printf("[AI][ECONOMY] 🚀 About to return response with recipe at address: %p\n", &recipe)
 	return &dto.CreateRecipeFromFridgeResponse{
 		Success:      true,
 		Recipe:       &recipe,
