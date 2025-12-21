@@ -14,11 +14,11 @@ func TestMoneyContract_TotalPriceAlwaysRounded(t *testing.T) {
 	service := &FridgeService{}
 
 	tests := []struct {
-		name        string
-		quantity    float64
-		pricePerUnit float64
+		name          string
+		quantity      float64
+		pricePerUnit  float64
 		expectedTotal float64
-		description string
+		description   string
 	}{
 		{
 			name:          "Real production case: Ogórek",
@@ -97,9 +97,9 @@ func TestMoneyContract_SumOfRoundedValues(t *testing.T) {
 		quantity     float64
 		pricePerUnit float64
 	}{
-		{quantity: 3560, pricePerUnit: 0.00581},  // 20.68 PLN
-		{quantity: 1200, pricePerUnit: 0.00416},  // 4.99 PLN
-		{quantity: 500, pricePerUnit: 0.008},     // 4.00 PLN
+		{quantity: 3560, pricePerUnit: 0.00581}, // 20.68 PLN
+		{quantity: 1200, pricePerUnit: 0.00416}, // 4.99 PLN
+		{quantity: 500, pricePerUnit: 0.008},    // 4.00 PLN
 	}
 
 	var totalFridgeValue float64
@@ -113,10 +113,10 @@ func TestMoneyContract_SumOfRoundedValues(t *testing.T) {
 
 	// Wartość lodówki = 20.68 + 4.99 + 4.00 = 29.67 PLN
 	expected := 29.67
-	
+
 	// Округляем итоговую сумму тоже до 2 знаков (на случай накопления ошибок)
 	totalFridgeValue = round2(totalFridgeValue)
-	
+
 	if totalFridgeValue != expected {
 		t.Errorf(
 			"FRIDGE VALUE CONTRACT VIOLATION!\n"+
@@ -134,7 +134,7 @@ func TestMoneyContract_APIResponse(t *testing.T) {
 	// Создаём типичный API response
 	pricePerUnit := 0.00581
 	totalPrice := 20.68
-	
+
 	response := models.FridgeItemListResponse{
 		ID:           "test-id",
 		Name:         "Ogórek",
@@ -177,7 +177,7 @@ func TestMoneyContract_APIResponse(t *testing.T) {
 				"   → Frontend MUST use backend's totalPrice!",
 			*response.TotalPrice,
 			recalculated,
-			recalculated - *response.TotalPrice,
+			recalculated-*response.TotalPrice,
 		)
 	}
 }

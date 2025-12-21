@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 // Config holds all application configuration
@@ -36,6 +38,9 @@ type Config struct {
 
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
+	// Load .env file (ignore error if it doesn't exist - env vars might be set directly)
+	_ = godotenv.Load()
+
 	cfg := &Config{
 		HTTPPort:      getEnv("HTTP_PORT", "8080"),
 		Env:           getEnv("APP_ENV", "dev"),

@@ -16,15 +16,15 @@ type FridgeItemAdd struct {
 
 // BatchFridgeUpdateResponse - результат batch операции с обновленными рецептами
 type BatchFridgeUpdateResponse struct {
-	Success bool                `json:"success"`
-	Data    *BatchUpdateData    `json:"data,omitempty"`
-	Message string              `json:"message,omitempty"`
-	Error   string              `json:"error,omitempty"`
+	Success bool             `json:"success"`
+	Data    *BatchUpdateData `json:"data,omitempty"`
+	Message string           `json:"message,omitempty"`
+	Error   string           `json:"error,omitempty"`
 }
 
 // BatchUpdateData - данные после batch update
 type BatchUpdateData struct {
-	AddedCount     int               `json:"addedCount"`      // Сколько добавлено
-	UpdatedRecipes []RecipeMatchItem `json:"updatedRecipes"`  // Обновленные рецепты
-	RecipesCount   int               `json:"recipesCount"`    // Сколько рецептов в результате
+	AddedCount     int               `json:"addedCount"`     // Сколько добавлено
+	UpdatedRecipes []RecipeMatchItem `json:"updatedRecipes"` // Обновленные рецепты
+	RecipesCount   int               `json:"recipesCount"`   // Сколько рецептов в результате
 }

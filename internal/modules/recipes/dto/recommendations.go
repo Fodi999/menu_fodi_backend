@@ -2,8 +2,8 @@ package dto
 
 // RecommendationRequest - запрос на получение рекомендации рецепта
 type RecommendationRequest struct {
-	Mode             string   `json:"mode" binding:"required"`   // "fridge" - подбор по холодильнику
-	Limit            int      `json:"limit,omitempty"`           // default: 5
+	Mode             string   `json:"mode" binding:"required"`    // "fridge" - подбор по холодильнику
+	Limit            int      `json:"limit,omitempty"`            // default: 5
 	ExcludeRecipeIds []string `json:"excludeRecipeIds,omitempty"` // UUIDs рецептов для исключения
 }
 
@@ -17,9 +17,9 @@ type RecommendationResponse struct {
 
 // RecommendationData - данные рекомендации (1 лучший рецепт)
 type RecommendationData struct {
-	Recipe  RecipeInfo     `json:"recipe"`
-	Match   MatchInfo      `json:"match"`
-	Economy EconomyInfo    `json:"economy"`
+	Recipe  RecipeInfo  `json:"recipe"`
+	Match   MatchInfo   `json:"match"`
+	Economy EconomyInfo `json:"economy"`
 }
 
 // RecipeInfo - информация о рецепте (совместимый формат)
@@ -39,13 +39,13 @@ type RecipeInfo struct {
 
 // MatchInfo - информация о матчинге с холодильником
 type MatchInfo struct {
-	CanCookNow      bool                    `json:"canCookNow"`      // true если все required есть
-	MissingRequired []MissingIngredient     `json:"missingRequired"` // Что нужно докупить
-	UsedIngredients []UsedIngredient        `json:"usedIngredients"` // Что используется из холодильника
+	CanCookNow      bool                       `json:"canCookNow"`      // true если все required есть
+	MissingRequired []MissingIngredientForBuy  `json:"missingRequired"` // Что нужно докупить
+	UsedIngredients []UsedIngredient           `json:"usedIngredients"` // Что используется из холодильника
 }
 
-// MissingIngredient - недостающий ингредиент
-type MissingIngredient struct {
+// MissingIngredientForBuy - недостающий ингредиент для покупки
+type MissingIngredientForBuy struct {
 	IngredientID  string  `json:"ingredientId"`
 	Name          string  `json:"name"`
 	Quantity      float64 `json:"quantity"`
@@ -67,4 +67,11 @@ type UsedIngredient struct {
 type EconomyInfo struct {
 	UsedFromFridge float64 `json:"usedFromFridge"` // PLN: стоимость использованных продуктов
 	Saved          float64 `json:"saved"`          // PLN: сколько сэкономили (= usedFromFridge)
+}
+
+// SaveRecipeRequest - запрос на сохранение рецепта
+type SaveRecipeRequest struct {
+	RecipeID string `json:"recipeId" binding:"required"`
+	Servings int    `json:"servings,omitempty"` // default: 2
+	Source   string `json:"source,omitempty"`   // default: "fridge"
 }

@@ -2,8 +2,8 @@ package dto
 
 // FridgeAnalyzeRequest запрос на анализ холодильника через AI
 type FridgeAnalyzeRequest struct {
-	Goal        string      `json:"goal" binding:"required"`     // "today_meals" | "3_days_plan" | "reduce_waste" | "budget_review"
-	Language    string      `json:"language,omitempty"`          // "pl" | "en" | "ru" (default: "pl")
+	Goal        string      `json:"goal" binding:"required"` // "today_meals" | "3_days_plan" | "reduce_waste" | "budget_review"
+	Language    string      `json:"language,omitempty"`      // "pl" | "en" | "ru" (default: "pl")
 	Preferences Preferences `json:"preferences,omitempty"`
 }
 
@@ -33,23 +33,23 @@ type CreateRecipeFromFridgeRequest struct {
 
 // CreateRecipeFromFridgeResponse ответ с созданным рецептом
 type CreateRecipeFromFridgeResponse struct {
-	Success      bool                `json:"success"`
-	Recipe       *RestaurantRecipe   `json:"recipe,omitempty"`
-	UsedProducts []UsedProductInfo   `json:"usedProducts,omitempty"` // Какие продукты использованы
-	Message      string              `json:"message,omitempty"`      // Сообщение об ошибке или предупреждение
+	Success      bool              `json:"success"`
+	Recipe       *RestaurantRecipe `json:"recipe,omitempty"`
+	UsedProducts []UsedProductInfo `json:"usedProducts,omitempty"` // Какие продукты использованы
+	Message      string            `json:"message,omitempty"`      // Сообщение об ошибке или предупреждение
 }
 
 // RestaurantRecipe профессиональный ресторанный рецепт
 type RestaurantRecipe struct {
-	Name               string              `json:"name"`               // Название блюда
-	Description        string              `json:"description"`        // Короткий описание
-	IngredientsUsed    []RecipeIngredient  `json:"ingredientsUsed"`    // Продукты ИЗ холодильника
-	IngredientsMissing []RecipeIngredient  `json:"ingredientsMissing"` // Продукты которые нужно ДОКУПИТЬ
-	Steps              []string            `json:"steps"`              // Пошаговая инструкция
-	CookingTime        int                 `json:"cookingTime"`        // Время приготовления (минуты)
-	ChefTips           []string            `json:"chefTips"`           // Советы шефа
-	ExpiryPriority     string              `json:"expiryPriority"`     // "critical" | "warning" | "ok"
-	Economy            *RecipeEconomy      `json:"economy"`            // Экономическая выгода (ALWAYS included, even if nil values)
+	Name               string             `json:"name"`               // Название блюда
+	Description        string             `json:"description"`        // Короткий описание
+	IngredientsUsed    []RecipeIngredient `json:"ingredientsUsed"`    // Продукты ИЗ холодильника
+	IngredientsMissing []RecipeIngredient `json:"ingredientsMissing"` // Продукты которые нужно ДОКУПИТЬ
+	Steps              []string           `json:"steps"`              // Пошаговая инструкция
+	CookingTime        int                `json:"cookingTime"`        // Время приготовления (минуты)
+	ChefTips           []string           `json:"chefTips"`           // Советы шефа
+	ExpiryPriority     string             `json:"expiryPriority"`     // "critical" | "warning" | "ok"
+	Economy            *RecipeEconomy     `json:"economy"`            // Экономическая выгода (ALWAYS included, even if nil values)
 }
 
 // RecipeIngredient ингредиент в рецепте с точным количеством
@@ -73,16 +73,16 @@ type UsedProductInfo struct {
 	Name         string  `json:"name"`
 	QuantityUsed float64 `json:"quantityUsed"`
 	Unit         string  `json:"unit"`
-	PricePerUnit float64 `json:"pricePerUnit"`         // Цена за единицу (PLN/g, PLN/ml)
-	UsedCost     float64 `json:"usedCost"`             // Стоимость использованного количества
-	Currency     string  `json:"currency"`             // Валюта
+	PricePerUnit float64 `json:"pricePerUnit"` // Цена за единицу (PLN/g, PLN/ml)
+	UsedCost     float64 `json:"usedCost"`     // Стоимость использованного количества
+	Currency     string  `json:"currency"`     // Валюта
 	DaysLeft     *int    `json:"daysLeft,omitempty"`
 }
 
 // RecalculateRecipeRequest запрос на пересчёт экономики рецепта
 type RecalculateRecipeRequest struct {
-	Recipe   RestaurantRecipe `json:"recipe" binding:"required"`  // Текущий рецепт (с steps, title и т.д.)
-	Language string           `json:"language,omitempty"`         // "pl" | "en" | "ru" (для AI запросов, если нужны)
+	Recipe   RestaurantRecipe `json:"recipe" binding:"required"` // Текущий рецепт (с steps, title и т.д.)
+	Language string           `json:"language,omitempty"`        // "pl" | "en" | "ru" (для AI запросов, если нужны)
 }
 
 // RecalculateRecipeResponse ответ с пересчитанным рецептом

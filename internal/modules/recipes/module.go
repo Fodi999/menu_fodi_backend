@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
 	httphandlers "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
@@ -19,13 +20,24 @@ type Module struct {
 func NewModule(db *gorm.DB) *Module {
 	// Old handlers (user recipes)
 	oldHandlers := httphandlers.NewRecipeHandlers()
-	
+
+	// Initialize repositories
+	sessionRepository := database.NewUserRecipeSessionRepository(db)
+	savedRecipeRepo := database.NewUserSavedRecipeRepository(db)
+
 	// New catalog handlers (recipe matching, adaptation & cooking)
 	matchService := service.NewRecipeMatchService(db)
 	adapterService := service.NewRecipeAdapterService(db, nil) // TODO: Pass Groq client
 	cookService := service.NewRecipeCookService(db)
-	catalogHandler := httphandlers.NewRecipeHandler(matchService, adapterService, cookService, logger.Log)
-	
+	catalogHandler := httphandlers.NewRecipeHandler(
+		matchService,
+		adapterService,
+		cookService,
+		sessionRepository,
+		savedRecipeRepo,
+		logger.Log,
+	)
+
 	return &Module{
 		oldHandlers:    oldHandlers,
 		catalogHandler: catalogHandler,
@@ -57,12 +69,16 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	// Recipe cooking - TEMPORARILY PUBLIC FOR TESTING (uses testUserID)
 	r.Post("/recipes/{id}/cook", m.catalogHandler.CookRecipe)
 	
+	// User saved recipes - TEMPORARILY PUBLIC FOR TESTING
+	r.Post("/user/recipes/save", m.catalogHandler.SaveRecipe)
+	r.Get("/user/recipes/saved", m.catalogHandler.GetSavedRecipes)
+
 	// Protected routes (require auth)
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
 		// Recipe adaptation (AI adapts recipe to available ingredients)
 		r.Post("/recipes/{id}/adapt", m.catalogHandler.AdaptRecipe)
-		
+
 		// Recipe detail (TODO: Implement)
 		// r.Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
 	})

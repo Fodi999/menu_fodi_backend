@@ -5,21 +5,21 @@ import "time"
 // UserFridgeItem модель холодильника домашнего повара (HOME_CHEF) - MVP версия
 // Простая структура без лишних полей
 type UserFridgeItem struct {
-	ID           string     `gorm:"primaryKey;type:uuid;default:gen_random_uuid();column:id" json:"id"`
-	UserID       string     `gorm:"type:uuid;not null;column:user_id;index" json:"userId"`
-	IngredientID string     `gorm:"type:uuid;not null;column:ingredient_id;index" json:"ingredientId"` // Обязательная связь с каталогом
-	Quantity     float64    `gorm:"not null;column:quantity" json:"quantity"`                          // Числовое значение (например, 500)
-	Unit         string     `gorm:"not null;column:unit" json:"unit"`                                  // "g", "ml", "szt" - единица измерения
-	
+	ID           string  `gorm:"primaryKey;type:uuid;default:gen_random_uuid();column:id" json:"id"`
+	UserID       string  `gorm:"type:uuid;not null;column:user_id;index" json:"userId"`
+	IngredientID string  `gorm:"type:uuid;not null;column:ingredient_id;index" json:"ingredientId"` // Обязательная связь с каталогом
+	Quantity     float64 `gorm:"not null;column:quantity" json:"quantity"`                          // Числовое значение (например, 500)
+	Unit         string  `gorm:"not null;column:unit" json:"unit"`                                  // "g", "ml", "szt" - единица измерения
+
 	// Current price cache (denormalized from history for performance)
 	// Source of truth: user_fridge_price_history table
 	CurrentPricePerUnit  *float64   `gorm:"column:current_price_per_unit" json:"currentPricePerUnit,omitempty"`
 	CurrentPriceCurrency string     `gorm:"column:current_price_currency;default:'PLN'" json:"currentPriceCurrency,omitempty"`
 	PriceUpdatedAt       *time.Time `gorm:"column:price_updated_at" json:"priceUpdatedAt,omitempty"`
-	
+
 	// Date tracking
 	ArrivedAt time.Time  `gorm:"column:arrived_at;not null;default:CURRENT_TIMESTAMP;index:,sort:desc" json:"arrivedAt"` // Когда продукт попал в холодильник (автоматически)
-	ExpiresAt *time.Time `gorm:"column:expires_at;index" json:"expiresAt,omitempty"`                                      // Дата истечения срока (nullable, может вычисляться автоматически)
+	ExpiresAt *time.Time `gorm:"column:expires_at;index" json:"expiresAt,omitempty"`                                     // Дата истечения срока (nullable, может вычисляться автоматически)
 	CreatedAt time.Time  `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 
 	// Relations
@@ -89,12 +89,13 @@ type PriceHistoryResponse struct {
 //   - Алерт "Цена выросла на 20% за неделю"
 //
 // Example response:
-//   {
-//     "trend": "up",           // "up" | "down" | "stable"
-//     "percentChange": 15.05,  // +15.05% (положительное = подорожало)
-//     "lastPrice": 0.00581,    // Текущая цена
-//     "previousPrice": 0.00505 // Предыдущая цена
-//   }
+//
+//	{
+//	  "trend": "up",           // "up" | "down" | "stable"
+//	  "percentChange": 15.05,  // +15.05% (положительное = подорожало)
+//	  "lastPrice": 0.00581,    // Текущая цена
+//	  "previousPrice": 0.00505 // Предыдущая цена
+//	}
 //
 // Frontend implementation ideas:
 //   - trend === "up" → показать 🔴 красный бейдж "⬆ +15%"
@@ -102,12 +103,12 @@ type PriceHistoryResponse struct {
 //   - trend === "stable" → скрыть или показать серый "≈ 0%"
 //   - Использовать historyCount для проверки надёжности (2 записи = минимум)
 type PriceAnalysis struct {
-	Trend           string  `json:"trend"`                     // "up", "down", "stable"
-	PercentChange   float64 `json:"percentChange"`             // +15.5 (подорожало на 15.5%) или -10.2 (подешевело на 10.2%)
-	LastPrice       float64 `json:"lastPrice"`                 // Текущая цена за единицу
-	PreviousPrice   float64 `json:"previousPrice"`             // Предыдущая цена за единицу
-	LastUpdated     time.Time `json:"lastUpdated"`             // Когда была последняя цена
-	HistoryCount    int     `json:"historyCount"`              // Количество записей в истории
+	Trend         string    `json:"trend"`         // "up", "down", "stable"
+	PercentChange float64   `json:"percentChange"` // +15.5 (подорожало на 15.5%) или -10.2 (подешевело на 10.2%)
+	LastPrice     float64   `json:"lastPrice"`     // Текущая цена за единицу
+	PreviousPrice float64   `json:"previousPrice"` // Предыдущая цена за единицу
+	LastUpdated   time.Time `json:"lastUpdated"`   // Когда была последняя цена
+	HistoryCount  int       `json:"historyCount"`  // Количество записей в истории
 }
 
 // FridgeItemResponse DTO для ответа API с расширенной информацией
@@ -129,12 +130,12 @@ type IngredientShortInfo struct {
 // FridgeItemListResponse DTO для списка продуктов в холодильнике
 //
 // ⚠️ API CONTRACT - MONEY RULES (не изменять без согласования с фронтом):
-// 1. PricePerUnit: normalized price per base unit (g/ml/szt) with HIGH PRECISION
-//    Example: 4.00 PLN/kg → 0.004 PLN/g (stored as-is for calculations)
-// 2. TotalPrice: ALWAYS ROUNDED to 2 decimal places by backend
-//    Example: 3560g * 0.00581 PLN/g = 20.68 PLN (NOT 20.6836)
-// 3. Frontend MUST NOT recalculate totalPrice from quantity * pricePerUnit
-// 4. Wartość lodówki = SUM(totalPrice) where all values already rounded
+//  1. PricePerUnit: normalized price per base unit (g/ml/szt) with HIGH PRECISION
+//     Example: 4.00 PLN/kg → 0.004 PLN/g (stored as-is for calculations)
+//  2. TotalPrice: ALWAYS ROUNDED to 2 decimal places by backend
+//     Example: 3560g * 0.00581 PLN/g = 20.68 PLN (NOT 20.6836)
+//  3. Frontend MUST NOT recalculate totalPrice from quantity * pricePerUnit
+//  4. Wartość lodówki = SUM(totalPrice) where all values already rounded
 type FridgeItemListResponse struct {
 	ID       string  `json:"id"`
 	Name     string  `json:"name"`

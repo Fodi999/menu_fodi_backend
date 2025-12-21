@@ -12,11 +12,11 @@ type ChefMentorRequest struct {
 }
 
 type ChefMentorResponse struct {
-	Message          string        `json:"message"`
-	Recipe           *RecipeDraft  `json:"recipe,omitempty"`
-	NextQuestion     string        `json:"nextQuestion,omitempty"`
-	IsComplete       bool          `json:"isComplete"`
-	SuggestedActions []string      `json:"suggestedActions,omitempty"`
+	Message          string       `json:"message"`
+	Recipe           *RecipeDraft `json:"recipe,omitempty"`
+	NextQuestion     string       `json:"nextQuestion,omitempty"`
+	IsComplete       bool         `json:"isComplete"`
+	SuggestedActions []string     `json:"suggestedActions,omitempty"`
 }
 
 type RecipeDraft struct {

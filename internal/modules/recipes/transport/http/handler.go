@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
 	"github.com/go-chi/chi/v5"
@@ -16,23 +17,29 @@ import (
 )
 
 type RecipeHandler struct {
-	matchService   *service.RecipeMatchService
-	adapterService *service.RecipeAdapterService
-	cookService    *service.RecipeCookService
-	logger         *zap.Logger
+	matchService      *service.RecipeMatchService
+	adapterService    *service.RecipeAdapterService
+	cookService       *service.RecipeCookService
+	sessionRepository *database.UserRecipeSessionRepository
+	savedRecipeRepo   *database.UserSavedRecipeRepository
+	logger            *zap.Logger
 }
 
 func NewRecipeHandler(
 	matchService *service.RecipeMatchService,
 	adapterService *service.RecipeAdapterService,
 	cookService *service.RecipeCookService,
+	sessionRepository *database.UserRecipeSessionRepository,
+	savedRecipeRepo *database.UserSavedRecipeRepository,
 	logger *zap.Logger,
 ) *RecipeHandler {
 	return &RecipeHandler{
-		matchService:   matchService,
-		adapterService: adapterService,
-		cookService:    cookService,
-		logger:         logger,
+		matchService:      matchService,
+		adapterService:    adapterService,
+		cookService:       cookService,
+		sessionRepository: sessionRepository,
+		savedRecipeRepo:   savedRecipeRepo,
+		logger:            logger,
 	}
 }
 
@@ -240,11 +247,51 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 		req.ServingsMultiplier = 1.0
 	}
 
+	// Safety check: force requires idempotency key to prevent accidental duplicate cooking
+	if req.Force && req.IdempotencyKey == "" {
+		h.logger.Warn("Force cooking attempted without idempotency key",
+			zap.String("userId", userID),
+			zap.String("recipeId", recipeID),
+		)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(dto.CookRecipeResponse{
+			Success: false,
+			Code:    "IDEMPOTENCY_REQUIRED",
+			Message: "Idempotency key is required when force=true to prevent duplicate cooking",
+		})
+		return
+	}
+
+	// Guard: check if recipe was already cooked (unless force=true)
+	if !req.Force {
+		savedRecipe, err := h.savedRecipeRepo.FindSavedRecipe(userID, recipeID)
+		if err != nil {
+			h.logger.Error("Failed to check saved recipe", zap.Error(err))
+			// Don't fail the request if we can't check - continue cooking
+		} else if savedRecipe != nil && savedRecipe.CookedAt != nil {
+			h.logger.Warn("Recipe already cooked, rejecting request",
+				zap.String("userId", userID),
+				zap.String("recipeId", recipeID),
+				zap.Time("cookedAt", *savedRecipe.CookedAt),
+			)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(dto.CookRecipeResponse{
+				Success: false,
+				Code:    "ALREADY_COOKED",
+				Message: "Recipe already cooked. Use force=true to cook again.",
+			})
+			return
+		}
+	}
+
 	h.logger.Info("Cooking recipe",
 		zap.String("userId", userID),
 		zap.String("recipeId", recipeID),
 		zap.Float64("servingsMultiplier", req.ServingsMultiplier),
 		zap.String("idempotencyKey", req.IdempotencyKey),
+		zap.Bool("force", req.Force),
 	)
 
 	// Prepare idempotency key
@@ -261,6 +308,25 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 		idempotencyKeyPtr,
 	)
 	if err != nil {
+		// Check if it's insufficient ingredients error
+		if insufficientErr, ok := err.(*service.InsufficientIngredientsError); ok {
+			h.logger.Warn("Insufficient ingredients for cooking",
+				zap.String("userId", userID),
+				zap.String("recipeId", recipeID),
+				zap.Int("missingCount", len(insufficientErr.Missing)),
+			)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(dto.CookRecipeResponse{
+				Success: false,
+				Code:    "INSUFFICIENT_INGREDIENTS",
+				Message: "Not enough ingredients to cook this recipe",
+				Missing: insufficientErr.Missing,
+			})
+			return
+		}
+
+		// Other errors
 		h.logger.Error("Failed to cook recipe", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -387,7 +453,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch) dto.RecipeMatchItem {
 	coverage := 0.0
 	usedRequired := 0
 	totalRequired := 0
-	
+
 	// Count only required (non-optional) ingredients
 	for _, ing := range match.MatchedIngredients {
 		if !ing.Optional {
@@ -400,7 +466,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch) dto.RecipeMatchItem {
 			totalRequired++
 		}
 	}
-	
+
 	if totalRequired > 0 {
 		coverage = float64(usedRequired) / float64(totalRequired)
 		coverage = roundToTwoDecimals(coverage)
@@ -482,19 +548,65 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		req.Limit = 5
 	}
 
+	// Get saved recipe IDs to exclude them from recommendations
+	savedRecipeIDs, err := h.savedRecipeRepo.GetSavedRecipeIDs(userID)
+	if err != nil {
+		h.logger.Warn("Failed to get saved recipe IDs, proceeding without them", zap.Error(err))
+		savedRecipeIDs = []string{} // Continue with empty list
+	}
+
+	// Get session to track excluded recipes
+	session, err := h.sessionRepository.GetSession(userID)
+	if err != nil {
+		h.logger.Warn("Failed to get session, proceeding without exclusions", zap.Error(err))
+	}
+
+	// Merge excluded recipe IDs from: 1) request, 2) session, 3) saved recipes
+	excludeMap := make(map[string]bool)
+	
+	// Add from request (explicit exclusions from frontend)
+	for _, id := range req.ExcludeRecipeIds {
+		excludeMap[id] = true
+	}
+	
+	// Add from session (previously shown in this browsing session)
+	if session != nil {
+		for _, id := range session.ExcludedRecipeIDs {
+			excludeMap[id] = true
+		}
+	}
+	
+	// Add saved recipes (user already saved these, don't show again)
+	for _, id := range savedRecipeIDs {
+		excludeMap[id] = true
+	}
+	
+	// Convert map back to slice
+	excludeRecipeIds := make([]string, 0, len(excludeMap))
+	for id := range excludeMap {
+		excludeRecipeIds = append(excludeRecipeIds, id)
+	}
+
+	sessionCount := 0
+	if session != nil {
+		sessionCount = len(session.ExcludedRecipeIDs)
+	}
+
 	h.logger.Info("Getting recipe recommendation",
 		zap.String("userId", userID),
 		zap.String("mode", req.Mode),
 		zap.Int("limit", req.Limit),
-		zap.Int("excludeCount", len(req.ExcludeRecipeIds)),
+		zap.Int("excludeCount", len(excludeRecipeIds)),
+		zap.Int("savedCount", len(savedRecipeIDs)),
+		zap.Int("sessionCount", sessionCount),
 	)
 
 	// Get best recipe match (excluding already shown recipes)
-	bestMatch, err := h.matchService.GetBestRecommendation(userID, req.Limit, req.ExcludeRecipeIds)
+	bestMatch, err := h.matchService.GetBestRecommendation(userID, req.Limit, excludeRecipeIds)
 	if err != nil {
 		h.logger.Error("Failed to get recommendation", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		// Return 200 with friendly message instead of 500
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
@@ -512,6 +624,14 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		zap.Float64("score", bestMatch.MatchScore),
 		zap.Bool("canCookNow", bestMatch.CanMakeNow),
 	)
+
+	// Update session with new recipe
+	recipeID := bestMatch.Recipe.ID.String()
+	excludeRecipeIds = append(excludeRecipeIds, recipeID)
+	if err := h.sessionRepository.UpdateSession(userID, recipeID, excludeRecipeIds); err != nil {
+		h.logger.Warn("Failed to update session", zap.Error(err))
+		// Continue anyway, this is not critical
+	}
 
 	// Convert to recommendation response format (UI-compatible)
 	response := convertToRecommendationResponse(bestMatch)
@@ -553,10 +673,10 @@ func convertToRecommendationResponse(match *service.RecipeMatch) dto.Recommendat
 	recipeInfo.DietTags = dietTags
 
 	// Missing ingredients (required only, no optional)
-	missingRequired := []dto.MissingIngredient{}
+	missingRequired := []dto.MissingIngredientForBuy{}
 	for _, missing := range match.MissingIngredients {
 		if !missing.Optional {
-			missingRequired = append(missingRequired, dto.MissingIngredient{
+			missingRequired = append(missingRequired, dto.MissingIngredientForBuy{
 				IngredientID:  missing.IngredientID,
 				Name:          missing.Name,
 				Quantity:      missing.Required,
@@ -597,9 +717,9 @@ func convertToRecommendationResponse(match *service.RecipeMatch) dto.Recommendat
 		Data: &dto.RecommendationData{
 			Recipe:  recipeInfo,
 			Match:   matchInfo,
-		Economy: economyInfo,
-	},
-}
+			Economy: economyInfo,
+		},
+	}
 }
 
 // parseStepsFromJSON parses steps from JSON supporting both formats:
@@ -632,4 +752,175 @@ func parseStepsFromJSON(stepsJSON datatypes.JSON) []string {
 
 	// Fallback to empty array if both formats fail
 	return []string{}
+}
+
+// SaveRecipe saves a recipe for the user
+// POST /api/user/recipes/save
+func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from context
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok || userID == "" {
+		// DEV MODE: Allow testing without auth
+		testUserID := r.URL.Query().Get("testUserID")
+		if testUserID != "" {
+			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
+			userID = testUserID
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	// Parse request body
+	var req dto.SaveRecipeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Invalid request format",
+		})
+		return
+	}
+
+	// Validate required fields
+	if req.RecipeID == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Recipe ID is required",
+		})
+		return
+	}
+
+	if req.Servings <= 0 {
+		req.Servings = 2 // Default to 2 servings
+	}
+
+	if req.Source == "" {
+		req.Source = "fridge" // Default source
+	}
+
+	h.logger.Info("Saving recipe for user",
+		zap.String("userId", userID),
+		zap.String("recipeId", req.RecipeID),
+		zap.Int("servings", req.Servings),
+		zap.String("source", req.Source),
+	)
+
+	// Save recipe
+	savedRecipe, err := h.savedRecipeRepo.SaveRecipe(userID, req.RecipeID, req.Servings, req.Source)
+	if err != nil {
+		h.logger.Error("Failed to save recipe", zap.Error(err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Failed to save recipe",
+		})
+		return
+	}
+
+	// Return success
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"id":       savedRecipe.ID,
+			"recipeId": savedRecipe.RecipeID,
+			"savedAt":  savedRecipe.SavedAt,
+		},
+	})
+}
+
+// GetSavedRecipes returns all saved recipes for the user
+// GET /api/user/recipes/saved
+func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from context
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok || userID == "" {
+		// DEV MODE: Allow testing without auth
+		testUserID := r.URL.Query().Get("testUserID")
+		if testUserID != "" {
+			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
+			userID = testUserID
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	h.logger.Info("Getting saved recipes", zap.String("userId", userID))
+
+	// Get saved recipes from repository
+	savedRecipes, err := h.savedRecipeRepo.GetSavedRecipes(userID)
+	if err != nil {
+		h.logger.Error("Failed to get saved recipes", zap.Error(err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Failed to retrieve saved recipes",
+		})
+		return
+	}
+
+	// Build response with canCookNow for each recipe
+	recipesData := make([]map[string]interface{}, len(savedRecipes))
+	for i, saved := range savedRecipes {
+		if saved.Recipe == nil {
+			continue
+		}
+
+		// Calculate canCookNow using match service
+		canCookNow := false
+		filters := service.RecipeFilters{
+			MinScore:         0,
+			OnlyCookable:     false,
+			Limit:            1,
+			ExcludeRecipeIds: []string{}, // Don't exclude, we want this specific recipe
+		}
+
+		// Check if this recipe can be cooked now
+		matches, err := h.matchService.MatchRecipesWithFridge(userID, filters)
+		if err == nil {
+			// Find our recipe in the matches
+			for _, match := range matches {
+				if match.Recipe.ID.String() == saved.RecipeID {
+					canCookNow = match.CanMakeNow
+					break
+				}
+			}
+		}
+
+		recipesData[i] = map[string]interface{}{
+			"id":         saved.ID,
+			"recipeId":   saved.RecipeID,
+			"servings":   saved.Servings,
+			"source":     saved.Source,
+			"savedAt":    saved.SavedAt,
+			"canCookNow": canCookNow,
+			"recipe": map[string]interface{}{
+				"id":            saved.Recipe.ID,
+				"canonicalName": saved.Recipe.CanonicalName,
+				"localName":     saved.Recipe.LocalName,
+				"country":       saved.Recipe.Country,
+				"category":      saved.Recipe.Category,
+				"difficulty":    saved.Recipe.Difficulty,
+				"timeMinutes":   saved.Recipe.TimeMinutes,
+				"servings":      saved.Recipe.Servings,
+			},
+		}
+	}
+
+	// Return saved recipes
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"recipes": recipesData,
+			"count":   len(recipesData),
+		},
+	})
 }

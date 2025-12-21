@@ -147,7 +147,7 @@ func (r *UserFridgeRepository) UpdateCurrentPrice(itemID string, pricePerUnit fl
 	result := r.db.Model(&models.UserFridgeItem{}).
 		Where("id = ?", itemID).
 		Updates(map[string]interface{}{
-			"current_price_per_unit":  pricePerUnit,
+			"current_price_per_unit": pricePerUnit,
 			"current_price_currency": currency,
 			"price_updated_at":       now,
 		})

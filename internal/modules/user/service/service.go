@@ -27,9 +27,9 @@ type UserService interface {
 }
 
 type userService struct {
-	repo            repo.UserRepository
-	fridgeRepo      *database.UserFridgeRepository
-	tokenBankRepo   *database.TokenBankRepository
+	repo          repo.UserRepository
+	fridgeRepo    *database.UserFridgeRepository
+	tokenBankRepo *database.TokenBankRepository
 }
 
 // NewUserService creates new user service

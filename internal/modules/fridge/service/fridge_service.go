@@ -76,7 +76,7 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 			Currency:     "PLN",
 			Source:       "manual",
 		}
-		
+
 		if err := s.AddPrice(userID, item.ID, priceReq); err != nil {
 			// Не фейлим весь запрос из-за цены, просто логируем
 			fmt.Printf("warning: failed to add initial price: %v\n", err)
@@ -117,15 +117,15 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		// Добавляем цену только если она есть (из кэша current_price_*)
 		if item.CurrentPricePerUnit != nil {
 			response.PricePerUnit = item.CurrentPricePerUnit // Цена за единицу
-			response.TotalPrice = totalPrice                  // Общая стоимость
-			response.Currency = item.CurrentPriceCurrency     // Валюта
+			response.TotalPrice = totalPrice                 // Общая стоимость
+			response.Currency = item.CurrentPriceCurrency    // Валюта
 
 			// SMART KITCHEN: Добавляем анализ динамики цены
 			priceAnalysis, err := s.CalculatePriceTrend(item.ID)
 			if err != nil {
 				// Не критично, просто логируем и продолжаем без аналитики
-				logger.Warn("failed to calculate price trend", 
-					zap.String("item_id", item.ID), 
+				logger.Warn("failed to calculate price trend",
+					zap.String("item_id", item.ID),
 					zap.Error(err))
 			} else if priceAnalysis != nil {
 				response.PriceAnalysis = priceAnalysis
@@ -197,8 +197,8 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 		// Добавляем цену только если она есть (из кэша current_price_*)
 		if item.CurrentPricePerUnit != nil {
 			response.PricePerUnit = item.CurrentPricePerUnit // Цена за единицу
-			response.TotalPrice = totalPrice                  // Общая стоимость
-			response.Currency = item.CurrentPriceCurrency     // Валюта
+			response.TotalPrice = totalPrice                 // Общая стоимость
+			response.Currency = item.CurrentPriceCurrency    // Валюта
 		}
 
 		result = append(result, response)
@@ -324,7 +324,7 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 		"ai":       true,
 	}
 	if !validSources[req.Source] {
-		return fmt.Errorf("%w: %s (allowed: manual, receipt, estimate, market, ai)", 
+		return fmt.Errorf("%w: %s (allowed: manual, receipt, estimate, market, ai)",
 			ErrInvalidSource, req.Source) // 400
 	}
 
@@ -332,7 +332,7 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 	// Используем транзакцию для атомарности: history INSERT + cache UPDATE
 	if err := s.fridgeRepo.InsertPriceHistory(itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
 		// Детальное логирование для отладки
-		return fmt.Errorf("failed to insert price history (itemID=%s, price=%.8f, currency=%s, source=%s): %w", 
+		return fmt.Errorf("failed to insert price history (itemID=%s, price=%.8f, currency=%s, source=%s): %w",
 			itemID, req.PricePerUnit, req.Currency, req.Source, err)
 	}
 
@@ -396,8 +396,8 @@ func (s *FridgeService) CalculatePriceTrend(itemID string) (*models.PriceAnalysi
 	}
 
 	// Берём последние 2 записи
-	last := history[0]       // Самая свежая
-	previous := history[1]   // Предыдущая
+	last := history[0]     // Самая свежая
+	previous := history[1] // Предыдущая
 
 	// Считаем процент изменения: ((last - previous) / previous) * 100
 	percentChange := ((last.PricePerUnit - previous.PricePerUnit) / previous.PricePerUnit) * 100

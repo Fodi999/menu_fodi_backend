@@ -677,13 +677,13 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			zap.String("user_id", userID),
 			zap.String("goal", req.Goal),
 			zap.String("language", language))
-		
+
 		emptyMessages := map[string]string{
 			"pl": "Twoja lodówka jest pusta. Dodaj produkty, aby otrzymać rekomendacje AI!",
 			"en": "Your fridge is empty. Add some products to get AI recommendations!",
 			"ru": "Твой холодильник пуст. Добавь продукты, чтобы получить рекомендации AI!",
 		}
-		
+
 		httpx.Success(w, map[string]string{
 			"result": emptyMessages[language],
 		})
@@ -699,14 +699,14 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			zap.Int("items_count", len(aiItems)),
 			zap.String("language", language),
 			zap.Error(err))
-		
+
 		// Возвращаем fallback вместо 500
 		errorMessages := map[string]string{
 			"pl": "Przepraszamy, AI jest chwilowo niedostępne. Spróbuj ponownie później.",
 			"en": "Sorry, AI is temporarily unavailable. Please try again later.",
 			"ru": "Извините, AI временно недоступен. Попробуйте позже.",
 		}
-		
+
 		httpx.Success(w, map[string]string{
 			"result": errorMessages[language],
 		})
@@ -719,7 +719,7 @@ func (h *AIHandlers) AnalyzeFridge(w http.ResponseWriter, r *http.Request) {
 			zap.String("user_id", userID),
 			zap.String("goal", req.Goal),
 			zap.String("language", language))
-		
+
 		fallbackMessages := map[string]string{
 			"pl": "AI nie wygenerowało odpowiedzi. Spróbuj ponownie za chwilę lub wybierz inny cel.",
 			"en": "AI did not generate a response. Please try again in a moment or choose a different goal.",
@@ -888,7 +888,7 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		httpx.InternalError(w, "failed to generate recipe")
 		return
 	}
-	
+
 	// 🔥 DEBUG: Log what service returned
 	var economyVal interface{} = nil
 	economyIsNil := true
@@ -896,7 +896,7 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		economyIsNil = response.Recipe.Economy == nil
 		economyVal = response.Recipe.Economy
 	}
-	
+
 	logger.Info("Service returned response",
 		zap.String("user_id", userID),
 		zap.Bool("success", response.Success),
@@ -910,7 +910,7 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 	// Error case: {"success": false, "data": {"message": "..."}}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	if !response.Success {
 		// Error case: empty fridge, no valid products, AI error
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -921,7 +921,7 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		})
 		return
 	}
-	
+
 	// Success case: recipe generated
 	if response.Recipe != nil {
 		logger.Info("Returning recipe to frontend",
@@ -933,7 +933,7 @@ func (h *AIHandlers) CreateRecipeFromFridge(w http.ResponseWriter, r *http.Reque
 		logger.Error("Success=true but recipe is nil",
 			zap.String("user_id", userID))
 	}
-	
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{

@@ -9,25 +9,25 @@ import (
 
 // RecipeCatalog represents a structured recipe from catalog (NOT user-generated)
 type RecipeCatalog struct {
-	ID             uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	CanonicalName  string         `gorm:"column:canonicalName;type:varchar(255);not null;uniqueIndex" json:"canonicalName"`
-	LocalName      string         `gorm:"column:localName;type:varchar(255);not null" json:"localName"`
-	Country        string         `gorm:"type:varchar(100);not null;index" json:"country"`
-	Region         *string        `gorm:"type:varchar(100)" json:"region,omitempty"`
-	Category       string         `gorm:"type:varchar(50);not null;index" json:"category"` // appetizer, main, dessert, soup, salad
-	Difficulty     string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
-	TimeMinutes    int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
-	Servings       int            `gorm:"not null;default:4" json:"servings"`
-	Steps          datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"` // [{"step":1,"instruction":"..."}]
+	ID               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	CanonicalName    string         `gorm:"column:canonicalName;type:varchar(255);not null;uniqueIndex" json:"canonicalName"`
+	LocalName        string         `gorm:"column:localName;type:varchar(255);not null" json:"localName"`
+	Country          string         `gorm:"type:varchar(100);not null;index" json:"country"`
+	Region           *string        `gorm:"type:varchar(100)" json:"region,omitempty"`
+	Category         string         `gorm:"type:varchar(50);not null;index" json:"category"`   // appetizer, main, dessert, soup, salad
+	Difficulty       string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
+	TimeMinutes      int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
+	Servings         int            `gorm:"not null;default:4" json:"servings"`
+	Steps            datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                           // [{"step":1,"instruction":"..."}]
 	NutritionProfile datatypes.JSON `gorm:"column:nutritionProfile;type:jsonb;default:'{}'" json:"nutritionProfile"` // {"type":"balanced","calories":450}
-	Source         datatypes.JSON `gorm:"type:jsonb;not null" json:"source"` // {"type":"cookbook","reference":"..."}
-	CreatedAt      time.Time      `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
-	UpdatedAt      time.Time      `gorm:"column:updatedAt;not null;default:now()" json:"updatedAt"`
+	Source           datatypes.JSON `gorm:"type:jsonb;not null" json:"source"`                                       // {"type":"cookbook","reference":"..."}
+	CreatedAt        time.Time      `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
+	UpdatedAt        time.Time      `gorm:"column:updatedAt;not null;default:now()" json:"updatedAt"`
 
 	// Associations
 	Ingredients []CatalogIngredient `gorm:"foreignKey:RecipeID" json:"ingredients,omitempty"`
-	Allergens   []Allergen         `gorm:"many2many:RecipeAllergen;joinForeignKey:RecipeID;joinReferences:AllergenID" json:"allergens,omitempty"`
-	DietTags    []DietTag          `gorm:"many2many:RecipeDietTag;joinForeignKey:RecipeID;joinReferences:DietTagID" json:"dietTags,omitempty"`
+	Allergens   []Allergen          `gorm:"many2many:RecipeAllergen;joinForeignKey:RecipeID;joinReferences:AllergenID" json:"allergens,omitempty"`
+	DietTags    []DietTag           `gorm:"many2many:RecipeDietTag;joinForeignKey:RecipeID;joinReferences:DietTagID" json:"dietTags,omitempty"`
 }
 
 func (RecipeCatalog) TableName() string {
@@ -38,7 +38,7 @@ func (RecipeCatalog) TableName() string {
 type CatalogIngredient struct {
 	ID            uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	RecipeID      uuid.UUID `gorm:"column:recipeId;type:uuid;not null;index" json:"recipeId"`
-	IngredientID  string    `gorm:"column:ingredientId;type:text;not null" json:"ingredientId"` // Changed to TEXT to match Ingredient.id type
+	IngredientID  string    `gorm:"column:ingredientId;type:text;not null" json:"ingredientId"`                 // Changed to TEXT to match Ingredient.id type
 	IngredientKey string    `gorm:"column:ingredientKey;type:varchar(255);not null;index" json:"ingredientKey"` // normalized key for matching
 	Quantity      float64   `gorm:"type:decimal(10,2);not null" json:"quantity"`
 	Unit          string    `gorm:"type:varchar(50);not null" json:"unit"`

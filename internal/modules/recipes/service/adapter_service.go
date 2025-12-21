@@ -81,7 +81,7 @@ func (s *RecipeAdapterService) buildAdaptationPrompt(recipe models.RecipeCatalog
 	// Build original steps
 	var steps []dto.RecipeStep
 	json.Unmarshal(recipe.Steps, &steps)
-	
+
 	stepsText := ""
 	for _, step := range steps {
 		stepsText += fmt.Sprintf("%d. %s\n", step.Step, step.Instruction)
@@ -195,11 +195,11 @@ func (s *RecipeAdapterService) buildPreferencesText(prefs *dto.AdaptationPrefere
 	}
 
 	text := ""
-	
+
 	if prefs.ReduceServings != nil {
 		text += fmt.Sprintf("- Reduce servings to: %d\n", *prefs.ReduceServings)
 	}
-	
+
 	if len(prefs.AvoidAllergens) > 0 {
 		text += fmt.Sprintf("- Avoid allergens: %s\n", strings.Join(prefs.AvoidAllergens, ", "))
 	}
@@ -222,14 +222,14 @@ func (s *RecipeAdapterService) parseAdaptationResponse(
 
 	// Parse JSON
 	var aiData struct {
-		AdaptedName       string                    `json:"adaptedName"`
-		AdaptedServings   int                       `json:"adaptedServings"`
-		AdaptedIngredients []dto.AdaptedIngredient  `json:"adaptedIngredients"`
-		AdaptedSteps      []dto.RecipeStep          `json:"adaptedSteps"`
-		Adaptations       []dto.Adaptation          `json:"adaptations"`
-		CanCookNow        bool                      `json:"canCookNow"`
-		DifficultyChange  string                    `json:"difficultyChange"`
-		TimeChange        int                       `json:"timeChange"`
+		AdaptedName        string                  `json:"adaptedName"`
+		AdaptedServings    int                     `json:"adaptedServings"`
+		AdaptedIngredients []dto.AdaptedIngredient `json:"adaptedIngredients"`
+		AdaptedSteps       []dto.RecipeStep        `json:"adaptedSteps"`
+		Adaptations        []dto.Adaptation        `json:"adaptations"`
+		CanCookNow         bool                    `json:"canCookNow"`
+		DifficultyChange   string                  `json:"difficultyChange"`
+		TimeChange         int                     `json:"timeChange"`
 	}
 
 	err := json.Unmarshal([]byte(cleaned), &aiData)
@@ -262,7 +262,7 @@ func (s *RecipeAdapterService) ValidateAdaptation(
 	// Check 1: Name similarity (должно содержать оригинальное название или его часть)
 	originalLower := strings.ToLower(original.CanonicalName)
 	adaptedLower := strings.ToLower(adapted.AdaptedName)
-	
+
 	// Extract main dish name (e.g., "Carbonara" from "Spaghetti Carbonara")
 	words := strings.Split(originalLower, " ")
 	foundMatch := false
@@ -272,7 +272,7 @@ func (s *RecipeAdapterService) ValidateAdaptation(
 			break
 		}
 	}
-	
+
 	if !foundMatch {
 		return fmt.Errorf("adapted name '%s' too different from original '%s'", adapted.AdaptedName, original.CanonicalName)
 	}

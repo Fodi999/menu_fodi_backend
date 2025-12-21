@@ -1,10 +1,10 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
-	"encoding/json"
 
 	"github.com/google/uuid"
 
@@ -33,13 +33,13 @@ type AIService interface {
 
 	// Fridge Recommendations - использует DTO вместо моделей
 	GetFridgeRecommendations(req dto.FridgeRecommendationsRequest, fridgeItems []dto.AvailableIngredientDTO) ([]dto.FridgeRecommendation, error)
-	
+
 	// SMART KITCHEN: AI Fridge Analysis
 	AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, fridgeItems []dto.FridgeItemDTO) (string, error)
-	
+
 	// SMART KITCHEN: Create Restaurant Recipe from Fridge
 	CreateRecipeFromFridge(userID string, language string, fridgeItems []dto.FridgeItemDTO) (*dto.CreateRecipeFromFridgeResponse, error)
-	
+
 	// SMART KITCHEN: Recalculate Recipe Economy
 	RecalculateRecipe(userID string, recipe dto.RestaurantRecipe, fridgeItems []dto.FridgeItemDTO) (*dto.RecalculateRecipeResponse, error)
 }
@@ -386,7 +386,7 @@ func (s *aiService) AnalyzeFridge(userID string, req dto.FridgeAnalyzeRequest, f
 DOSTĘPNE PRODUKTY (używaj TYLKO tych):
 %s
 
-ZAKAZ dodawania innych składników!`, 
+ZAKAZ dodawania innych składników!`,
 		baseSystemPrompt,
 		ingredientsList)
 
@@ -422,12 +422,12 @@ Teraz skomentuj te dane i dodaj praktyczne porady jak zaoszczędzić.`, goalProm
 
 	// 🔧 ПАРСИНГ JSON (Phase 3A)
 	parsedJSON, isJSON, parseErr := parseAIResponse(response, req.Goal)
-	
+
 	// Если AI вернул валидный JSON - возвращаем его
 	if isJSON && parseErr == nil {
 		return parsedJSON, nil
 	}
-	
+
 	// Если AI вернул невалидный JSON или текст - используем fallback
 
 	// ВАЖНО: Проверяем что AI вернул непустой ответ (fallback logic)
@@ -455,13 +455,13 @@ Teraz skomentuj te dane i dodaj praktyczne porady jak zaoszczędzić.`, goalProm
 				"ru": "AI не может проанализировать расходы. Убедись, что у продуктов указаны цены.",
 			},
 		}
-		
+
 		if messages, ok := goalSpecificFallback[req.Goal]; ok {
 			if msg, ok := messages[language]; ok {
 				return msg, nil
 			}
 		}
-		
+
 		return "", fmt.Errorf("AI returned empty response for goal: %s", req.Goal)
 	}
 
@@ -472,12 +472,12 @@ Teraz skomentuj te dane i dodaj praktyczne porady jak zaoszczędzić.`, goalProm
 // Возвращает: (jsonString, isJSON, error)
 func parseAIResponse(response string, goal string) (string, bool, error) {
 	response = strings.TrimSpace(response)
-	
+
 	// Проверка 1: Ответ пустой
 	if response == "" {
 		return "", false, fmt.Errorf("empty response")
 	}
-	
+
 	// Проверка 2: Попытка найти JSON (может быть обёрнут в markdown)
 	// Убираем markdown блоки если есть
 	if strings.Contains(response, "```json") {
@@ -496,23 +496,23 @@ func parseAIResponse(response string, goal string) (string, bool, error) {
 			response = strings.TrimSpace(response)
 		}
 	}
-	
+
 	// Проверка 3: Выглядит ли как JSON?
 	if !strings.HasPrefix(response, "{") || !strings.HasSuffix(response, "}") {
 		return response, false, fmt.Errorf("response is not JSON")
 	}
-	
+
 	// Проверка 4: Валидный ли JSON?
 	var testJSON map[string]interface{}
 	if err := json.Unmarshal([]byte(response), &testJSON); err != nil {
 		return response, false, fmt.Errorf("invalid JSON: %w", err)
 	}
-	
+
 	// Проверка 5: Есть ли поле error?
 	if errorMsg, ok := testJSON["error"].(string); ok && errorMsg != "" {
 		return response, true, fmt.Errorf("AI returned error: %s", errorMsg)
 	}
-	
+
 	return response, true, nil
 }
 
@@ -528,8 +528,8 @@ func buildIngredientsListForPrompt(items []dto.FridgeItemDTO) string {
 		if item.DaysLeft != nil {
 			status = fmt.Sprintf("%s, zostało %d dni", status, *item.DaysLeft)
 		}
-		
-		ingredientsList = append(ingredientsList, fmt.Sprintf("%d. %s - %.0f %s [%s]", 
+
+		ingredientsList = append(ingredientsList, fmt.Sprintf("%d. %s - %.0f %s [%s]",
 			i+1, item.Name, item.Quantity, item.Unit, status))
 	}
 
@@ -557,7 +557,7 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 		if item.PricePerUnit != nil && *item.PricePerUnit > 0 && item.Quantity > 0 {
 			itemTotalPrice := item.Quantity * (*item.PricePerUnit)
 			totalValue += itemTotalPrice
-			
+
 			risk := "ok"
 			daysLeft := 999
 			if item.DaysLeft != nil {
@@ -568,7 +568,7 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 					risk = "warning"
 				}
 			}
-			
+
 			expensiveItems = append(expensiveItems, expensiveItem{
 				name:       item.Name,
 				totalPrice: itemTotalPrice,
@@ -655,7 +655,7 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 	}
 
 	template := summaryTemplates[language]
-	
+
 	// Форматируем список дорогих продуктов
 	expensiveList := ""
 	for i, item := range topExpensive {
@@ -665,7 +665,7 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 		} else if item.risk == "warning" {
 			riskEmoji = " ⚠️"
 		}
-		expensiveList += fmt.Sprintf("%d. %s: %.2f %s (zostało %d dni)%s\n", 
+		expensiveList += fmt.Sprintf("%d. %s: %.2f %s (zostało %d dni)%s\n",
 			i+1, item.name, item.totalPrice, currency, item.daysLeft, riskEmoji)
 	}
 
@@ -679,7 +679,7 @@ func calculateBudgetSummary(items []dto.FridgeItemDTO, language string) string {
 		}
 		criticalList = labels[language]
 		for _, item := range criticalExpensive {
-			criticalList += fmt.Sprintf("\n- %s: %.2f %s (zostało %d dni)", 
+			criticalList += fmt.Sprintf("\n- %s: %.2f %s (zostało %d dni)",
 				item.name, item.totalPrice, currency, item.daysLeft)
 		}
 	}
@@ -708,14 +708,14 @@ func buildFridgeAnalysisPrompt(goal string, language string, items []dto.FridgeI
 		if item.DaysLeft != nil {
 			status = fmt.Sprintf("%s (%d days)", status, *item.DaysLeft)
 		}
-		
+
 		priceInfo := ""
 		if item.PricePerUnit != nil && *item.PricePerUnit > 0 && item.Quantity > 0 {
 			totalPrice := item.Quantity * (*item.PricePerUnit)
 			priceInfo = fmt.Sprintf(" [%.2f %s]", totalPrice, item.Currency)
 		}
-		
-		itemsList = append(itemsList, fmt.Sprintf("- %s: %.1f %s [%s]%s", 
+
+		itemsList = append(itemsList, fmt.Sprintf("- %s: %.1f %s [%s]%s",
 			item.Name, item.Quantity, item.Unit, status, priceInfo))
 	}
 
@@ -754,7 +754,7 @@ Proszę o konkretne rekomendacje.`,
 func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridgeItems []dto.FridgeItemDTO) (*dto.CreateRecipeFromFridgeResponse, error) {
 	// 1. Validate language
 	language = prompts.NormalizeLanguage(language)
-	
+
 	// 2. Check if fridge is empty
 	if len(fridgeItems) == 0 {
 		messages := map[string]string{
@@ -767,13 +767,13 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 			Message: messages[language],
 		}, nil
 	}
-	
+
 	// 3. Filter and prioritize products by expiry
 	type PrioritizedProduct struct {
 		Item     dto.FridgeItemDTO
 		Priority int // 1=critical, 2=warning, 3=ok
 	}
-	
+
 	var products []PrioritizedProduct
 	for _, item := range fridgeItems {
 		if item.Quantity <= 0 {
@@ -782,7 +782,7 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 		if item.Status == "expired" {
 			continue // Skip expired products
 		}
-		
+
 		priority := 3 // default: ok
 		switch item.Status {
 		case "critical":
@@ -790,13 +790,13 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 		case "warning":
 			priority = 2
 		}
-		
+
 		products = append(products, PrioritizedProduct{
 			Item:     item,
 			Priority: priority,
 		})
 	}
-	
+
 	if len(products) == 0 {
 		messages := map[string]string{
 			"pl": "Brak dostępnych produktów do użycia. Wszystkie produkty są przeterminowane lub ich ilość wynosi 0.",
@@ -808,7 +808,7 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 			Message: messages[language],
 		}, nil
 	}
-	
+
 	// Sort by priority (critical first)
 	for i := 0; i < len(products)-1; i++ {
 		for j := i + 1; j < len(products); j++ {
@@ -817,12 +817,12 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 			}
 		}
 	}
-	
+
 	// 4. Build "kitchen context" for AI with formatted product list
 	var fridgeContext strings.Builder
 	for idx, prod := range products {
 		item := prod.Item
-		
+
 		// Format expiry date
 		expiryText := ""
 		priorityLabel := ""
@@ -849,38 +849,38 @@ func (s *aiService) CreateRecipeFromFridge(userID string, language string, fridg
 				}
 			}
 		}
-		
+
 		fridgeContext.WriteString(fmt.Sprintf("\n%d. %s%s\n", idx+1, item.Name, priorityLabel))
 		fridgeContext.WriteString(fmt.Sprintf("   ilość: %.0f %s\n", item.Quantity, item.Unit))
 		if expiryText != "" {
 			fridgeContext.WriteString(fmt.Sprintf("   %s\n", expiryText))
 		}
 	}
-	
+
 	// 5. Get prompt template for language
 	promptTemplate, ok := prompts.RestaurantRecipePrompt[language]
 	if !ok {
 		promptTemplate = prompts.RestaurantRecipePrompt["pl"] // fallback to Polish
 	}
-	
+
 	// Inject product list into prompt
 	prompt := fmt.Sprintf(promptTemplate, fridgeContext.String())
-	
+
 	// 6. Call AI with retry + self-repair mechanism
 	response, err := s.groqClient.SimpleChat("", prompt)
 	if err != nil {
 		return nil, fmt.Errorf("AI recipe generation failed: %w", err)
 	}
-	
+
 	// 7. Parse JSON response with self-repair retry
 	parsedJSON, isJSON, parseErr := parseAIResponse(response, "create_recipe")
-	
+
 	if !isJSON || parseErr != nil {
 		// 🔄 RETRY: Try to repair invalid JSON with AI
 		fmt.Printf("[AI][RETRY] First attempt failed, trying self-repair...\n")
 		fmt.Printf("[AI][RETRY] Original error: %v\n", parseErr)
 		fmt.Printf("[AI][RETRY] Raw response length: %d chars\n", len(response))
-		
+
 		repairPrompt := fmt.Sprintf(`You are a JSON repair API.
 
 The following response is invalid JSON. Fix it and return ONLY valid JSON matching this schema:
@@ -921,10 +921,10 @@ Return ONLY the fixed JSON:`, response)
 				Message: "Failed to generate recipe in valid format. Please try again.",
 			}, nil
 		}
-		
+
 		// Try parsing repaired response
 		parsedJSON, isJSON, parseErr = parseAIResponse(repairedResponse, "create_recipe")
-		
+
 		if !isJSON || parseErr != nil {
 			fmt.Printf("[AI][RETRY] Self-repair also failed\n")
 			fmt.Printf("[AI][RETRY] Repaired response: %s\n", repairedResponse)
@@ -934,10 +934,10 @@ Return ONLY the fixed JSON:`, response)
 				Message: "Failed to generate recipe in valid format. Please try again.",
 			}, nil
 		}
-		
+
 		fmt.Printf("[AI][RETRY] ✅ Self-repair succeeded!\n")
 	}
-	
+
 	// 8. Decode into RestaurantRecipe
 	var recipe dto.RestaurantRecipe
 	if err := json.Unmarshal([]byte(parsedJSON), &recipe); err != nil {
@@ -949,7 +949,7 @@ Return ONLY the fixed JSON:`, response)
 			Message: "Failed to parse recipe data. Please try again.",
 		}, nil
 	}
-	
+
 	// Validate critical fields
 	if recipe.Name == "" {
 		fmt.Printf("[AI][ERROR] Recipe name is empty\n")
@@ -959,26 +959,26 @@ Return ONLY the fixed JSON:`, response)
 			Message: "Recipe missing required field: name.",
 		}, nil
 	}
-	
+
 	fmt.Printf("[AI][SUCCESS] Recipe parsed successfully: %s\n", recipe.Name)
-	fmt.Printf("[AI][SUCCESS] IngredientsUsed: %d, IngredientsMissing: %d\n", 
+	fmt.Printf("[AI][SUCCESS] IngredientsUsed: %d, IngredientsMissing: %d\n",
 		len(recipe.IngredientsUsed), len(recipe.IngredientsMissing))
 	fmt.Printf("[AI][SUCCESS] Economy: %+v\n", recipe.Economy)
-	
+
 	// 9. Build list of used products with cost calculation
 	usedProducts := make([]dto.UsedProductInfo, 0)
 	totalUsedCost := 0.0
 	currency := "PLN" // default
-	
+
 	fmt.Printf("[AI][ECONOMY DEBUG] Starting cost calculation for %d products\n", len(products))
-	
+
 	for _, prod := range products {
 		// For simplicity, assume AI used all critical/warning products
 		if prod.Priority <= 2 {
 			// Calculate cost of used product
 			usedCost := 0.0
 			pricePerUnit := 0.0
-			
+
 			// DEBUG: Log each product before calculation
 			priceStr := "NULL"
 			if prod.Item.PricePerUnit != nil {
@@ -986,16 +986,16 @@ Return ONLY the fixed JSON:`, response)
 			}
 			fmt.Printf("[ECONOMY] Product: %s | qty=%.2f %s | price=%s | priority=%d\n",
 				prod.Item.Name, prod.Item.Quantity, prod.Item.Unit, priceStr, prod.Priority)
-			
+
 			if prod.Item.PricePerUnit != nil && *prod.Item.PricePerUnit > 0 {
 				pricePerUnit = *prod.Item.PricePerUnit
 				usedCost = prod.Item.Quantity * pricePerUnit
 				totalUsedCost += usedCost
-				
+
 				if prod.Item.Currency != "" {
 					currency = prod.Item.Currency
 				}
-				
+
 				// DEBUG: Log successful calculation
 				fmt.Printf("[ECONOMY] ✅ Calculated cost: %.2f %s (%.2f × %.6f)\n",
 					usedCost, currency, prod.Item.Quantity, pricePerUnit)
@@ -1003,7 +1003,7 @@ Return ONLY the fixed JSON:`, response)
 				// DEBUG: Log when price is missing
 				fmt.Printf("[ECONOMY] ⚠️ NO PRICE DATA - skipping cost calculation\n")
 			}
-			
+
 			usedProducts = append(usedProducts, dto.UsedProductInfo{
 				Name:         prod.Item.Name,
 				QuantityUsed: prod.Item.Quantity,
@@ -1015,37 +1015,37 @@ Return ONLY the fixed JSON:`, response)
 			})
 		}
 	}
-	
+
 	fmt.Printf("[AI][ECONOMY DEBUG] Total products processed: %d, Total cost: %.2f %s\n",
 		len(usedProducts), totalUsedCost, currency)
-	
+
 	// 10. Calculate economy and override AI's estimatedExtraCost
 	// AI may return pantry cost, but we trust backend calculation more
 	estimatedExtraCost := 0.0
 	if recipe.Economy != nil && recipe.Economy.EstimatedExtraCost > 0 {
 		estimatedExtraCost = recipe.Economy.EstimatedExtraCost
 	}
-	
+
 	savedMoney := totalUsedCost - estimatedExtraCost
 	if savedMoney < 0 {
 		savedMoney = 0 // Can't have negative savings
 	}
-	
+
 	// 🔥 CRITICAL DEBUG: Log BEFORE setting economy
 	fmt.Printf("[AI][ECONOMY] ⚠️ BEFORE override - recipe.Economy = %+v\n", recipe.Economy)
 	fmt.Printf("[AI][ECONOMY] ⚠️ About to set: UsedValue=%.2f, SavedMoney=%.2f, Currency=%s\n",
 		totalUsedCost, savedMoney, currency)
-	
+
 	// ALWAYS override economy block with backend-calculated values (even if prices missing)
 	// This ensures frontend always receives economy structure
 	recipe.Economy = &dto.RecipeEconomy{
 		UsedFromFridge:     len(usedProducts) > 0,
-		UsedValue:          totalUsedCost,          // 0.0 if no prices
+		UsedValue:          totalUsedCost, // 0.0 if no prices
 		EstimatedExtraCost: estimatedExtraCost,
-		SavedMoney:         savedMoney,             // 0.0 if no prices
+		SavedMoney:         savedMoney, // 0.0 if no prices
 		Currency:           currency,
 	}
-	
+
 	// 🔥 CRITICAL DEBUG: Log AFTER setting economy
 	fmt.Printf("[AI][ECONOMY] ✅ AFTER override - recipe.Economy = %+v\n", recipe.Economy)
 	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe: %p\n", &recipe)
@@ -1054,10 +1054,10 @@ Return ONLY the fixed JSON:`, response)
 	fmt.Printf("[AI][ECONOMY] ✅ AFTER override - recipe.Economy = %+v\n", recipe.Economy)
 	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe: %p\n", &recipe)
 	fmt.Printf("[AI][ECONOMY] ✅ Memory address of recipe.Economy: %p\n", recipe.Economy)
-	
+
 	fmt.Printf("[AI][ECONOMY] Used cost: %.2f %s, Extra cost: %.2f %s, Saved: %.2f %s (prices available: %d products)\n",
 		totalUsedCost, currency, estimatedExtraCost, currency, savedMoney, currency, len(usedProducts))
-	
+
 	// 11. Return successful result
 	fmt.Printf("[AI][ECONOMY] 🚀 About to return response with recipe at address: %p\n", &recipe)
 	return &dto.CreateRecipeFromFridgeResponse{
@@ -1072,53 +1072,53 @@ Return ONLY the fixed JSON:`, response)
 func (s *aiService) RecalculateRecipe(userID string, recipe dto.RestaurantRecipe, fridgeItems []dto.FridgeItemDTO) (*dto.RecalculateRecipeResponse, error) {
 	fmt.Printf("[AI][RECALC] Starting recalculation for recipe: %s\n", recipe.Name)
 	fmt.Printf("[AI][RECALC] User: %s, Fridge items: %d\n", userID, len(fridgeItems))
-	
+
 	// 1. Create map of fridge items by name for quick lookup
 	fridgeMap := make(map[string]dto.FridgeItemDTO)
 	for _, item := range fridgeItems {
 		fridgeMap[strings.ToLower(item.Name)] = item
 	}
-	
+
 	// 2. Recalculate ingredientsUsed with updated fridge data
 	usedProducts := make([]dto.UsedProductInfo, 0)
 	totalUsedCost := 0.0
 	currency := "PLN"
 	criticalPriority := false
 	warningPriority := false
-	
+
 	fmt.Printf("[AI][RECALC] Processing %d ingredients used in recipe\n", len(recipe.IngredientsUsed))
-	
+
 	for _, ingredient := range recipe.IngredientsUsed {
 		ingredientNameLower := strings.ToLower(ingredient.Name)
-		
+
 		// Check if ingredient exists in current fridge
 		if fridgeItem, exists := fridgeMap[ingredientNameLower]; exists {
 			usedCost := 0.0
 			pricePerUnit := 0.0
-			
+
 			// Calculate cost if price available
 			if fridgeItem.PricePerUnit != nil && *fridgeItem.PricePerUnit > 0 {
 				pricePerUnit = *fridgeItem.PricePerUnit
 				usedCost = ingredient.Quantity * pricePerUnit
 				totalUsedCost += usedCost
-				
+
 				if fridgeItem.Currency != "" {
 					currency = fridgeItem.Currency
 				}
-				
+
 				fmt.Printf("[AI][RECALC] ✅ %s: %.2f %s × %.6f = %.2f %s\n",
 					ingredient.Name, ingredient.Quantity, ingredient.Unit, pricePerUnit, usedCost, currency)
 			} else {
 				fmt.Printf("[AI][RECALC] ⚠️ %s: No price data\n", ingredient.Name)
 			}
-			
+
 			// Track expiry priority
 			if fridgeItem.Status == "critical" {
 				criticalPriority = true
 			} else if fridgeItem.Status == "warning" {
 				warningPriority = true
 			}
-			
+
 			usedProducts = append(usedProducts, dto.UsedProductInfo{
 				Name:         ingredient.Name,
 				QuantityUsed: ingredient.Quantity,
@@ -1133,33 +1133,33 @@ func (s *aiService) RecalculateRecipe(userID string, recipe dto.RestaurantRecipe
 			fmt.Printf("[AI][RECALC] ⚠️ %s: Not in fridge, moving to missing\n", ingredient.Name)
 		}
 	}
-	
+
 	// 3. Update ingredientsMissing - remove items now in fridge
 	updatedMissing := make([]dto.RecipeIngredient, 0)
 	for _, missing := range recipe.IngredientsMissing {
 		missingNameLower := strings.ToLower(missing.Name)
-		
+
 		// If now in fridge, skip (already in usedProducts)
 		if _, inFridge := fridgeMap[missingNameLower]; inFridge {
 			fmt.Printf("[AI][RECALC] ✅ %s: Now in fridge, removed from missing\n", missing.Name)
 			continue
 		}
-		
+
 		// Keep in missing list
 		updatedMissing = append(updatedMissing, missing)
 	}
-	
+
 	// 4. Recalculate economy
 	estimatedExtraCost := 0.0
 	if recipe.Economy != nil && recipe.Economy.EstimatedExtraCost > 0 {
 		estimatedExtraCost = recipe.Economy.EstimatedExtraCost
 	}
-	
+
 	savedMoney := totalUsedCost - estimatedExtraCost
 	if savedMoney < 0 {
 		savedMoney = 0
 	}
-	
+
 	// 5. Determine expiryPriority
 	expiryPriority := "ok"
 	if criticalPriority {
@@ -1167,10 +1167,10 @@ func (s *aiService) RecalculateRecipe(userID string, recipe dto.RestaurantRecipe
 	} else if warningPriority {
 		expiryPriority = "warning"
 	}
-	
+
 	fmt.Printf("[AI][RECALC] Economy: UsedValue=%.2f, SavedMoney=%.2f, ExpiryPriority=%s\n",
 		totalUsedCost, savedMoney, expiryPriority)
-	
+
 	// 6. Create updated recipe (preserve steps, title, description)
 	updatedRecipe := recipe
 	updatedRecipe.IngredientsMissing = updatedMissing
@@ -1182,10 +1182,10 @@ func (s *aiService) RecalculateRecipe(userID string, recipe dto.RestaurantRecipe
 		SavedMoney:         savedMoney,
 		Currency:           currency,
 	}
-	
+
 	fmt.Printf("[AI][RECALC] ✅ Recalculation complete: %d used products, %.2f %s total value\n",
 		len(usedProducts), totalUsedCost, currency)
-	
+
 	return &dto.RecalculateRecipeResponse{
 		Success:      true,
 		Recipe:       &updatedRecipe,

@@ -21,31 +21,31 @@ func NewRecipeMatchService(db *gorm.DB) *RecipeMatchService {
 
 // RecipeMatch represents a recipe with match score
 type RecipeMatch struct {
-	Recipe              models.RecipeCatalog    `json:"recipe"`
-	MatchScore          float64                 `json:"matchScore"` // 0-100
-	MatchedIngredients  []MatchedIngredient     `json:"matchedIngredients"`
-	MissingIngredients  []MissingIngredient     `json:"missingIngredients"`
-	CostToComplete      float64                 `json:"costToComplete"` // PLN to buy missing ingredients
-	HasExpiringItems    bool                    `json:"hasExpiringItems"`
-	ExpiringItemsCount  int                     `json:"expiringItemsCount"`
-	CanMakeNow          bool                    `json:"canMakeNow"` // All required ingredients available
-	
+	Recipe             models.RecipeCatalog `json:"recipe"`
+	MatchScore         float64              `json:"matchScore"` // 0-100
+	MatchedIngredients []MatchedIngredient  `json:"matchedIngredients"`
+	MissingIngredients []MissingIngredient  `json:"missingIngredients"`
+	CostToComplete     float64              `json:"costToComplete"` // PLN to buy missing ingredients
+	HasExpiringItems   bool                 `json:"hasExpiringItems"`
+	ExpiringItemsCount int                  `json:"expiringItemsCount"`
+	CanMakeNow         bool                 `json:"canMakeNow"` // All required ingredients available
+
 	// Economy calculations (clear semantics for frontend)
-	UsedValue           float64                 `json:"usedValue"`       // PLN: cost of ingredients used from fridge
-	SavedMoney          float64                 `json:"savedMoney"`      // PLN: money saved by having ingredients (= usedValue, "Wartość z lodówki")
-	TotalRecipeCost     float64                 `json:"totalRecipeCost"` // PLN: full recipe cost (usedValue + costToComplete)
-	WasteRiskSaved      float64                 `json:"wasteRiskSaved"`  // PLN: value of expiring items used (prevents food waste)
+	UsedValue       float64 `json:"usedValue"`       // PLN: cost of ingredients used from fridge
+	SavedMoney      float64 `json:"savedMoney"`      // PLN: money saved by having ingredients (= usedValue, "Wartość z lodówki")
+	TotalRecipeCost float64 `json:"totalRecipeCost"` // PLN: full recipe cost (usedValue + costToComplete)
+	WasteRiskSaved  float64 `json:"wasteRiskSaved"`  // PLN: value of expiring items used (prevents food waste)
 }
 
 type MatchedIngredient struct {
-	IngredientID   string    `json:"ingredientId"`
-	Name           string    `json:"name"`
-	Required       float64   `json:"required"`
-	Available      float64   `json:"available"`
-	Unit           string    `json:"unit"`
-	IsExpiringSoon bool      `json:"isExpiringSoon"`
+	IngredientID   string     `json:"ingredientId"`
+	Name           string     `json:"name"`
+	Required       float64    `json:"required"`
+	Available      float64    `json:"available"`
+	Unit           string     `json:"unit"`
+	IsExpiringSoon bool       `json:"isExpiringSoon"`
 	ExpiresAt      *time.Time `json:"expiresAt,omitempty"`
-	Optional       bool      `json:"optional"` // Is this ingredient optional for the recipe?
+	Optional       bool       `json:"optional"` // Is this ingredient optional for the recipe?
 }
 
 type MissingIngredient struct {
@@ -77,7 +77,7 @@ func (s *RecipeMatchService) MatchRecipesWithFridge(
 	for i := range fridgeItems {
 		// Use ingredientId as key for precise matching
 		fridgeMap[fridgeItems[i].ID] = &fridgeItems[i]
-		
+
 		// Also add normalized name as fallback for compatibility
 		key := normalizeIngredientName(fridgeItems[i].Name)
 		if _, exists := fridgeMap[key]; !exists {
@@ -95,17 +95,17 @@ func (s *RecipeMatchService) MatchRecipesWithFridge(
 	matches := make([]RecipeMatch, 0, len(recipes))
 	for _, recipe := range recipes {
 		match := s.calculateRecipeMatch(recipe, fridgeMap)
-		
+
 		// Apply minimum score threshold
 		if match.MatchScore < filters.MinScore {
 			continue
 		}
-		
+
 		// Apply cookable filter if requested
 		if filters.OnlyCookable && !match.CanMakeNow {
 			continue
 		}
-		
+
 		matches = append(matches, match)
 	}
 
@@ -168,18 +168,18 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 		if fridgeItem != nil && fridgeItem.Quantity >= recipeIng.Quantity {
 			// Ingredient available in sufficient quantity
 			matchedCount++
-			
+
 			// Calculate value of used ingredient
 			ingredientValue := recipeIng.Quantity * fridgeItem.PricePerUnit
 			match.UsedValue += ingredientValue
-			
+
 			// Track expiring items value (waste prevention)
 			if fridgeItem.IsExpiringSoon {
 				match.HasExpiringItems = true
 				match.ExpiringItemsCount++
 				match.WasteRiskSaved += ingredientValue
 			}
-			
+
 			matched := MatchedIngredient{
 				IngredientID:   recipeIng.IngredientID,
 				Name:           recipeIng.Ingredient.Name,
@@ -240,9 +240,9 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 	match.CostToComplete = roundToTwoDecimals(match.CostToComplete)
 	match.UsedValue = roundToTwoDecimals(match.UsedValue)
 	match.WasteRiskSaved = roundToTwoDecimals(match.WasteRiskSaved)
-	
+
 	// Calculate economy semantics (clear for frontend)
-	match.SavedMoney = match.UsedValue  // Money saved by having ingredients (already rounded)
+	match.SavedMoney = match.UsedValue                                                 // Money saved by having ingredients (already rounded)
 	match.TotalRecipeCost = roundToTwoDecimals(match.UsedValue + match.CostToComplete) // Full recipe cost
 
 	// Determine if can make now
@@ -262,12 +262,12 @@ func (s *RecipeMatchService) findIngredientInFridge(
 			return item
 		}
 	}
-	
+
 	// 2. Try by ingredient key (legacy compatibility)
 	if item, ok := fridgeMap[recipeIng.IngredientKey]; ok {
 		return item
 	}
-	
+
 	// 3. Try normalized name match (fallback for backwards compatibility)
 	key := normalizeIngredientName(recipeIng.Ingredient.Name)
 	if item, ok := fridgeMap[key]; ok {
@@ -426,11 +426,11 @@ func sortRecipeMatches(matches []RecipeMatch) {
 				}
 				continue
 			}
-			
+
 			// Secondary sort: score (higher is better)
 			scoreI := matches[i].MatchScore
 			scoreJ := matches[j].MatchScore
-			
+
 			// Bonus for expiring items (prioritize waste reduction)
 			if matches[i].HasExpiringItems {
 				scoreI += 5
@@ -438,14 +438,14 @@ func sortRecipeMatches(matches []RecipeMatch) {
 			if matches[j].HasExpiringItems {
 				scoreJ += 5
 			}
-			
+
 			if scoreI != scoreJ {
 				if scoreJ > scoreI {
 					matches[i], matches[j] = matches[j], matches[i]
 				}
 				continue
 			}
-			
+
 			// Tertiary sort: costToComplete (cheaper is better)
 			if matches[i].CostToComplete != matches[j].CostToComplete {
 				if matches[j].CostToComplete < matches[i].CostToComplete {
@@ -453,7 +453,7 @@ func sortRecipeMatches(matches []RecipeMatch) {
 				}
 				continue
 			}
-			
+
 			// Quaternary sort: timeMinutes (faster is better)
 			if matches[i].Recipe.TimeMinutes > matches[j].Recipe.TimeMinutes {
 				matches[i], matches[j] = matches[j], matches[i]
@@ -497,7 +497,7 @@ func (s *RecipeMatchService) GetBestRecommendation(
 
 	// 2. Уже отсортировано в MatchRecipesWithFridge:
 	//    canCookNow DESC → score DESC → costToComplete ASC → timeMinutes ASC
-	
+
 	// 3. Возвращаем первый (лучший) рецепт
 	return &matches[0], nil
 }

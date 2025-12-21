@@ -10,6 +10,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// InsufficientIngredientsError - custom error type for missing ingredients
+type InsufficientIngredientsError struct {
+	Missing []dto.MissingIngredient
+}
+
+func (e *InsufficientIngredientsError) Error() string {
+	return "INSUFFICIENT_INGREDIENTS"
+}
+
 // RecipeCookService handles recipe cooking logic
 type RecipeCookService struct {
 	db *gorm.DB
@@ -79,22 +88,34 @@ func (s *RecipeCookService) CookRecipe(
 	}
 
 	// Validate all required ingredients are available
-	var missingIngredients []string
+	var missingIngredients []dto.MissingIngredient
 	for _, recipeIng := range recipe.Ingredients {
 		if recipeIng.Optional {
 			continue // Skip optional ingredients
 		}
-		
+
 		requiredQty := recipeIng.Quantity * servingsMultiplier
 		fridgeItem, exists := fridgeMap[recipeIng.IngredientID]
-		
+
+		available := 0.0
+		if exists {
+			available = fridgeItem.Quantity
+		}
+
 		if !exists || fridgeItem.Quantity < requiredQty {
-			missingIngredients = append(missingIngredients, recipeIng.Ingredient.Name)
+			missingIngredients = append(missingIngredients, dto.MissingIngredient{
+				Name:      recipeIng.Ingredient.Name,
+				Needed:    requiredQty,
+				Available: available,
+				Unit:      recipeIng.Unit,
+			})
 		}
 	}
 
 	if len(missingIngredients) > 0 {
-		return nil, fmt.Errorf("missing ingredients: %v", missingIngredients)
+		return nil, &InsufficientIngredientsError{
+			Missing: missingIngredients,
+		}
 	}
 
 	// Start transaction
@@ -128,7 +149,7 @@ func (s *RecipeCookService) CookRecipe(
 		}
 
 		requiredQty := recipeIng.Quantity * servingsMultiplier
-		
+
 		// Skip if insufficient (should not happen after validation)
 		if fridgeItem.Quantity < requiredQty {
 			continue
@@ -141,7 +162,7 @@ func (s *RecipeCookService) CookRecipe(
 		} else if recipeIng.Ingredient.DefaultPricePerUnit != nil {
 			pricePerUnit = *recipeIng.Ingredient.DefaultPricePerUnit
 		}
-		
+
 		totalCost := requiredQty * pricePerUnit
 		cookLog.UsedValue += totalCost
 		cookLog.TotalRecipeCost += totalCost
@@ -173,6 +194,22 @@ func (s *RecipeCookService) CookRecipe(
 				tx.Rollback()
 				return nil, fmt.Errorf("failed to remove empty ingredient: %w", err)
 			}
+		}
+
+		// Record fridge transaction
+		fridgeTransaction := models.FridgeTransaction{
+			UserID:    userID,
+			Product:   fridgeItem.Ingredient.Name,
+			Quantity:  requiredQty,
+			Unit:      recipeIng.Unit,
+			Action:    "cook",
+			RecipeID:  &recipeUUID,
+			CreatedAt: time.Now(),
+		}
+		err = tx.Create(&fridgeTransaction).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to record fridge transaction: %w", err)
 		}
 
 		// Track in cook log
@@ -221,6 +258,16 @@ func (s *RecipeCookService) CookRecipe(
 			tx.Rollback()
 			return nil, fmt.Errorf("failed to save cook ingredient: %w", err)
 		}
+	}
+
+	// Update saved recipe with cooked_at timestamp (if it was saved)
+	now := time.Now()
+	err = tx.Model(&models.UserSavedRecipe{}).
+		Where("user_id = ? AND recipe_id = ?::uuid", userID, recipeID).
+		Update("cooked_at", now).Error
+	if err != nil {
+		// Log warning but don't fail - recipe might not have been saved
+		// This is not a critical error, so we continue
 	}
 
 	// Commit transaction
@@ -277,7 +324,7 @@ func (s *RecipeCookService) buildCookResponse(cookLog *models.RecipeCookLog) (*d
 		if ci.TotalCost != nil {
 			totalCost = *ci.TotalCost
 		}
-		
+
 		usedIngredients[i] = dto.CookedIngredient{
 			IngredientID:    ci.IngredientID,
 			Name:            ci.Ingredient.Name,

@@ -22,7 +22,7 @@ func NewModule(db *gorm.DB) *Module {
 	repository := repo.NewUserRepository(db)
 	fridgeRepo := database.NewUserFridgeRepository(db)
 	tokenBankRepo := &database.TokenBankRepository{} // No constructor, use direct instantiation
-	
+
 	svc := service.NewUserService(repository, fridgeRepo, tokenBankRepo)
 	handlers := userhttp.NewUserHandlers(svc)
 

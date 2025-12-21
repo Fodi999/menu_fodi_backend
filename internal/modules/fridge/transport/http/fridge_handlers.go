@@ -153,7 +153,7 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 			zap.String("currency", req.Currency),
 			zap.String("source", req.Source),
 			zap.String("error_type", fmt.Sprintf("%T", err)))
-		
+
 		// Маппируем доменные ошибки на HTTP коды
 		switch {
 		case errors.Is(err, service.ErrNotFound):
@@ -170,7 +170,7 @@ func (h *FridgeHandlers) AddPrice(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			// Логируем полную ошибку со стектрейсом для отладки
-			logger.Error("unexpected error in AddPrice - full context", 
+			logger.Error("unexpected error in AddPrice - full context",
 				zap.Error(err),
 				zap.String("error_string", err.Error()))
 			respondError(w, http.StatusInternalServerError, "failed to add price")
@@ -209,7 +209,7 @@ func (h *FridgeHandlers) GetPriceHistory(w http.ResponseWriter, r *http.Request)
 			zap.Error(err),
 			zap.String("user_id", userID),
 			zap.String("item_id", itemID))
-		
+
 		// Маппируем доменные ошибки на HTTP коды
 		switch {
 		case errors.Is(err, service.ErrNotFound):
@@ -272,7 +272,7 @@ func (h *FridgeHandlers) UpdateItemQuantity(w http.ResponseWriter, r *http.Reque
 			zap.String("user_id", userID),
 			zap.String("item_id", itemID),
 			zap.Float64("new_quantity", req.Quantity))
-		
+
 		// Маппируем доменные ошибки на HTTP коды
 		switch {
 		case errors.Is(err, service.ErrNotFound):

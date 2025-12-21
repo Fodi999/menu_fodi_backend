@@ -10,8 +10,8 @@ import (
 )
 
 type UserFridgeItem struct {
-	ID        string `gorm:"column:id"`
-	ArrivedAt string `gorm:"column:arrived_at"`
+	ID        string  `gorm:"column:id"`
+	ArrivedAt string  `gorm:"column:arrived_at"`
 	ExpiresAt *string `gorm:"column:expires_at"`
 }
 
