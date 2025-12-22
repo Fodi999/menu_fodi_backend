@@ -153,3 +153,65 @@ func (r *UserSavedRecipeRepository) FindSavedRecipe(userID, recipeID string) (*m
 
 	return &savedRecipe, nil
 }
+
+// SavedRecipeFilters represents filter options for saved recipes
+type SavedRecipeFilters struct {
+	Category   string // salad, main, soup, pizza, sushi, dessert, breakfast, drink
+	Country    string
+	Difficulty string // easy, medium, hard
+	CookedOnly bool   // Only show cooked recipes
+	UncokedOnly bool  // Only show recipes not yet cooked
+}
+
+// GetSavedRecipesWithFilters retrieves saved recipes with filters via JOIN
+func (r *UserSavedRecipeRepository) GetSavedRecipesWithFilters(userID string, filters SavedRecipeFilters) ([]models.UserSavedRecipe, error) {
+	var savedRecipes []models.UserSavedRecipe
+
+	// Build query with JOIN to Recipe table (single source of truth for category)
+	query := r.db.
+		Table("user_saved_recipes usr").
+		Select("usr.id::text as id, usr.user_id, usr.recipe_id::text as recipe_id, usr.servings, usr.source, usr.saved_at, usr.cooked_at").
+		Joins("INNER JOIN \"Recipe\" r ON r.id = usr.recipe_id::uuid").
+		Where("usr.user_id = ?", userID)
+
+	// Apply filters from Recipe table (not from saved_recipes!)
+	if filters.Category != "" {
+		query = query.Where("r.category = ?", filters.Category)
+	}
+	if filters.Country != "" {
+		query = query.Where("r.country = ?", filters.Country)
+	}
+	if filters.Difficulty != "" {
+		query = query.Where("r.difficulty = ?", filters.Difficulty)
+	}
+
+	// Filter by cooked status
+	if filters.CookedOnly {
+		query = query.Where("usr.cooked_at IS NOT NULL")
+	}
+	if filters.UncokedOnly {
+		query = query.Where("usr.cooked_at IS NULL")
+	}
+
+	// Order by save date
+	query = query.Order("usr.saved_at DESC")
+
+	result := query.Find(&savedRecipes)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get filtered saved recipes: %w", result.Error)
+	}
+
+	// Manually load recipe details for each saved recipe
+	for i := range savedRecipes {
+		var recipe models.RecipeCatalog
+		if err := r.db.Where("id = ?::uuid", savedRecipes[i].RecipeID).First(&recipe).Error; err != nil {
+			if err != gorm.ErrRecordNotFound {
+				return nil, fmt.Errorf("failed to load recipe %s: %w", savedRecipes[i].RecipeID, err)
+			}
+			continue
+		}
+		savedRecipes[i].Recipe = &recipe
+	}
+
+	return savedRecipes, nil
+}

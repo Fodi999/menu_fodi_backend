@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
@@ -845,8 +846,8 @@ func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetSavedRecipes returns all saved recipes for the user
-// GET /api/user/recipes/saved
+// GetSavedRecipes returns all saved recipes for the user with optional filters
+// GET /api/user/recipes/saved?category=pizza&country=Poland&difficulty=easy&cooked=true
 func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from JWT claims in context (set by AuthMiddleware)
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
@@ -857,10 +858,44 @@ func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) 
 	}
 	
 	userID := claims.UserID
-	h.logger.Info("Getting saved recipes", zap.String("userId", userID))
+	
+	// Parse query filters
+	category := r.URL.Query().Get("category")
+	country := r.URL.Query().Get("country")
+	difficulty := r.URL.Query().Get("difficulty")
+	cookedStr := r.URL.Query().Get("cooked") // "true" or "false"
+	
+	h.logger.Info("Getting saved recipes with filters",
+		zap.String("userId", userID),
+		zap.String("category", category),
+		zap.String("country", country),
+		zap.String("difficulty", difficulty),
+		zap.String("cooked", cookedStr),
+	)
 
-	// Get saved recipes from repository
-	savedRecipes, err := h.savedRecipeRepo.GetSavedRecipes(userID)
+	var savedRecipes []models.UserSavedRecipe
+	var err error
+
+	// Use filtered query if any filters provided
+	if category != "" || country != "" || difficulty != "" || cookedStr != "" {
+		filters := database.SavedRecipeFilters{
+			Category:   category,
+			Country:    country,
+			Difficulty: difficulty,
+		}
+		
+		if cookedStr == "true" {
+			filters.CookedOnly = true
+		} else if cookedStr == "false" {
+			filters.UncokedOnly = true
+		}
+		
+		savedRecipes, err = h.savedRecipeRepo.GetSavedRecipesWithFilters(userID, filters)
+	} else {
+		// No filters, get all
+		savedRecipes, err = h.savedRecipeRepo.GetSavedRecipes(userID)
+	}
+
 	if err != nil {
 		h.logger.Error("Failed to get saved recipes", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
