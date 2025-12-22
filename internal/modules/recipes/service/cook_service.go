@@ -272,7 +272,8 @@ func (s *RecipeCookService) CookRecipe(
 	}
 
 	// Create prepared dish record
-	// Calculate portions from recipe servings (default to servingsMultiplier if no recipe.Servings)
+	// All recipes normalized to servings=1 (base portion)
+	// portionsInitial = 1 * servingsMultiplier (e.g., 1*2.0 = 2 portions)
 	portionsInitial := int(servingsMultiplier)
 	if recipe.Servings > 0 {
 		portionsInitial = int(float64(recipe.Servings) * servingsMultiplier)
