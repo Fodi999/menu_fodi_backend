@@ -46,6 +46,9 @@ type CatalogIngredient struct {
 	SortOrder     int       `gorm:"column:sortOrder;default:0" json:"sortOrder"`
 	CreatedAt     time.Time `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
 
+	// Runtime fields (not stored in database)
+	InFridge bool `gorm:"-" json:"inFridge"` // True if ingredient is available in user's fridge (sufficient quantity)
+
 	// Associations
 	Ingredient Ingredient    `gorm:"foreignKey:IngredientID" json:"ingredient,omitempty"`
 	Recipe     RecipeCatalog `gorm:"foreignKey:RecipeID" json:"-"`

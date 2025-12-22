@@ -135,6 +135,25 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if user is authenticated (optional - for fridge matching)
+	userID, hasAuth := r.Context().Value("userID").(string)
+	if hasAuth && userID != "" {
+		// Enrich recipe with fridge info (which ingredients are available)
+		err := h.matchService.EnrichRecipeWithFridgeInfo(userID, recipe)
+		if err != nil {
+			h.logger.Warn("Failed to enrich recipe with fridge info", 
+				zap.Error(err),
+				zap.String("userId", userID),
+			)
+			// Don't fail the request, just log warning
+		} else {
+			h.logger.Info("Recipe enriched with fridge info",
+				zap.String("recipeId", recipeID),
+				zap.String("userId", userID),
+			)
+		}
+	}
+
 	h.logger.Info("Recipe found", 
 		zap.String("recipeId", recipeID),
 		zap.String("name", recipe.LocalName),

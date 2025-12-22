@@ -601,3 +601,47 @@ func (s *RecipeMatchService) ListRecipes(filters RecipeFilters) ([]models.Recipe
 
 	return recipes, nil
 }
+
+// EnrichRecipeWithFridgeInfo checks which recipe ingredients are available in user's fridge
+// Updates the inFridge field for each CatalogIngredient
+func (s *RecipeMatchService) EnrichRecipeWithFridgeInfo(userID string, recipe *models.RecipeCatalog) error {
+	if recipe == nil || len(recipe.Ingredients) == 0 {
+		return nil // Nothing to enrich
+	}
+
+	// 1. Load user's fridge items
+	var fridgeItems []models.UserFridgeItem
+	err := s.db.Where("user_id::text = ?", userID).
+		Preload("Ingredient"). // Load ingredient details
+		Find(&fridgeItems).Error
+	if err != nil {
+		return fmt.Errorf("failed to load fridge items: %w", err)
+	}
+
+	// 2. Build map: ingredientID -> fridgeItem
+	fridgeMap := make(map[string]*models.UserFridgeItem)
+	for i := range fridgeItems {
+		fridgeMap[fridgeItems[i].IngredientID] = &fridgeItems[i]
+	}
+
+	// 3. Check each recipe ingredient against fridge
+	for i := range recipe.Ingredients {
+		recipeIng := &recipe.Ingredients[i]
+
+		if fridgeItem, found := fridgeMap[recipeIng.IngredientID]; found {
+			// Ingredient exists in fridge
+			// Check if quantity is sufficient (same unit)
+			if fridgeItem.Unit == recipeIng.Unit && fridgeItem.Quantity >= recipeIng.Quantity {
+				recipeIng.InFridge = true
+			} else {
+				// Exists but insufficient quantity or different unit
+				recipeIng.InFridge = false
+			}
+		} else {
+			// Ingredient not in fridge
+			recipeIng.InFridge = false
+		}
+	}
+
+	return nil
+}
