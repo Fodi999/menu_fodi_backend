@@ -82,6 +82,50 @@ func AdminMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// OptionalAuthMiddleware checks JWT token if present, but doesn't require it
+// If token is valid, adds user to context. If no token or invalid, continues without user.
+func OptionalAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		
+		// No token? Continue without auth
+		if authHeader == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Extract Bearer token
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			// Invalid format? Continue without auth (don't block)
+			next.ServeHTTP(w, r)
+			return
+		}
+		
+		tokenString := strings.TrimSpace(parts[1])
+		if tokenString == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Validate token
+		claims, err := authservice.ValidateToken(tokenString)
+		if err != nil {
+			// Invalid token? Continue without auth (don't block)
+			log.Printf("⚠️ OptionalAuth: Invalid token, continuing without auth: %v", err)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Valid token → add to context
+		ctx := context.WithValue(r.Context(), UserContextKey, claims)
+		ctx = context.WithValue(ctx, "userID", claims.UserID)
+		log.Printf("✅ OptionalAuth: User %s authenticated", claims.UserID)
+		
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // GetUserID извлекает UUID пользователя из JWT claims в контексте
 func GetUserID(r *http.Request) *uuid.UUID {
 	claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)

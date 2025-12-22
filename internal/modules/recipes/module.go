@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
 	httphandlers "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
@@ -75,7 +76,7 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 	// Recipe detail by ID (public with optional auth for fridge matching)
 	// If user is authenticated, adds inFridge flags to ingredients
-	r.Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
+	r.With(middleware.OptionalAuthMiddleware).Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
 
 	// Protected routes (require auth)
 	r.Group(func(r chi.Router) {

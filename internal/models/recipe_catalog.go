@@ -47,7 +47,8 @@ type CatalogIngredient struct {
 	CreatedAt     time.Time `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
 
 	// Runtime fields (not stored in database)
-	InFridge bool `gorm:"-" json:"inFridge"` // True if ingredient is available in user's fridge (sufficient quantity)
+	InFridge       bool     `gorm:"-" json:"inFridge"`       // True if ingredient is available in user's fridge (sufficient quantity)
+	FridgeQuantity *float64 `gorm:"-" json:"fridgeQuantity"` // How much of this ingredient is in fridge (nil if not in fridge)
 
 	// Associations
 	Ingredient Ingredient    `gorm:"foreignKey:IngredientID" json:"ingredient,omitempty"`

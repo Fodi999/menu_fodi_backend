@@ -630,6 +630,8 @@ func (s *RecipeMatchService) EnrichRecipeWithFridgeInfo(userID string, recipe *m
 
 		if fridgeItem, found := fridgeMap[recipeIng.IngredientID]; found {
 			// Ingredient exists in fridge
+			recipeIng.FridgeQuantity = &fridgeItem.Quantity
+			
 			// Check if quantity is sufficient (same unit)
 			if fridgeItem.Unit == recipeIng.Unit && fridgeItem.Quantity >= recipeIng.Quantity {
 				recipeIng.InFridge = true
@@ -640,6 +642,7 @@ func (s *RecipeMatchService) EnrichRecipeWithFridgeInfo(userID string, recipe *m
 		} else {
 			// Ingredient not in fridge
 			recipeIng.InFridge = false
+			recipeIng.FridgeQuantity = nil
 		}
 	}
 
