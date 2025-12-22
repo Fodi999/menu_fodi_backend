@@ -16,7 +16,8 @@ type Module struct {
 
 func NewModule(db *gorm.DB) *Module {
 	repo := database.NewPreparedDishRepository(db)
-	handler := httphandlers.NewPreparedDishesHandler(repo)
+	historyRepo := database.NewHistoryRepository(db)
+	handler := httphandlers.NewPreparedDishesHandler(repo, historyRepo)
 
 	return &Module{handler: handler}
 }

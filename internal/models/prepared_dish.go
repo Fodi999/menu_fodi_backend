@@ -44,3 +44,28 @@ func (d *PreparedDish) IsExpired() bool {
 func (d *PreparedDish) ConsumedPortions() int {
 	return d.PortionsInitial - d.PortionsAvailable
 }
+
+// DishStatus represents the status of a prepared dish
+type DishStatus string
+
+const (
+	DishStatusAvailable DishStatus = "available"
+	DishStatusFinished  DishStatus = "finished"
+	DishStatusExpired   DishStatus = "expired"
+)
+
+// GetStatus returns the computed status of the dish
+func (d *PreparedDish) GetStatus() DishStatus {
+	// Check expired first
+	if d.IsExpired() {
+		return DishStatusExpired
+	}
+	
+	// Check if finished (no portions left)
+	if d.PortionsAvailable == 0 {
+		return DishStatusFinished
+	}
+	
+	// Otherwise available
+	return DishStatusAvailable
+}

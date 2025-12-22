@@ -14,6 +14,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/health"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/hint"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/history"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ingredients"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/leaderboard"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/marketplace"
@@ -73,6 +74,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	healthModule := health.NewModule(a.db)
 	contactModule := contact.NewModule(logger.Log)
 	hintModule := hint.NewModule(a.db)
+	historyModule := history.NewModule(a.db) // User activity history and analytics
 	ingredientsModule := ingredients.NewModule(a.db)
 	leaderboardModule := leaderboard.NewModule(a.db)
 
@@ -121,6 +123,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register hint module routes
 		hintModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register history module routes (activity tracking and analytics)
+		historyModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register ingredients module routes
 		ingredientsModule.RegisterRoutes(r, middleware.AuthMiddleware)

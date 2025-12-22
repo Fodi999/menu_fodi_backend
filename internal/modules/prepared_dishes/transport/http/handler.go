@@ -12,11 +12,15 @@ import (
 )
 
 type PreparedDishesHandler struct {
-	repo *database.PreparedDishRepository
+	repo        *database.PreparedDishRepository
+	historyRepo *database.HistoryRepository
 }
 
-func NewPreparedDishesHandler(repo *database.PreparedDishRepository) *PreparedDishesHandler {
-	return &PreparedDishesHandler{repo: repo}
+func NewPreparedDishesHandler(repo *database.PreparedDishRepository, historyRepo *database.HistoryRepository) *PreparedDishesHandler {
+	return &PreparedDishesHandler{
+		repo:        repo,
+		historyRepo: historyRepo,
+	}
 }
 
 // GetPreparedDishes returns user's prepared dishes with optional filters
@@ -131,6 +135,32 @@ func (h *PreparedDishesHandler) ConsumePortion(w http.ResponseWriter, r *http.Re
 			"error":   err.Error(),
 		})
 		return
+	}
+
+	// Create history event for consumption
+	recipeName := ""
+	if updated.Recipe != nil {
+		recipeName = updated.Recipe.LocalName
+	}
+	
+	portions := req.Portions
+	metadata := map[string]interface{}{
+		"recipe_name":        recipeName,
+		"portions_remaining": updated.PortionsAvailable,
+		"dish_id":            dishID,
+	}
+	
+	err = h.historyRepo.CreateWithMetadata(
+		user.ID,
+		models.EventTypeConsume,
+		models.SourceTypePreparedDish,
+		&dishID,
+		&portions,
+		metadata,
+	)
+	if err != nil {
+		// Log error but don't fail the request
+		// History is nice-to-have, not critical
 	}
 
 	w.Header().Set("Content-Type", "application/json")

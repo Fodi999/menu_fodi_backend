@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/dto"
 	"github.com/google/uuid"
@@ -306,6 +307,29 @@ func (s *RecipeCookService) CookRecipe(
 	if err != nil {
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
+
+	// Create history event for cooking (outside transaction - non-critical)
+	historyRepo := database.NewHistoryRepository(s.db)
+	portionsCooked := portionsInitial
+	metadata := map[string]interface{}{
+		"recipe_name":        recipe.LocalName,
+		"servings_multiplier": servingsMultiplier,
+		"portions_initial":   portionsInitial,
+		"recipe_id":          recipeID,
+		"total_cost":         cookLog.TotalRecipeCost,
+		"used_value":         cookLog.UsedValue,
+		"waste_risk_saved":   cookLog.WasteRiskSaved,
+	}
+	
+	_ = historyRepo.CreateWithMetadata(
+		userID,
+		models.EventTypeCook,
+		models.SourceTypeRecipe,
+		&recipeID,
+		&portionsCooked,
+		metadata,
+	)
+	// Ignore error - history is nice-to-have
 
 	// Count remaining fridge items
 	var remainingCount int64
