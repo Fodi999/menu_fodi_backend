@@ -9,10 +9,11 @@ type RecommendationRequest struct {
 
 // RecommendationResponse - response в формате совместимом с текущим UI
 type RecommendationResponse struct {
-	Success bool                `json:"success"`
-	Data    *RecommendationData `json:"data,omitempty"`
-	Message string              `json:"message,omitempty"`
-	Error   string              `json:"error,omitempty"`
+	Success            bool                `json:"success"`
+	Data               *RecommendationData `json:"data,omitempty"`
+	Message            string              `json:"message,omitempty"`
+	Error              string              `json:"error,omitempty"`
+	RequiresUserAction bool                `json:"requiresUserAction,omitempty"` // true = показать модальное окно с кнопкой
 }
 
 // RecommendationData - данные рекомендации (1 лучший рецепт)

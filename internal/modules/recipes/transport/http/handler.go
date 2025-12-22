@@ -624,11 +624,13 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		w.Header().Set("Content-Type", "application/json")
 
 		// Return 200 with friendly message instead of 500
+		// requiresUserAction = true → фронтенд покажет модальное окно с кнопкой "OK"
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
-			Success: false,
-			Error:   "No recipes available",
-			Message: "We couldn't find any recipes matching your fridge. Try adding more ingredients!",
+			Success:            false,
+			Error:              "No recipes available",
+			Message:            "We couldn't find any recipes matching your fridge. Try adding more ingredients!",
+			RequiresUserAction: true, // Показать модальное окно, не автоматический toast
 		})
 		return
 	}
