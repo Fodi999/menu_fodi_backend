@@ -73,6 +73,10 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	// Recipe recommendation (returns 1 best recipe for UI) - TEMPORARILY PUBLIC FOR TESTING
 	r.Post("/recipes/recommendations", m.catalogHandler.GetRecommendation)
 
+	// Recipe detail by ID (public with optional auth for fridge matching)
+	// If user is authenticated, adds inFridge flags to ingredients
+	r.Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
+
 	// Protected routes (require auth)
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
@@ -86,8 +90,5 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		
 		// Recipe adaptation (AI adapts recipe to available ingredients)
 		r.Post("/recipes/{id}/adapt", m.catalogHandler.AdaptRecipe)
-
-		// Recipe detail by ID
-		r.Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
 	})
 }
