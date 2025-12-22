@@ -149,8 +149,11 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListRecipes returns filtered recipe catalog
-// GET /api/recipes?country=Poland&category=main&difficulty=easy&maxTime=30
+// GET /api/recipes?country=Poland&category=main&difficulty=easy&maxTime=30&limit=20
 func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse filters
 	filters := service.RecipeFilters{
 		Country:          r.URL.Query().Get("country"),
 		Category:         r.URL.Query().Get("category"),
@@ -163,8 +166,42 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("Listing recipes", zap.Any("filters", filters))
 
-	// TODO: Implement recipe listing
-	http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+	// Get recipes from service
+	recipes, err := h.matchService.ListRecipes(filters)
+	if err != nil {
+		h.logger.Error("Failed to list recipes", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"code":    "DATABASE_ERROR",
+		})
+		return
+	}
+
+	// Format response
+	recipesData := make([]map[string]interface{}, len(recipes))
+	for i, recipe := range recipes {
+		recipesData[i] = map[string]interface{}{
+			"id":            recipe.ID.String(),
+			"canonicalName": recipe.CanonicalName,
+			"localName":     recipe.LocalName,
+			"country":       recipe.Country,
+			"category":      recipe.Category,
+			"difficulty":    recipe.Difficulty,
+			"timeMinutes":   recipe.TimeMinutes,
+			"servings":      recipe.Servings,
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"recipes": recipesData,
+			"count":   len(recipesData),
+			"filters": filters,
+		},
+	})
 }
 
 // AdaptRecipe adapts existing recipe to available ingredients using AI

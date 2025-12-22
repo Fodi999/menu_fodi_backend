@@ -562,3 +562,36 @@ func (s *RecipeMatchService) GetFridgeItemCount(userID string) (int, error) {
 	}
 	return int(count), nil
 }
+
+// ListRecipes returns filtered recipe list from catalog
+func (s *RecipeMatchService) ListRecipes(filters RecipeFilters) ([]models.RecipeCatalog, error) {
+	query := s.db.Model(&models.RecipeCatalog{})
+
+	// Apply filters
+	if filters.Country != "" {
+		query = query.Where("country = ?", filters.Country)
+	}
+	if filters.Category != "" {
+		query = query.Where("category = ?", filters.Category)
+	}
+	if filters.Difficulty != "" {
+		query = query.Where("difficulty = ?", filters.Difficulty)
+	}
+	if filters.MaxTime > 0 {
+		query = query.Where("\"timeMinutes\" <= ?", filters.MaxTime)
+	}
+
+	// Execute query with limit
+	var recipes []models.RecipeCatalog
+	limit := filters.Limit
+	if limit <= 0 || limit > 100 {
+		limit = 20 // Default limit
+	}
+	
+	err := query.Limit(limit).Find(&recipes).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to list recipes: %w", err)
+	}
+
+	return recipes, nil
+}
