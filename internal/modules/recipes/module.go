@@ -61,6 +61,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	})
 
 	// === NEW CATALOG RECIPE ROUTES ===
+	// Recipe catalog statistics (public - no sensitive data, only counts)
+	r.Get("/recipes/stats", m.catalogHandler.GetRecipeStats)
+	
 	// TODO: Remove public access after testing - these should be protected
 	// Recipe matching (finds recipes based on fridge) - TEMPORARILY PUBLIC FOR TESTING
 	r.Get("/recipes/match", m.catalogHandler.MatchRecipes)

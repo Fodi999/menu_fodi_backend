@@ -516,3 +516,49 @@ func (s *RecipeMatchService) GetRecipeByID(recipeID string) (*models.RecipeCatal
 
 	return &recipe, nil
 }
+
+// GetStats returns recipe catalog statistics (no text, only numbers)
+func (s *RecipeMatchService) GetStats() (totalRecipes int, byCategory map[string]int, err error) {
+	// 1. Get total count
+	var count int64
+	err = s.db.Model(&models.RecipeCatalog{}).Count(&count).Error
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to count recipes: %w", err)
+	}
+	totalRecipes = int(count)
+
+	// 2. Get counts by category
+	type CategoryCount struct {
+		Category string
+		Count    int
+	}
+	
+	var categoryCounts []CategoryCount
+	err = s.db.Model(&models.RecipeCatalog{}).
+		Select("category, COUNT(*) as count").
+		Group("category").
+		Scan(&categoryCounts).Error
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to count by category: %w", err)
+	}
+
+	// 3. Build map
+	byCategory = make(map[string]int)
+	for _, cc := range categoryCounts {
+		byCategory[cc.Category] = cc.Count
+	}
+
+	return totalRecipes, byCategory, nil
+}
+
+// GetFridgeItemCount returns count of user's fridge items (for context in AI responses)
+func (s *RecipeMatchService) GetFridgeItemCount(userID string) (int, error) {
+	var count int64
+	err := s.db.Model(&models.UserFridgeItem{}).
+		Where("user_id::text = ?", userID).
+		Count(&count).Error
+	if err != nil {
+		return 0, fmt.Errorf("failed to count fridge items: %w", err)
+	}
+	return int(count), nil
+}

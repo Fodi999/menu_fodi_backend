@@ -543,7 +543,7 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
 			Success: false,
-			Error:   "Invalid request format",
+			Code:    "INVALID_REQUEST_FORMAT",
 		})
 		return
 	}
@@ -554,7 +554,11 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
 			Success: false,
-			Error:   "Only 'fridge' mode is supported",
+			Code:    "UNSUPPORTED_MODE",
+			Context: map[string]interface{}{
+				"requestedMode": req.Mode,
+				"supportedMode": "fridge",
+			},
 		})
 		return
 	}
@@ -623,14 +627,20 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		h.logger.Error("Failed to get recommendation", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
 
-		// Return 200 with friendly message instead of 500
-		// requiresUserAction = true → фронтенд покажет модальное окно с кнопкой "OK"
+		// Get fridge item count for context
+		fridgeItemCount, _ := h.matchService.GetFridgeItemCount(userID)
+
+		// NEW: Code-based response (no English text)
+		// Frontend decides what message to show based on code + context
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
 			Success:            false,
-			Error:              "No recipes available",
-			Message:            "We couldn't find any recipes matching your fridge. Try adding more ingredients!",
-			RequiresUserAction: true, // Показать модальное окно, не автоматический toast
+			Code:               "NO_RECIPES_FOR_FRIDGE", // Frontend will translate this
+			Context: map[string]interface{}{
+				"fridgeItems":    fridgeItemCount,
+				"matchedRecipes": 0,
+			},
+			RequiresUserAction: true, // Show modal dialog with button
 		})
 		return
 	}
@@ -964,6 +974,33 @@ func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) 
 		"data": map[string]interface{}{
 			"recipes": recipesData,
 			"count":   len(recipesData),
+		},
+	})
+}
+
+// GetRecipeStats returns recipe catalog statistics (no text, only numbers)
+// GET /api/recipes/stats
+func (h *RecipeHandler) GetRecipeStats(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get stats from match service
+	totalRecipes, byCategory, err := h.matchService.GetStats()
+	if err != nil {
+		h.logger.Error("Failed to get recipe stats", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(dto.RecipeStatsResponse{
+			Success: false,
+		})
+		return
+	}
+
+	// Return stats (no messages, only numbers)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(dto.RecipeStatsResponse{
+		Success: true,
+		Data: &dto.RecipeStatsData{
+			TotalRecipes: totalRecipes,
+			ByCategory:   byCategory,
 		},
 	})
 }
