@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
+	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
 	"github.com/go-chi/chi/v5"
@@ -212,19 +213,15 @@ func (h *RecipeHandler) AdaptRecipe(w http.ResponseWriter, r *http.Request) {
 // CookRecipe deducts ingredients from fridge and logs cooking event
 // POST /api/recipes/:id/cook
 func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from context
-	userID, ok := r.Context().Value("userID").(string)
-	if !ok || userID == "" {
-		// DEV MODE: Allow testing without auth
-		testUserID := r.URL.Query().Get("testUserID")
-		if testUserID != "" {
-			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
-			userID = testUserID
-		} else {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+	// Get user ID from JWT claims in context (set by AuthMiddleware)
+	claims, ok := r.Context().Value("user").(*authservice.Claims)
+	if !ok || claims == nil {
+		h.logger.Error("No user claims in context")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
+	
+	userID := claims.UserID
 
 	recipeID := chi.URLParam(r, "id")
 	if recipeID == "" {
@@ -757,19 +754,15 @@ func parseStepsFromJSON(stepsJSON datatypes.JSON) []string {
 // SaveRecipe saves a recipe for the user
 // POST /api/user/recipes/save
 func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from context
-	userID, ok := r.Context().Value("userID").(string)
-	if !ok || userID == "" {
-		// DEV MODE: Allow testing without auth
-		testUserID := r.URL.Query().Get("testUserID")
-		if testUserID != "" {
-			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
-			userID = testUserID
-		} else {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+	// Get user ID from JWT claims in context (set by AuthMiddleware)
+	claims, ok := r.Context().Value("user").(*authservice.Claims)
+	if !ok || claims == nil {
+		h.logger.Error("No user claims in context")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
+	
+	userID := claims.UserID
 
 	// Parse request body
 	var req dto.SaveRecipeRequest
@@ -837,20 +830,15 @@ func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
 // GetSavedRecipes returns all saved recipes for the user
 // GET /api/user/recipes/saved
 func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from context
-	userID, ok := r.Context().Value("userID").(string)
-	if !ok || userID == "" {
-		// DEV MODE: Allow testing without auth
-		testUserID := r.URL.Query().Get("testUserID")
-		if testUserID != "" {
-			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
-			userID = testUserID
-		} else {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+	// Get user ID from JWT claims in context (set by AuthMiddleware)
+	claims, ok := r.Context().Value("user").(*authservice.Claims)
+	if !ok || claims == nil {
+		h.logger.Error("No user claims in context")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
-
+	
+	userID := claims.UserID
 	h.logger.Info("Getting saved recipes", zap.String("userId", userID))
 
 	// Get saved recipes from repository
