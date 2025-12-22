@@ -25,6 +25,11 @@ func NewModule() *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler, adminMiddleware func(http.Handler) http.Handler) {
+	// PUBLIC ENDPOINTS - NO AUTH REQUIRED
+	r.Route("/api/public", func(r chi.Router) {
+		r.Get("/treasury", m.handlers.GetTreasuryInfo) // Public treasury info
+	})
+
 	// PUBLIC SSE ENDPOINT — БЕЗ АВТОРИЗАЦИИ (EventSource не может отправлять headers)
 	r.Route("/treasury", func(r chi.Router) {
 		r.Get("/stream", m.handlers.StreamTreasury) // SSE stream - публичный доступ
