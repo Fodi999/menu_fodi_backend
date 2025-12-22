@@ -501,3 +501,18 @@ func (s *RecipeMatchService) GetBestRecommendation(
 	// 3. Возвращаем первый (лучший) рецепт
 	return &matches[0], nil
 }
+
+// GetRecipeByID returns full recipe details by ID
+func (s *RecipeMatchService) GetRecipeByID(recipeID string) (*models.RecipeCatalog, error) {
+	var recipe models.RecipeCatalog
+	
+	err := s.db.Where("id = ?", recipeID).First(&recipe).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("recipe not found")
+		}
+		return nil, fmt.Errorf("failed to get recipe: %w", err)
+	}
+
+	return &recipe, nil
+}

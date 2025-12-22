@@ -81,7 +81,7 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		// Recipe adaptation (AI adapts recipe to available ingredients)
 		r.Post("/recipes/{id}/adapt", m.catalogHandler.AdaptRecipe)
 
-		// Recipe detail (TODO: Implement)
-		// r.Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
+		// Recipe detail by ID
+		r.Get("/recipes/{id}", m.catalogHandler.GetRecipeByID)
 	})
 }

@@ -124,10 +124,27 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Implement recipe detail loading
 	h.logger.Info("Getting recipe by ID", zap.String("recipeId", recipeID))
 
-	http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+	// Get recipe from database
+	recipe, err := h.matchService.GetRecipeByID(recipeID)
+	if err != nil {
+		h.logger.Error("Failed to get recipe", zap.Error(err))
+		http.Error(w, "Recipe not found", http.StatusNotFound)
+		return
+	}
+
+	h.logger.Info("Recipe found", 
+		zap.String("recipeId", recipeID),
+		zap.String("name", recipe.LocalName),
+	)
+
+	// Return recipe
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data":    recipe,
+	})
 }
 
 // ListRecipes returns filtered recipe catalog
