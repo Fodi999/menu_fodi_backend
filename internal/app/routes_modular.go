@@ -8,6 +8,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/academy"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin"
 	aimodule "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recommendations"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/budget"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/business"
@@ -70,6 +71,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	userModule := user.NewModule(a.db)
 	fridgeModule := fridge.NewModule(a.db)
 	aiModule := aimodule.NewModule(a.db)
+	aiRecommendationsModule := ai_recommendations.NewModule(a.db) // ЭТАП 3 - AI Recommendations
 	marketplaceModule := marketplace.NewModule(a.db)
 	academyModule := academy.NewModule(a.db)
 	healthModule := health.NewModule(a.db)
@@ -116,6 +118,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register AI module routes
 		aiModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register AI Recommendations module routes (ЭТАП 3 - Decision Engine)
+		aiRecommendationsModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register marketplace module routes
 		marketplaceModule.RegisterRoutes(r, middleware.AuthMiddleware)
