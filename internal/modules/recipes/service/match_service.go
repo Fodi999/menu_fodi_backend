@@ -502,11 +502,17 @@ func (s *RecipeMatchService) GetBestRecommendation(
 	return &matches[0], nil
 }
 
-// GetRecipeByID returns full recipe details by ID
+// GetRecipeByID returns full recipe details by ID (with ingredients)
 func (s *RecipeMatchService) GetRecipeByID(recipeID string) (*models.RecipeCatalog, error) {
 	var recipe models.RecipeCatalog
 	
-	err := s.db.Where("id = ?", recipeID).First(&recipe).Error
+	err := s.db.
+		Preload("Ingredients").                // Load recipe ingredients
+		Preload("Ingredients.Ingredient").     // Load ingredient details
+		Preload("Allergens").                  // Load allergens
+		Preload("DietTags").                   // Load diet tags
+		Where("id = ?", recipeID).
+		First(&recipe).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("recipe not found")
