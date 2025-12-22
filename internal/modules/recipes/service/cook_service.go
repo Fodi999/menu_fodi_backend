@@ -278,6 +278,15 @@ func (s *RecipeCookService) CookRecipe(
 		portionsInitial = int(float64(recipe.Servings) * servingsMultiplier)
 	}
 
+	// Calculate cost per portion for budget tracking
+	var costPerPortion *float64
+	var totalCost *float64
+	if portionsInitial > 0 {
+		costPerPortionValue := cookLog.TotalRecipeCost / float64(portionsInitial)
+		costPerPortion = &costPerPortionValue
+		totalCost = &cookLog.TotalRecipeCost
+	}
+
 	preparedDish := models.PreparedDish{
 		UserID:            userID,
 		RecipeID:          recipeID,
@@ -285,6 +294,8 @@ func (s *RecipeCookService) CookRecipe(
 		PortionsInitial:   portionsInitial,
 		PreparedAt:        now,
 		Source:            "cook",
+		CostPerPortion:    costPerPortion,
+		TotalCost:         totalCost,
 	}
 
 	// Set expiration date (3 days from now as default)
@@ -292,10 +303,11 @@ func (s *RecipeCookService) CookRecipe(
 	preparedDish.ExpiresAt = &expiresAt
 
 	err = tx.Exec(`
-		INSERT INTO prepared_dishes (user_id, recipe_id, portions_available, portions_initial, prepared_at, expires_at, source)
-		VALUES (?, ?::uuid, ?, ?, ?, ?, ?)
+		INSERT INTO prepared_dishes (user_id, recipe_id, portions_available, portions_initial, prepared_at, expires_at, source, cost_per_portion, total_cost)
+		VALUES (?, ?::uuid, ?, ?, ?, ?, ?, ?, ?)
 	`, preparedDish.UserID, preparedDish.RecipeID, preparedDish.PortionsAvailable, 
-	   preparedDish.PortionsInitial, preparedDish.PreparedAt, preparedDish.ExpiresAt, preparedDish.Source).Error
+	   preparedDish.PortionsInitial, preparedDish.PreparedAt, preparedDish.ExpiresAt, preparedDish.Source,
+	   preparedDish.CostPerPortion, preparedDish.TotalCost).Error
 	
 	if err != nil {
 		tx.Rollback()

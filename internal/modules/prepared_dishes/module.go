@@ -17,7 +17,8 @@ type Module struct {
 func NewModule(db *gorm.DB) *Module {
 	repo := database.NewPreparedDishRepository(db)
 	historyRepo := database.NewHistoryRepository(db)
-	handler := httphandlers.NewPreparedDishesHandler(repo, historyRepo)
+	budgetRepo := database.NewWeeklyBudgetRepository(db)
+	handler := httphandlers.NewPreparedDishesHandler(repo, historyRepo, budgetRepo)
 
 	return &Module{handler: handler}
 }
@@ -26,8 +27,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	r.Route("/api/prepared-dishes", func(r chi.Router) {
 		r.Use(authMiddleware)
 
-		r.Get("/", m.handler.GetPreparedDishes)         // GET /api/prepared-dishes?category=pizza&available=true
+		r.Get("/", m.handler.GetPreparedDishes)           // GET /api/prepared-dishes?category=pizza&available=true
 		r.Get("/stats", m.handler.GetPreparedDishesStats) // GET /api/prepared-dishes/stats
 		r.Post("/{id}/consume", m.handler.ConsumePortion) // POST /api/prepared-dishes/{id}/consume
+		r.Post("/{id}/waste", m.handler.WasteDish)        // POST /api/prepared-dishes/{id}/waste
 	})
 }

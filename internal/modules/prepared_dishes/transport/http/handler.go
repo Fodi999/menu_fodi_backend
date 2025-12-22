@@ -14,12 +14,14 @@ import (
 type PreparedDishesHandler struct {
 	repo        *database.PreparedDishRepository
 	historyRepo *database.HistoryRepository
+	budgetRepo  *database.WeeklyBudgetRepository
 }
 
-func NewPreparedDishesHandler(repo *database.PreparedDishRepository, historyRepo *database.HistoryRepository) *PreparedDishesHandler {
+func NewPreparedDishesHandler(repo *database.PreparedDishRepository, historyRepo *database.HistoryRepository, budgetRepo *database.WeeklyBudgetRepository) *PreparedDishesHandler {
 	return &PreparedDishesHandler{
 		repo:        repo,
 		historyRepo: historyRepo,
+		budgetRepo:  budgetRepo,
 	}
 }
 
@@ -163,6 +165,15 @@ func (h *PreparedDishesHandler) ConsumePortion(w http.ResponseWriter, r *http.Re
 		// History is nice-to-have, not critical
 	}
 
+	// Update weekly budget (critical for budget tracking)
+	if updated.CostPerPortion != nil {
+		consumedCost := *updated.CostPerPortion * float64(req.Portions)
+		err = h.budgetRepo.UpdateSpentBudget(user.ID, consumedCost)
+		if err != nil {
+			// Log error but don't fail - budget is tracked async
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -170,6 +181,110 @@ func (h *PreparedDishesHandler) ConsumePortion(w http.ResponseWriter, r *http.Re
 		"data":               updated,
 		"portions_consumed":  req.Portions,
 		"portions_remaining": updated.PortionsAvailable,
+	})
+}
+
+// WasteDish marks a prepared dish as wasted (expired/discarded)
+// POST /api/prepared-dishes/{id}/waste
+func (h *PreparedDishesHandler) WasteDish(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value(middleware.UserContextKey).(*models.User)
+	if !ok || user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Unauthorized",
+		})
+		return
+	}
+
+	dishID := chi.URLParam(r, "id")
+	if dishID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Dish ID required",
+		})
+		return
+	}
+
+	// Verify ownership
+	dish, err := h.repo.FindByID(dishID)
+	if err != nil || dish == nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Dish not found",
+		})
+		return
+	}
+	if dish.UserID != user.ID {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Access denied",
+		})
+		return
+	}
+
+	// Calculate waste cost (remaining portions * cost per portion)
+	wasteCost := 0.0
+	if dish.CostPerPortion != nil {
+		wasteCost = *dish.CostPerPortion * float64(dish.PortionsAvailable)
+	}
+
+	// Create history event for waste
+	recipeName := ""
+	if dish.Recipe != nil {
+		recipeName = dish.Recipe.LocalName
+	}
+	
+	portionsWasted := dish.PortionsAvailable
+	metadata := map[string]interface{}{
+		"recipe_name":     recipeName,
+		"portions_wasted": portionsWasted,
+		"waste_cost":      wasteCost,
+		"dish_id":         dishID,
+		"reason":          "manual_waste", // Could be expanded with user input
+	}
+	
+	err = h.historyRepo.CreateWithMetadata(
+		user.ID,
+		models.EventTypeWaste,
+		models.SourceTypePreparedDish,
+		&dishID,
+		&portionsWasted,
+		metadata,
+	)
+	if err != nil {
+		// Log but continue
+	}
+
+	// Update weekly budget waste_cost
+	if wasteCost > 0 {
+		err = h.budgetRepo.UpdateWasteCost(user.ID, wasteCost)
+		if err != nil {
+			// Log but continue
+		}
+	}
+
+	// Delete the dish (it's wasted)
+	err = h.repo.Delete(dishID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Failed to delete wasted dish",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":       true,
+		"message":       "Dish marked as wasted",
+		"portions_wasted": portionsWasted,
+		"waste_cost":    wasteCost,
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin"
 	aimodule "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/budget"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/business"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/contact"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge"
@@ -80,6 +81,7 @@ func (a *App) setupModularRoutes() http.Handler {
 
 	// NEW MODULES
 	adminModule := admin.NewModule()
+	budgetModule := budget.NewModule(a.db)                 // Weekly budget tracking
 	businessModule := business.NewModule(a.db)
 	mealPlanModule := meal_plan.NewModule()
 	metricsModule := metrics.NewModule()
@@ -139,6 +141,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register business module routes
 		businessModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register budget module routes (weekly food budget tracking)
+		budgetModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register meal plan module routes
 		mealPlanModule.RegisterRoutes(r, middleware.AuthMiddleware)

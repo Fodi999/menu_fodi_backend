@@ -15,6 +15,8 @@ type PreparedDish struct {
 	PreparedAt        time.Time `gorm:"column:prepared_at;not null;default:NOW()" json:"prepared_at"`
 	ExpiresAt         *time.Time `gorm:"column:expires_at" json:"expires_at,omitempty"`
 	Source            string    `gorm:"column:source;not null;default:'cook'" json:"source"` // 'cook' or 'manual'
+	CostPerPortion    *float64  `gorm:"column:cost_per_portion;type:decimal(10,2)" json:"cost_per_portion,omitempty"`
+	TotalCost         *float64  `gorm:"column:total_cost;type:decimal(10,2)" json:"total_cost,omitempty"`
 	CreatedAt         time.Time `gorm:"column:created_at;not null;default:NOW()" json:"created_at"`
 	UpdatedAt         time.Time `gorm:"column:updated_at;not null;default:NOW()" json:"updated_at"`
 
