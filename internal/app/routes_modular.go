@@ -20,6 +20,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/meal_plan"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/metrics"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/nutrition"
+	prepareddishes "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/prepared_dishes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/semi_finished"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/stats"
@@ -81,7 +82,8 @@ func (a *App) setupModularRoutes() http.Handler {
 	mealPlanModule := meal_plan.NewModule()
 	metricsModule := metrics.NewModule()
 	nutritionModule := nutrition.NewModule()
-	recipesModule := recipes.NewModule(a.db) // Updated: Pass DB for catalog services
+	preparedDishesModule := prepareddishes.NewModule(a.db) // Prepared dishes after cooking
+	recipesModule := recipes.NewModule(a.db)                // Updated: Pass DB for catalog services
 	semiFinishedModule := semi_finished.NewModule(a.db)
 	statsModule := stats.NewModule(a.db)
 	taskModule := task.NewModule()           // Task system with treasury integration
@@ -141,6 +143,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register nutrition module routes
 		nutritionModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register prepared dishes module routes (cook result management)
+		preparedDishesModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register recipes module routes
 		recipesModule.RegisterRoutes(r, middleware.AuthMiddleware)

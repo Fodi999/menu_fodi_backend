@@ -270,6 +270,37 @@ func (s *RecipeCookService) CookRecipe(
 		// This is not a critical error, so we continue
 	}
 
+	// Create prepared dish record
+	// Calculate portions from recipe servings (default to servingsMultiplier if no recipe.Servings)
+	portionsInitial := int(servingsMultiplier)
+	if recipe.Servings > 0 {
+		portionsInitial = int(float64(recipe.Servings) * servingsMultiplier)
+	}
+
+	preparedDish := models.PreparedDish{
+		UserID:            userID,
+		RecipeID:          recipeID,
+		PortionsAvailable: portionsInitial,
+		PortionsInitial:   portionsInitial,
+		PreparedAt:        now,
+		Source:            "cook",
+	}
+
+	// Set expiration date (3 days from now as default)
+	expiresAt := now.Add(72 * time.Hour)
+	preparedDish.ExpiresAt = &expiresAt
+
+	err = tx.Exec(`
+		INSERT INTO prepared_dishes (user_id, recipe_id, portions_available, portions_initial, prepared_at, expires_at, source)
+		VALUES (?, ?::uuid, ?, ?, ?, ?, ?)
+	`, preparedDish.UserID, preparedDish.RecipeID, preparedDish.PortionsAvailable, 
+	   preparedDish.PortionsInitial, preparedDish.PreparedAt, preparedDish.ExpiresAt, preparedDish.Source).Error
+	
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create prepared dish: %w", err)
+	}
+
 	// Commit transaction
 	err = tx.Commit().Error
 	if err != nil {
