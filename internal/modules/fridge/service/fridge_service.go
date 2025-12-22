@@ -8,19 +8,23 @@ import (
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // FridgeService сервис для работы с холодильником
 type FridgeService struct {
+	db             *gorm.DB
 	fridgeRepo     *database.UserFridgeRepository
 	ingredientRepo *database.IngredientRepository
 }
 
 // NewFridgeService создает новый экземпляр сервиса
-func NewFridgeService(fridgeRepo *database.UserFridgeRepository, ingredientRepo *database.IngredientRepository) *FridgeService {
+func NewFridgeService(db *gorm.DB, fridgeRepo *database.UserFridgeRepository, ingredientRepo *database.IngredientRepository) *FridgeService {
 	return &FridgeService{
+		db:             db,
 		fridgeRepo:     fridgeRepo,
 		ingredientRepo: ingredientRepo,
 	}
@@ -446,4 +450,121 @@ func (s *FridgeService) UpdateItemQuantity(userID string, itemID string, newQuan
 	}
 
 	return nil
+}
+
+// AddMissingFromRecipe adds missing recipe ingredients to user's fridge
+// Calculates diff: if ingredient exists but insufficient → add difference, if missing → add full amount
+func (s *FridgeService) AddMissingFromRecipe(userID string, recipeID string) (*dto.AddMissingResult, error) {
+	// 1. Load recipe ingredients
+	var recipe models.RecipeCatalog
+	err := s.db.
+		Preload("Ingredients").
+		Preload("Ingredients.Ingredient").
+		Where("id::text = ?", recipeID).
+		First(&recipe).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("recipe not found: %s", recipeID)
+		}
+		return nil, fmt.Errorf("failed to load recipe: %w", err)
+	}
+
+	// 2. Load user's fridge items
+	var fridgeItems []models.UserFridgeItem
+	err = s.db.
+		Where("user_id::text = ?", userID).
+		Preload("Ingredient").
+		Find(&fridgeItems).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to load fridge items: %w", err)
+	}
+
+	// 3. Build fridge map: ingredientID → fridgeItem
+	fridgeMap := make(map[string]*models.UserFridgeItem)
+	for i := range fridgeItems {
+		fridgeMap[fridgeItems[i].IngredientID] = &fridgeItems[i]
+	}
+
+	// 4. Calculate diff and add missing/insufficient ingredients
+	result := &dto.AddMissingResult{
+		Added:   0,
+		Skipped: 0,
+		Items:   []dto.AddedItem{},
+	}
+
+	for _, recipeIng := range recipe.Ingredients {
+		requiredQty := recipeIng.Quantity
+		requiredUnit := recipeIng.Unit
+
+		fridgeItem, exists := fridgeMap[recipeIng.IngredientID]
+
+		if exists && fridgeItem.Unit == requiredUnit && fridgeItem.Quantity >= requiredQty {
+			// Already have enough
+			result.Skipped++
+			continue
+		}
+
+		// Calculate how much to add
+		var addQty float64
+		if exists && fridgeItem.Unit == requiredUnit {
+			// Exists but insufficient → add difference
+			addQty = requiredQty - fridgeItem.Quantity
+			fridgeItem.Quantity = requiredQty
+			if err := s.fridgeRepo.Update(fridgeItem); err != nil {
+				logger.Log.Error("Failed to update fridge item",
+					zap.Error(err),
+					zap.String("itemId", fridgeItem.ID),
+				)
+				continue
+			}
+		} else {
+			// Missing or different unit → add full amount
+			addQty = requiredQty
+			
+			// Get ingredient details
+			ingredient, err := s.ingredientRepo.GetIngredientByID(recipeIng.IngredientID)
+			if err != nil {
+				logger.Log.Error("Failed to get ingredient",
+					zap.Error(err),
+					zap.String("ingredientId", recipeIng.IngredientID),
+				)
+				continue
+			}
+
+			// Create new fridge item
+			newItem := &models.UserFridgeItem{
+				UserID:       userID,
+				IngredientID: recipeIng.IngredientID,
+				Quantity:     requiredQty,
+				Unit:         requiredUnit,
+				ArrivedAt:    time.Now(),
+				ExpiresAt:    nil, // Will be calculated if ingredient has defaultShelfLifeDays
+			}
+
+			// Auto-calculate expiry if ingredient has shelf life
+			if ingredient.DefaultShelfLifeDays != nil {
+				expiresAt := newItem.ArrivedAt.AddDate(0, 0, *ingredient.DefaultShelfLifeDays)
+				newItem.ExpiresAt = &expiresAt
+			}
+
+			if err := s.fridgeRepo.Create(newItem); err != nil {
+				logger.Log.Error("Failed to create fridge item",
+					zap.Error(err),
+					zap.String("ingredientId", recipeIng.IngredientID),
+				)
+				continue
+			}
+		}
+
+		// Add to result
+		result.Added++
+		result.Items = append(result.Items, dto.AddedItem{
+			IngredientID:  recipeIng.IngredientID,
+			Name:          recipeIng.Ingredient.Name,
+			AddedQuantity: addQty,
+			Unit:          requiredUnit,
+		})
+	}
+
+	return result, nil
 }

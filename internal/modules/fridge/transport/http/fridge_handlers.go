@@ -293,6 +293,55 @@ func (h *FridgeHandlers) UpdateItemQuantity(w http.ResponseWriter, r *http.Reque
 	})
 }
 
+// AddMissingIngredients adds missing recipe ingredients to user's fridge
+// POST /api/fridge/add-missing
+func (h *FridgeHandlers) AddMissingIngredients(w http.ResponseWriter, r *http.Request) {
+	// 1. Get userID from context (set by auth middleware)
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		respondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// 2. Parse request body
+	var req struct {
+		RecipeID string `json:"recipeId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode request", zap.Error(err))
+		respondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.RecipeID == "" {
+		respondError(w, http.StatusBadRequest, "recipeId is required")
+		return
+	}
+
+	// 3. Call service method
+	result, err := h.service.AddMissingFromRecipe(userID, req.RecipeID)
+	if err != nil {
+		logger.Error("failed to add missing ingredients",
+			zap.Error(err),
+			zap.String("userId", userID),
+			zap.String("recipeId", req.RecipeID),
+		)
+		
+		if err.Error() == "recipe not found" {
+			respondError(w, http.StatusNotFound, "recipe not found")
+			return
+		}
+		
+		respondError(w, http.StatusInternalServerError, "failed to add missing ingredients")
+		return
+	}
+
+	// 4. Return result (NO TEXT, only data)
+	respondSuccess(w, result)
+}
+
 // Helper functions for consistent responses
 
 func respondSuccess(w http.ResponseWriter, data interface{}) {

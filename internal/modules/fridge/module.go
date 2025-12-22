@@ -25,7 +25,7 @@ func NewModule(db *gorm.DB) *Module {
 	ingredientRepo := &database.IngredientRepository{}
 
 	// Инициализируем сервис
-	svc := service.NewFridgeService(fridgeRepo, ingredientRepo)
+	svc := service.NewFridgeService(db, fridgeRepo, ingredientRepo)
 
 	// Инициализируем handlers
 	handlers := fridgehttp.NewFridgeHandlers(svc)
@@ -51,5 +51,8 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 		// Операции с ценами (event sourcing)
 		r.Post("/items/{id}/price", m.handlers.AddPrice)               // POST /api/fridge/items/{id}/price - добавить событие изменения цены
 		r.Get("/items/{id}/price/history", m.handlers.GetPriceHistory) // GET /api/fridge/items/{id}/price/history - история изменения цен
+
+		// Add missing ingredients from recipe
+		r.Post("/add-missing", m.handlers.AddMissingIngredients) // POST /api/fridge/add-missing - добавить недостающие ингредиенты рецепта
 	})
 }
