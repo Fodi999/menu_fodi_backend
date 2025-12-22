@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
@@ -214,7 +215,7 @@ func (h *RecipeHandler) AdaptRecipe(w http.ResponseWriter, r *http.Request) {
 // POST /api/recipes/:id/cook
 func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from JWT claims in context (set by AuthMiddleware)
-	claims, ok := r.Context().Value("user").(*authservice.Claims)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
 	if !ok || claims == nil {
 		h.logger.Error("No user claims in context")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -755,7 +756,7 @@ func parseStepsFromJSON(stepsJSON datatypes.JSON) []string {
 // POST /api/user/recipes/save
 func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from JWT claims in context (set by AuthMiddleware)
-	claims, ok := r.Context().Value("user").(*authservice.Claims)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
 	if !ok || claims == nil {
 		h.logger.Error("No user claims in context")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -831,7 +832,7 @@ func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
 // GET /api/user/recipes/saved
 func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from JWT claims in context (set by AuthMiddleware)
-	claims, ok := r.Context().Value("user").(*authservice.Claims)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
 	if !ok || claims == nil {
 		h.logger.Error("No user claims in context")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
