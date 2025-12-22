@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 
@@ -21,6 +22,13 @@ type JWTService struct{}
 
 // NewJWTService creates a new JWT service
 func NewJWTService() *JWTService {
+	// Log JWT_SECRET configuration at startup
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Printf("⚠️  JWT_SECRET not set, using fallback secret (INSECURE!)")
+	} else {
+		log.Printf("✅ JWT_SECRET loaded from environment (length: %d)", len(secret))
+	}
 	return &JWTService{}
 }
 
@@ -29,6 +37,9 @@ func (s *JWTService) GenerateToken(userID, email, role string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "your-secret-key-change-this-in-production"
+		log.Printf("⚠️  GenerateToken: Using fallback secret")
+	} else {
+		log.Printf("🔑 GenerateToken: Using JWT_SECRET from env (len=%d)", len(secret))
 	}
 
 	claims := &Claims{
@@ -50,6 +61,9 @@ func (s *JWTService) ValidateToken(tokenString string) (*Claims, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "your-secret-key-change-this-in-production"
+		log.Printf("⚠️  ValidateToken: Using fallback secret")
+	} else {
+		log.Printf("🔑 ValidateToken: Using JWT_SECRET from env (len=%d)", len(secret))
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -57,6 +71,7 @@ func (s *JWTService) ValidateToken(tokenString string) (*Claims, error) {
 	})
 
 	if err != nil {
+		log.Printf("❌ JWT parse error: %v", err)
 		return nil, err
 	}
 

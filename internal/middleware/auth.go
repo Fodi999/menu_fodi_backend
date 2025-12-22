@@ -30,16 +30,28 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		log.Printf("🔐 AuthMiddleware: %s %s", r.Method, r.URL.Path)
 
 		authHeader := r.Header.Get("Authorization")
+		log.Printf("📋 Auth header present: %v, length: %d", authHeader != "", len(authHeader))
+		
 		if authHeader == "" {
 			log.Printf("❌ No Authorization header for %s %s", r.Method, r.URL.Path)
 			utils.WriteError(w, http.StatusUnauthorized, "Authorization header required")
 			return
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		// Proper Bearer token extraction
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			log.Printf("❌ Invalid Authorization format (not 'Bearer <token>') for %s %s", r.Method, r.URL.Path)
+			utils.WriteError(w, http.StatusUnauthorized, "Invalid Authorization format")
+			return
+		}
+		
+		tokenString := strings.TrimSpace(parts[1])
+		log.Printf("🎫 Token extracted, length: %d", len(tokenString))
+		
 		claims, err := authservice.ValidateToken(tokenString)
 		if err != nil {
-			log.Printf("❌ Invalid token for %s %s: %v", r.Method, r.URL.Path, err)
+			log.Printf("❌ JWT validation failed for %s %s: %v", r.Method, r.URL.Path, err)
 			utils.WriteError(w, http.StatusUnauthorized, "Invalid or expired token")
 			return
 		}
