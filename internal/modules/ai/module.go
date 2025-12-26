@@ -39,10 +39,12 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 			r.Post("/meal-plan", m.handlers.GenerateMealPlan)
 			r.Post("/fridge-recommendations", m.handlers.GetFridgeRecommendations)
 			r.Post("/save-ingredients", m.handlers.SaveRecipeIngredientsToFridge)
-			r.Post("/fridge/analyze", m.handlers.AnalyzeFridge)
-			r.Post("/create-recipe-from-fridge", m.handlers.CreateRecipeFromFridge)
-			r.Post("/add-missing-ingredients", m.handlers.AddMissingIngredients) // NEW: Add ingredientsMissing to fridge
-			r.Post("/recipe/recalculate", m.handlers.RecalculateRecipe)          // NEW: Recalculate recipe economy
+			
+			// DISABLED: Duplicates or unused endpoints
+			// r.Post("/fridge/analyze", m.handlers.AnalyzeFridge) // Duplicate: decision-engine handles this
+			// r.Post("/create-recipe-from-fridge", m.handlers.CreateRecipeFromFridge) // Not used in MVP
+			// r.Post("/add-missing-ingredients", m.handlers.AddMissingIngredients) // Duplicate: /fridge/add-missing does this
+			// r.Post("/recipe/recalculate", m.handlers.RecalculateRecipe) // Duplicate: budget module handles economy
 		})
 	})
 }

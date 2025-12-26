@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/academy"
+	// "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/academy" // DISABLED: Not used in MVP
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin"
 	aimodule "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recommendations"
@@ -25,9 +25,9 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/nutrition"
 	prepareddishes "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/prepared_dishes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/semi_finished"
+	// "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/semi_finished" // DISABLED: Not used in MVP
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/stats"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/task"
+	// "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/task" // DISABLED: Not used in MVP
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/user"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/wallet"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/websocket"
@@ -73,7 +73,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	aiModule := aimodule.NewModule(a.db)
 	aiRecommendationsModule := ai_recommendations.NewModule(a.db) // ЭТАП 3 - AI Recommendations
 	marketplaceModule := marketplace.NewModule(a.db)
-	academyModule := academy.NewModule(a.db)
+	// academyModule := academy.NewModule(a.db) // DISABLED: Not used in MVP
 	healthModule := health.NewModule(a.db)
 	contactModule := contact.NewModule(logger.Log)
 	hintModule := hint.NewModule(a.db)
@@ -90,9 +90,9 @@ func (a *App) setupModularRoutes() http.Handler {
 	nutritionModule := nutrition.NewModule()
 	preparedDishesModule := prepareddishes.NewModule(a.db) // Prepared dishes after cooking
 	recipesModule := recipes.NewModule(a.db)                // Updated: Pass DB for catalog services
-	semiFinishedModule := semi_finished.NewModule(a.db)
+	// semiFinishedModule := semi_finished.NewModule(a.db) // DISABLED: Not used in MVP
 	statsModule := stats.NewModule(a.db)
-	taskModule := task.NewModule()           // Task system with treasury integration
+	// taskModule := task.NewModule() // DISABLED: Not used in MVP
 	websocketModule := websocket.NewModule() // WebSocket real-time events
 
 	// Register health module early (before /api routes)
@@ -125,8 +125,8 @@ func (a *App) setupModularRoutes() http.Handler {
 		// Register marketplace module routes
 		marketplaceModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
-		// Register academy module routes
-		academyModule.RegisterRoutes(r, middleware.AuthMiddleware)
+		// DISABLED: Academy module not used in MVP
+		// academyModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register hint module routes
 		hintModule.RegisterRoutes(r, middleware.AuthMiddleware)
@@ -165,14 +165,14 @@ func (a *App) setupModularRoutes() http.Handler {
 		// Register recipes module routes
 		recipesModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
-		// Register semi-finished module routes
-		semiFinishedModule.RegisterRoutes(r, middleware.AuthMiddleware)
+		// DISABLED: Semi-finished module not used in MVP
+		// semiFinishedModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register stats module routes
 		statsModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
-		// Register task module routes (quests and missions with token rewards)
-		taskModule.RegisterRoutes(r)
+		// DISABLED: Task module (gamification) not used in MVP
+		// taskModule.RegisterRoutes(r)
 	})
 
 	// WebSocket routes (outside /api, they don't need JSON structure)

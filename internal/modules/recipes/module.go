@@ -46,11 +46,11 @@ func NewModule(db *gorm.DB) *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler) {
-	// === OLD USER RECIPE ROUTES ===
+	// === OLD USER RECIPE ROUTES (DISABLED - NOT USED BY FRONTEND) ===
 	// Public routes
-	r.Get("/posts", m.oldHandlers.GetAllPosts)
-	r.Get("/users/{id}/posts", m.oldHandlers.GetUserPosts)
-	r.Get("/user/{id}/posts", m.oldHandlers.GetUserPosts)
+	// r.Get("/posts", m.oldHandlers.GetAllPosts)
+	// r.Get("/users/{id}/posts", m.oldHandlers.GetUserPosts)
+	// r.Get("/user/{id}/posts", m.oldHandlers.GetUserPosts)
 	r.Post("/recipes/{id}/view", m.oldHandlers.IncrementRecipeView)
 
 	// Protected routes (user recipes)
