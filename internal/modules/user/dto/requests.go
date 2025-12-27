@@ -3,6 +3,7 @@ package dto
 import (
 	"time"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -160,4 +161,13 @@ type WalletSpending struct {
 	CourseEnrollments float64 `json:"courseEnrollments"`
 	PremiumFeatures   float64 `json:"premiumFeatures"`
 	Rewards           float64 `json:"rewards"`
+}
+
+// UpdateSettingsRequest for PATCH /api/settings
+// All fields are optional (pointer types allow partial updates)
+type UpdateSettingsRequest struct {
+	Language   *models.Language   `json:"language,omitempty"`
+	TimeFormat *models.TimeFormat `json:"timeFormat,omitempty"`
+	Units      *models.Units      `json:"units,omitempty"`
+	AIStyle    *models.AIStyle    `json:"aiStyle,omitempty"`
 }

@@ -24,6 +24,8 @@ type UserService interface {
 	GetDashboard(userID uuid.UUID) (*dto.DashboardResponse, error)
 	GetAchievements(userID uuid.UUID) ([]dto.AchievementResponse, error)
 	GetWallet(userID uuid.UUID) (*dto.WalletResponse, error)
+	GetSettings(userID uuid.UUID) (*models.UserSettings, error)
+	UpdateSettings(userID uuid.UUID, req dto.UpdateSettingsRequest) (*models.UserSettings, error)
 }
 
 type userService struct {
@@ -352,4 +354,52 @@ func profileToDTO(p *models.UserProfile) *dto.UserProfileResponse {
 		CompletedCourses: p.CompletedCourses,
 		WalletBalance:    p.WalletBalance,
 	}
+}
+
+// GetSettings retrieves user settings
+func (s *userService) GetSettings(userID uuid.UUID) (*models.UserSettings, error) {
+	user, err := s.repo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return user settings (will use default if not set due to JSONB default in migration)
+	return &user.Settings, nil
+}
+
+// UpdateSettings updates user settings (partial update supported)
+func (s *userService) UpdateSettings(userID uuid.UUID, req dto.UpdateSettingsRequest) (*models.UserSettings, error) {
+	// Get current settings
+	user, err := s.repo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	currentSettings := user.Settings
+
+	// Apply partial updates
+	if req.Language != nil {
+		currentSettings.Language = *req.Language
+	}
+	if req.TimeFormat != nil {
+		currentSettings.TimeFormat = *req.TimeFormat
+	}
+	if req.Units != nil {
+		currentSettings.Units = *req.Units
+	}
+	if req.AIStyle != nil {
+		currentSettings.AIStyle = *req.AIStyle
+	}
+
+	// Validate updated settings
+	if err := currentSettings.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Save updated settings
+	if err := s.repo.UpdateSettings(userID, currentSettings); err != nil {
+		return nil, err
+	}
+
+	return &currentSettings, nil
 }

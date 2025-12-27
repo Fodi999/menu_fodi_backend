@@ -58,4 +58,11 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 
 	// ALIAS: Register same routes under /users (for frontend compatibility)
 	r.Route("/users", registerUserRoutes)
+
+	// Settings endpoints (separate route, requires auth)
+	r.Route("/settings", func(r chi.Router) {
+		r.Use(jwtMiddleware)
+		r.Get("/", m.handlers.GetSettings)    // GET /api/settings
+		r.Patch("/", m.handlers.UpdateSettings) // PATCH /api/settings
+	})
 }

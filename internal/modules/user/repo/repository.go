@@ -36,6 +36,10 @@ type UserRepository interface {
 
 	// Achievements
 	GetUserAchievements(userID uuid.UUID) ([]dto.AchievementResponse, error)
+
+	// Settings
+	GetUserByID(userID uuid.UUID) (*models.User, error)
+	UpdateSettings(userID uuid.UUID, settings models.UserSettings) error
 }
 
 type userRepository struct {
@@ -229,4 +233,24 @@ func (r *userRepository) GetUserAchievements(userID uuid.UUID) ([]dto.Achievemen
 		Scan(&results).Error
 
 	return results, err
+}
+
+// GetUserByID retrieves user by ID
+func (r *userRepository) GetUserByID(userID uuid.UUID) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("id = ?", userID.String()).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+// UpdateSettings updates user settings
+func (r *userRepository) UpdateSettings(userID uuid.UUID, settings models.UserSettings) error {
+	return r.db.Model(&models.User{}).
+		Where("id = ?", userID.String()).
+		Update("settings", settings).Error
 }

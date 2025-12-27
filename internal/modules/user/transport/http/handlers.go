@@ -217,3 +217,79 @@ func (h *UserHandlers) GetWallet(w http.ResponseWriter, r *http.Request) {
 	logger.Info("✅ GetWallet success", zap.String("user_id", userID.String()))
 	httpx.Success(w, wallet)
 }
+
+// GetSettings godoc
+// @Summary Get user settings
+// @Description Get user preferences (language, timeFormat, units, aiStyle)
+// @Tags user
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} models.UserSettings
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/settings [get]
+func (h *UserHandlers) GetSettings(w http.ResponseWriter, r *http.Request) {
+	logger.Info("⚙️ GetSettings handler called")
+
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+	userID := *userIDPtr
+	logger.Info("⚙️ Processing GetSettings for user", zap.String("user_id", userID.String()))
+
+	settings, err := h.service.GetSettings(userID)
+	if err != nil {
+		logger.Error("failed to get settings", zap.Error(err), zap.String("user_id", userID.String()))
+		httpx.InternalError(w, "failed to get settings")
+		return
+	}
+
+	logger.Info("✅ GetSettings success", zap.String("user_id", userID.String()))
+	httpx.Success(w, settings)
+}
+
+// UpdateSettings godoc
+// @Summary Update user settings
+// @Description Update user preferences (partial update supported)
+// @Tags user
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body models.UpdateSettingsRequest true "Update settings request"
+// @Success 200 {object} models.UserSettings
+// @Failure 400 {object} httpx.ErrorResponse
+// @Failure 401 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Router /api/settings [patch]
+func (h *UserHandlers) UpdateSettings(w http.ResponseWriter, r *http.Request) {
+	logger.Info("⚙️ UpdateSettings handler called")
+
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		httpx.Unauthorized(w, "unauthorized")
+		return
+	}
+	userID := *userIDPtr
+	logger.Info("⚙️ Processing UpdateSettings for user", zap.String("user_id", userID.String()))
+
+	var req dto.UpdateSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Error("failed to decode request", zap.Error(err))
+		httpx.BadRequest(w, "invalid request body")
+		return
+	}
+
+	settings, err := h.service.UpdateSettings(userID, req)
+	if err != nil {
+		logger.Error("failed to update settings", zap.Error(err), zap.String("user_id", userID.String()))
+		httpx.BadRequest(w, err.Error())
+		return
+	}
+
+	logger.Info("✅ UpdateSettings success", zap.String("user_id", userID.String()))
+	httpx.Success(w, settings)
+}

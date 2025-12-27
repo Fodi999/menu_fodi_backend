@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"time"
+)
 
 // User roles constants - используй ТОЛЬКО эти константы для избежания опечаток
 const (
@@ -11,12 +15,13 @@ const (
 
 // User модель пользователя (соответствует Prisma схеме)
 type User struct {
-	ID        string    `gorm:"primaryKey;column:id" json:"id"`
-	Email     string    `gorm:"unique;column:email" json:"email"`
-	Name      string    `gorm:"column:name" json:"name"`
-	Password  string    `gorm:"column:password" json:"-"`                  // не возвращается в JSON
-	Role      string    `gorm:"column:role;default:home_chef" json:"role"` // home_chef | pro_chef | admin
-	CreatedAt time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
+	ID        string       `gorm:"primaryKey;column:id" json:"id"`
+	Email     string       `gorm:"unique;column:email" json:"email"`
+	Name      string       `gorm:"column:name" json:"name"`
+	Password  string       `gorm:"column:password" json:"-"`                  // не возвращается в JSON
+	Role      string       `gorm:"column:role;default:home_chef" json:"role"` // home_chef | pro_chef | admin
+	Settings  UserSettings `gorm:"type:jsonb;column:settings" json:"settings"` // User preferences
+	CreatedAt time.Time    `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
 
 // TableName указывает имя таблицы для GORM (Prisma использует "User")
@@ -47,4 +52,32 @@ type LoginResponse struct {
 type UpdateProfileRequest struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+// JSONB support for UserSettings
+// Scan implements sql.Scanner for GORM
+func (s *UserSettings) Scan(value interface{}) error {
+	if value == nil {
+		*s = DefaultUserSettings()
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		*s = DefaultUserSettings()
+		return nil
+	}
+
+	err := json.Unmarshal(bytes, s)
+	if err != nil {
+		*s = DefaultUserSettings()
+		return err
+	}
+
+	return nil
+}
+
+// Value implements driver.Valuer for GORM
+func (s UserSettings) Value() (driver.Value, error) {
+	return json.Marshal(s)
 }
