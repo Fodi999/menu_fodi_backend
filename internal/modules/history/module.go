@@ -25,8 +25,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	r.Route("/api/history", func(r chi.Router) {
 		r.Use(authMiddleware)
 
-		r.Get("/", m.handler.GetHistory)             // GET /api/history?type=consume&limit=50
-		r.Get("/stats", m.handler.GetHistoryStats)   // GET /api/history/stats?start_date=2025-01-01
+		r.Get("/", m.handler.GetHistory)              // GET /api/history?type=consume&limit=50
+		r.Get("/stats", m.handler.GetHistoryStats)    // GET /api/history/stats?start_date=2025-01-01
 		r.Get("/recent", m.handler.GetRecentActivity) // GET /api/history/recent?limit=10
+		r.Get("/losses", m.handler.GetFridgeLosses)   // GET /api/history/losses?days=30 - Expired items analytics
 	})
 }

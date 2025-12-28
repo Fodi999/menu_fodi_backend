@@ -181,3 +181,90 @@ func (h *HistoryHandler) GetRecentActivity(w http.ResponseWriter, r *http.Reques
 		"data":    events,
 	})
 }
+
+// GetFridgeLosses returns analytics for expired/wasted items
+// GET /api/history/losses?days=30
+func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value(middleware.UserContextKey).(*models.User)
+	if !ok || user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "Unauthorized",
+		})
+		return
+	}
+
+	// Parse days parameter
+	daysStr := r.URL.Query().Get("days")
+	days := 30 // default last 30 days
+	if daysStr != "" {
+		if d, err := strconv.Atoi(daysStr); err == nil && d > 0 {
+			days = d
+		}
+	}
+
+	// Calculate date range
+	endDate := time.Now()
+	startDate := endDate.AddDate(0, 0, -days)
+
+	// Get expired/wasted events
+	filters := database.HistoryFilters{
+		EventType: "expired",
+		StartDate: &startDate,
+		EndDate:   &endDate,
+		Limit:     1000, // Large limit for analytics
+	}
+
+	events, err := h.repo.GetByFilters(user.ID, filters)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// Calculate analytics
+	totalCost := 0.0
+	totalItems := len(events)
+	categoryBreakdown := make(map[string]int)
+	costBreakdown := make(map[string]float64)
+
+	for _, event := range events {
+		var metadata models.ExpiredItemMetadata
+		if err := json.Unmarshal(event.Metadata, &metadata); err == nil {
+			totalCost += metadata.Cost
+			
+			// Category breakdown (you can enhance this with ingredient category)
+			categoryBreakdown["items"]++
+			costBreakdown["total"] += metadata.Cost
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"period": map[string]interface{}{
+				"days":      days,
+				"startDate": startDate.Format("2006-01-02"),
+				"endDate":   endDate.Format("2006-01-02"),
+			},
+			"summary": map[string]interface{}{
+				"totalItems":      totalItems,
+				"totalCost":       totalCost,
+				"currency":        "PLN",
+				"avgCostPerItem":  func() float64 {
+					if totalItems > 0 {
+						return totalCost / float64(totalItems)
+					}
+					return 0
+				}(),
+			},
+			"items": events,
+		},
+	})
+}

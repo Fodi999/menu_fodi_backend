@@ -16,6 +16,7 @@ const (
 	EventTypeManual       HistoryEventType = "manual"
 	EventTypeFridgeAdd    HistoryEventType = "fridge_add"
 	EventTypeFridgeRemove HistoryEventType = "fridge_remove"
+	EventTypeExpired      HistoryEventType = "expired" // 🆕 Automatic expiry cleanup
 )
 
 // HistorySourceType represents what triggered the event
@@ -26,6 +27,7 @@ const (
 	SourceTypeRecipe       HistorySourceType = "recipe"
 	SourceTypeFridge       HistorySourceType = "fridge"
 	SourceTypeManual       HistorySourceType = "manual"
+	SourceTypeAuto         HistorySourceType = "auto" // 🆕 Automatic system actions
 )
 
 // HistoryEvent represents a user action in the system
@@ -69,4 +71,20 @@ func (e *HistoryEvent) FromPreparedDish() bool {
 
 func (e *HistoryEvent) FromRecipe() bool {
 	return e.SourceType == SourceTypeRecipe
+}
+
+// ExpiredItemMetadata represents metadata for expired fridge items
+type ExpiredItemMetadata struct {
+	IngredientID   string  `json:"ingredient_id"`
+	IngredientName string  `json:"ingredient_name"`
+	Quantity       float64 `json:"quantity"`
+	Unit           string  `json:"unit"`
+	Cost           float64 `json:"cost"`            // Total cost (quantity * pricePerUnit)
+	PricePerUnit   float64 `json:"price_per_unit"`  // Price per unit at time of expiry
+	Currency       string  `json:"currency"`        // PLN, EUR, USD
+	ExpiryDate     string  `json:"expiry_date"`     // ISO 8601 date
+	ArrivedAt      string  `json:"arrived_at"`      // When item was added to fridge
+	DaysInFridge   int     `json:"days_in_fridge"`  // How long item was stored
+	Reason         string  `json:"reason"`          // "expiry_date_passed"
+	Context        string  `json:"context"`         // "fridge_cleanup"
 }
