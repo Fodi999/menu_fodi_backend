@@ -1,123 +1,36 @@
-2025-12-22T00:30:12.494+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2025-12-22T00:30:13.504+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2025-12-22T00:30:13.504+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2025/12/22 00:30:13 ✅ EventBus initialized
-2025/12/22 00:30:13 📡 New subscriber for event: treasury_update (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: treasury_allocate (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: treasury_spend (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: token_balance_update (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: token_earn (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: token_spend (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: task_completed (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: task_reward_claimed (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: user_registered (total: 1)
-2025/12/22 00:30:13 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2025/12/22 00:30:13 📡 Hub subscribed to 10 event types
-2025/12/22 00:30:13 📡 WebSocket module initialized
-2025/12/22 00:30:13 🚀 WebSocket Hub started
-2025/12/22 00:30:13 🔌 Registering WebSocket routes...
-2025/12/22 00:30:13 ✅ WebSocket routes registered:
-2025/12/22 00:30:13    GET /ws - General WebSocket connection
-2025/12/22 00:30:13    GET /ws/treasury - Treasury updates (admin)
-2025/12/22 00:30:13    GET /ws/tokens/{userID} - User token updates
-2025/12/22 00:30:13    GET /ws/stats - WebSocket statistics
-2025-12-22T00:30:13.505+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
-2025-12-22T00:30:35.794+0100	[33mWARN[0m	http/handler.go:221	⚠️ DEV MODE: Using test userID from query parameter
-github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).CookRecipe
-	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:221
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).routeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).ServeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
-github.com/go-chi/chi/v5.(*Mux).Mount.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).routeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.Recoverer.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.RealIP.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.RequestID.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).ServeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
-net/http.serverHandler.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
-net/http.(*conn).serve
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
-2025-12-22T00:30:35.794+0100	[33mWARN[0m	http/handler.go:252	Force cooking attempted without idempotency key	{"userId": "407582be-59d5-4d21-873b-1a72d31b0d42", "recipeId": "92691aae-c3af-427d-aaed-1408319f0a3c"}
-github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).CookRecipe
-	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:252
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).routeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).ServeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
-github.com/go-chi/chi/v5.(*Mux).Mount.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).routeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.Recoverer.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.RealIP.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.RequestID.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).ServeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
-net/http.serverHandler.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
-net/http.(*conn).serve
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
-2025/12/22 00:30:35 [MacBook-Air-Dmitrij.local/7Om7ogPH4b-000001] "POST http://localhost:8080/api/recipes/92691aae-c3af-427d-aaed-1408319f0a3c/cook?testUserID=407582be-59d5-4d21-873b-1a72d31b0d42 HTTP/1.1" from [::1]:56928 - 400 133B in 493.542µs
+2025-12-28T17:59:59.901+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2025-12-28T18:00:01.691+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
+2025-12-28T18:00:01.691+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
+2025/12/28 18:00:01 ✅ EventBus initialized
+2025/12/28 18:00:01 📡 New subscriber for event: treasury_update (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: treasury_allocate (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: treasury_spend (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: token_balance_update (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: token_earn (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: token_spend (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: task_completed (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: task_reward_claimed (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: user_registered (total: 1)
+2025/12/28 18:00:01 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2025/12/28 18:00:01 📡 Hub subscribed to 10 event types
+2025/12/28 18:00:01 📡 WebSocket module initialized
+2025/12/28 18:00:01 🚀 WebSocket Hub started
+2025/12/28 18:00:01 🔧 Registering history module routes...
+2025/12/28 18:00:01 ✅ History module routes registered:
+2025/12/28 18:00:01    GET /api/history - Event history
+2025/12/28 18:00:01    GET /api/history/stats - Statistics
+2025/12/28 18:00:01    GET /api/history/recent - Recent activity
+2025/12/28 18:00:01    GET /api/history/losses - Expired items analytics
+2025/12/28 18:00:01 🔌 Registering WebSocket routes...
+2025/12/28 18:00:01 ✅ WebSocket routes registered:
+2025/12/28 18:00:01    GET /ws - General WebSocket connection
+2025/12/28 18:00:01    GET /ws/treasury - Treasury updates (admin)
+2025/12/28 18:00:01    GET /ws/tokens/{userID} - User token updates
+2025/12/28 18:00:01    GET /ws/stats - WebSocket statistics
+2025-12-28T18:00:01.693+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2025/12/28 18:00:11 🔐 AuthMiddleware: GET /api/history/losses
+2025/12/28 18:00:11 📋 Auth header present: false, length: 0
+2025/12/28 18:00:11 ❌ No Authorization header for GET /api/history/losses
+2025/12/28 18:00:11 [MacBook-Air-Dmitrij.local/8gd8ufAJew-000001] "GET http://localhost:8080/api/history/losses?days=30 HTTP/1.1" from [::1]:58701 - 401 42B in 441.833µs
+2025-12-28T18:00:29.150+0100	[34mINFO[0m	logger/logger.go:57	🛑 Shutting down server...
+2025-12-28T18:00:29.150+0100	[34mINFO[0m	logger/logger.go:57	✅ Server stopped gracefully

@@ -1,6 +1,7 @@
 package history
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -22,7 +23,8 @@ func NewModule(db *gorm.DB) *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler) {
-	r.Route("/api/history", func(r chi.Router) {
+	log.Println("🔧 Registering history module routes...")
+	r.Route("/history", func(r chi.Router) {
 		r.Use(authMiddleware)
 
 		r.Get("/", m.handler.GetHistory)              // GET /api/history?type=consume&limit=50
@@ -30,4 +32,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/recent", m.handler.GetRecentActivity) // GET /api/history/recent?limit=10
 		r.Get("/losses", m.handler.GetFridgeLosses)   // GET /api/history/losses?days=30 - Expired items analytics
 	})
+	log.Println("✅ History module routes registered:")
+	log.Println("   GET /api/history - Event history")
+	log.Println("   GET /api/history/stats - Statistics")
+	log.Println("   GET /api/history/recent - Recent activity")
+	log.Println("   GET /api/history/losses - Expired items analytics")
 }
