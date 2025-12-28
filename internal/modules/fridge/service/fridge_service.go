@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -93,6 +94,14 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 
 // GetUserItems возвращает список продуктов пользователя
 func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResponse, error) {
+	// Автоматически очищаем просроченные продукты перед возвратом списка
+	if err := s.cleanupExpiredItems(userID); err != nil {
+		logger.Warn("failed to cleanup expired items",
+			zap.String("user_id", userID),
+			zap.Error(err))
+		// Не блокируем весь запрос из-за ошибки очистки
+	}
+
 	items, err := s.fridgeRepo.GetUserFridgeItems(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get fridge items: %w", err)
@@ -209,6 +218,104 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 	}
 
 	return result, nil
+}
+
+// cleanupExpiredItems автоматически удаляет просроченные продукты и создает события потерь
+func (s *FridgeService) cleanupExpiredItems(userID string) error {
+	// Находим все просроченные продукты пользователя
+	var expiredItems []models.UserFridgeItem
+	err := s.db.Where("user_id = ? AND expires_at IS NOT NULL AND expires_at < NOW()", userID).
+		Preload("Ingredient").
+		Find(&expiredItems).Error
+	
+	if err != nil {
+		return fmt.Errorf("failed to find expired items: %w", err)
+	}
+
+	if len(expiredItems) == 0 {
+		return nil // Нет просроченных продуктов
+	}
+
+	logger.Info("cleaning up expired items",
+		zap.String("user_id", userID),
+		zap.Int("count", len(expiredItems)))
+
+	// Обрабатываем каждый просроченный продукт
+	for _, item := range expiredItems {
+		// Рассчитываем стоимость потери
+		cost := 0.0
+		pricePerUnit := 0.0
+		currency := item.CurrentPriceCurrency // Уже string, не pointer
+		
+		if item.CurrentPricePerUnit != nil {
+			cost = item.Quantity * (*item.CurrentPricePerUnit)
+			pricePerUnit = *item.CurrentPricePerUnit
+		}
+
+		// Вычисляем сколько дней продукт пролежал в холодильнике
+		daysInFridge := int(time.Since(item.ArrivedAt).Hours() / 24)
+
+		// Форматируем даты в ISO 8601
+		expiryDateStr := ""
+		if item.ExpiresAt != nil {
+			expiryDateStr = item.ExpiresAt.Format(time.RFC3339)
+		}
+
+		// Создаем событие потери в истории
+		metadata := models.ExpiredItemMetadata{
+			IngredientID:   item.IngredientID,
+			IngredientName: item.Ingredient.Name,
+			Quantity:       item.Quantity,
+			Unit:           item.Unit,
+			Cost:           cost,
+			PricePerUnit:   pricePerUnit,
+			Currency:       currency,
+			ExpiryDate:     expiryDateStr,
+			ArrivedAt:      item.ArrivedAt.Format(time.RFC3339),
+			DaysInFridge:   daysInFridge,
+			Reason:         "expiry_date_passed",
+			Context:        "auto_cleanup_on_list",
+		}
+
+		// Сериализуем metadata в JSON
+		metadataJSON, err := json.Marshal(metadata)
+		if err != nil {
+			logger.Error("failed to marshal metadata",
+				zap.String("item_id", item.ID),
+				zap.Error(err))
+			continue
+		}
+
+		historyEvent := models.HistoryEvent{
+			UserID:     userID,
+			EventType:  models.EventTypeExpired,
+			SourceType: models.SourceTypeAuto,
+			SourceID:   &item.ID,
+			Metadata:   metadataJSON,
+		}
+
+		if err := s.db.Create(&historyEvent).Error; err != nil {
+			logger.Error("failed to create expired event",
+				zap.String("item_id", item.ID),
+				zap.Error(err))
+			continue // Продолжаем обработку остальных
+		}
+
+		// Удаляем просроченный продукт из холодильника
+		if err := s.db.Delete(&item).Error; err != nil {
+			logger.Error("failed to delete expired item",
+				zap.String("item_id", item.ID),
+				zap.Error(err))
+			continue
+		}
+
+		logger.Info("expired item removed",
+			zap.String("item_id", item.ID),
+			zap.String("name", item.Ingredient.Name),
+			zap.Float64("cost", cost))
+	}
+
+	return nil
 }
 
 // ===== PRIVATE HELPERS =====
@@ -443,7 +550,22 @@ func (s *FridgeService) UpdateItemQuantity(userID string, itemID string, newQuan
 		return ErrForbidden // 403
 	}
 
-	// 2. Обновляем количество
+	// 2. Проверяем срок годности перед обновлением
+	if item.ExpiresAt != nil && item.ExpiresAt.Before(time.Now()) {
+		// Продукт просрочен - не обновляем, а удаляем с созданием события
+		logger.Info("attempted to update expired item, removing instead",
+			zap.String("item_id", itemID),
+			zap.String("ingredient_name", item.Ingredient.Name))
+		
+		// Запускаем очистку просроченных продуктов для этого пользователя
+		if err := s.cleanupExpiredItems(userID); err != nil {
+			logger.Warn("cleanup failed during update", zap.Error(err))
+		}
+		
+		return ErrNotFound // Продукт больше не существует
+	}
+
+	// 3. Обновляем количество
 	item.Quantity = newQuantity
 	if err := s.fridgeRepo.Update(item); err != nil {
 		return fmt.Errorf("failed to update quantity: %w", err)
