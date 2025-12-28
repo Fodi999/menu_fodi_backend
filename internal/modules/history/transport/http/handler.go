@@ -226,45 +226,46 @@ func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Calculate analytics
+	// Calculate analytics and format for frontend
 	totalCost := 0.0
 	totalItems := len(events)
-	categoryBreakdown := make(map[string]int)
-	costBreakdown := make(map[string]float64)
+	formattedEvents := make([]map[string]interface{}, 0, totalItems)
 
 	for _, event := range events {
 		var metadata models.ExpiredItemMetadata
 		if err := json.Unmarshal(event.Metadata, &metadata); err == nil {
 			totalCost += metadata.Cost
 			
-			// Category breakdown (you can enhance this with ingredient category)
-			categoryBreakdown["items"]++
-			costBreakdown["total"] += metadata.Cost
+			// Format event for frontend compatibility
+			formattedEvent := map[string]interface{}{
+				"id":          event.ID,
+				"name":        metadata.IngredientName,
+				"quantity":    metadata.Quantity,
+				"unit":        metadata.Unit,
+				"loss":        metadata.Cost,
+				"reason":      metadata.Reason,
+				"addedDate":   metadata.ArrivedAt,
+				"expiryDate":  metadata.ExpiryDate,
+				"daysInFridge": metadata.DaysInFridge,
+			}
+			formattedEvents = append(formattedEvents, formattedEvent)
 		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"period": map[string]interface{}{
-				"days":      days,
-				"startDate": startDate.Format("2006-01-02"),
-				"endDate":   endDate.Format("2006-01-02"),
-			},
-			"summary": map[string]interface{}{
-				"totalItems":      totalItems,
-				"totalCost":       totalCost,
-				"currency":        "PLN",
-				"avgCostPerItem":  func() float64 {
-					if totalItems > 0 {
-						return totalCost / float64(totalItems)
-					}
-					return 0
-				}(),
-			},
-			"items": events,
+		"events": formattedEvents,
+		"summary": map[string]interface{}{
+			"totalProducts": totalItems,
+			"totalValue":    totalCost,
+			"avgValue": func() float64 {
+				if totalItems > 0 {
+					return totalCost / float64(totalItems)
+				}
+				return 0
+			}(),
+			"currency": "PLN",
 		},
 	})
 }
