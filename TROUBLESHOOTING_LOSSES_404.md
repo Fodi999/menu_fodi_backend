@@ -111,10 +111,42 @@ curl http://localhost:8080/api/history/losses?days=30
 - `2025-12-28 14:00` - Frontend сообщил о 404
 - `2025-12-28 14:10` - Обнаружено: Koyeb не подхватил изменения
 - `2025-12-28 14:12` - Создан force redeploy commit `fe1ea90`
-- `2025-12-28 14:15-14:20` - Ожидается завершение деплоя
+- `2025-12-28 14:15-14:20` - Ожидание деплоя, но всё ещё 404
+- `2025-12-28 14:25` - **ROOT CAUSE FOUND**: Double `/api` prefix in route registration
+- `2025-12-28 14:30` - **FIXED**: Changed `/api/history` to `/history` in module.go
+- `2025-12-28 14:32` - Commit `d845057` pushed to production
+- `2025-12-28 14:35` - Ожидается успешный деплой
+
+## Root Cause Analysis
+
+### Problem
+History module was registering routes with **double `/api` prefix**:
+```go
+// WRONG - in internal/modules/history/module.go
+r.Route("/api/history", func(r chi.Router) { ... })
+```
+
+But it's called inside `/api` context already:
+```go
+// internal/app/routes_modular.go
+r.Route("/api", func(r chi.Router) {
+    historyModule.RegisterRoutes(r, middleware.AuthMiddleware)
+})
+```
+
+Result: Routes were registered at `/api/api/history/*` instead of `/api/history/*`
+
+### Solution
+Remove `/api/` prefix from module route registration:
+```go
+// CORRECT
+r.Route("/history", func(r chi.Router) { ... })
+```
+
+See: `BUG_FIX_HISTORY_404.md` for detailed analysis
 
 ## Next Steps
 
-1. ⏳ Дождаться деплоя (~5 минут)
-2. ✅ Проверить endpoint с фронтенда
-3. 🎉 Увидеть корзину отходов с просроченными продуктами!
+1. ⏳ Дождаться деплоя (~2-3 минуты)
+2. ✅ Проверить endpoint возвращает 401 (не 404)
+3. 🎉 Frontend получит корректный ответ с авторизацией!
