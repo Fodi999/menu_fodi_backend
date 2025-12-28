@@ -214,7 +214,7 @@ func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request)
 
 	// Get expired/wasted events
 	filters := database.HistoryFilters{
-		EventType: "expired",
+		EventType: "waste", // Expired items are stored as 'waste' events
 		StartDate: &startDate,
 		EndDate:   &endDate,
 		Limit:     1000, // Large limit for analytics

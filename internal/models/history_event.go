@@ -16,7 +16,8 @@ const (
 	EventTypeManual       HistoryEventType = "manual"
 	EventTypeFridgeAdd    HistoryEventType = "fridge_add"
 	EventTypeFridgeRemove HistoryEventType = "fridge_remove"
-	EventTypeExpired      HistoryEventType = "expired" // 🆕 Automatic expiry cleanup
+	// EventTypeExpired is an alias for EventTypeWaste (automatic expiry cleanup)
+	EventTypeExpired      HistoryEventType = "waste" // Uses 'waste' enum value for expired items
 )
 
 // HistorySourceType represents what triggered the event
@@ -27,7 +28,8 @@ const (
 	SourceTypeRecipe       HistorySourceType = "recipe"
 	SourceTypeFridge       HistorySourceType = "fridge"
 	SourceTypeManual       HistorySourceType = "manual"
-	SourceTypeAuto         HistorySourceType = "auto" // 🆕 Automatic system actions
+	// SourceTypeAuto is an alias for SourceTypeFridge (automatic system actions)
+	SourceTypeAuto         HistorySourceType = "fridge" // Uses 'fridge' enum value for auto actions
 )
 
 // HistoryEvent represents a user action in the system
