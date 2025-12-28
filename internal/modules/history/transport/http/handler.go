@@ -22,8 +22,8 @@ func NewHistoryHandler(repo *database.HistoryRepository) *HistoryHandler {
 // GetHistory returns user's history events with optional filters
 // GET /api/history?type=consume&limit=50&start_date=2025-01-01
 func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
-	user, ok := r.Context().Value(middleware.UserContextKey).(*models.User)
-	if !ok || user == nil {
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
@@ -31,6 +31,7 @@ func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	userID := userIDPtr.String()
 
 	// Parse query parameters
 	eventType := r.URL.Query().Get("type")
@@ -66,18 +67,18 @@ func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 	// Use filtered query if filters present
 	if eventType != "" || sourceType != "" || startDate != nil || endDate != nil {
 		filters := database.HistoryFilters{
-			EventType:  eventType,
-			SourceType: sourceType,
-			StartDate:  startDate,
-			EndDate:    endDate,
-			Limit:      limit,
-		}
-		events, err = h.repo.GetByFilters(user.ID, filters)
-	} else {
-		events, err = h.repo.GetByUserID(user.ID, limit)
+		EventType:  eventType,
+		SourceType: sourceType,
+		StartDate:  startDate,
+		EndDate:    endDate,
+		Limit:      limit,
 	}
+	events, err = h.repo.GetByFilters(userID, filters)
+} else {
+	events, err = h.repo.GetByUserID(userID, limit)
+}
 
-	if err != nil {
+if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
@@ -98,8 +99,8 @@ func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 // GetHistoryStats returns analytics statistics for user's history
 // GET /api/history/stats?start_date=2025-01-01&end_date=2025-12-31
 func (h *HistoryHandler) GetHistoryStats(w http.ResponseWriter, r *http.Request) {
-	user, ok := r.Context().Value(middleware.UserContextKey).(*models.User)
-	if !ok || user == nil {
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
@@ -107,6 +108,7 @@ func (h *HistoryHandler) GetHistoryStats(w http.ResponseWriter, r *http.Request)
 		})
 		return
 	}
+	userID := userIDPtr.String()
 
 	// Parse date range
 	startDateStr := r.URL.Query().Get("start_date")
@@ -124,7 +126,7 @@ func (h *HistoryHandler) GetHistoryStats(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	stats, err := h.repo.GetStatsByUser(user.ID, startDate, endDate)
+	stats, err := h.repo.GetStatsByUser(userID, startDate, endDate)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -145,8 +147,8 @@ func (h *HistoryHandler) GetHistoryStats(w http.ResponseWriter, r *http.Request)
 // GetRecentActivity returns recent history events for dashboard
 // GET /api/history/recent?limit=10
 func (h *HistoryHandler) GetRecentActivity(w http.ResponseWriter, r *http.Request) {
-	user, ok := r.Context().Value(middleware.UserContextKey).(*models.User)
-	if !ok || user == nil {
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
@@ -154,6 +156,7 @@ func (h *HistoryHandler) GetRecentActivity(w http.ResponseWriter, r *http.Reques
 		})
 		return
 	}
+	userID := userIDPtr.String()
 
 	// Parse limit
 	limitStr := r.URL.Query().Get("limit")
@@ -164,7 +167,7 @@ func (h *HistoryHandler) GetRecentActivity(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	events, err := h.repo.GetRecentActivity(user.ID, limit)
+	events, err := h.repo.GetRecentActivity(userID, limit)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -185,8 +188,8 @@ func (h *HistoryHandler) GetRecentActivity(w http.ResponseWriter, r *http.Reques
 // GetFridgeLosses returns analytics for expired/wasted items
 // GET /api/history/losses?days=30
 func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request) {
-	user, ok := r.Context().Value(middleware.UserContextKey).(*models.User)
-	if !ok || user == nil {
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
@@ -194,6 +197,7 @@ func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request)
 		})
 		return
 	}
+	userID := userIDPtr.String()
 
 	// Parse days parameter
 	daysStr := r.URL.Query().Get("days")
@@ -216,7 +220,7 @@ func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request)
 		Limit:     1000, // Large limit for analytics
 	}
 
-	events, err := h.repo.GetByFilters(user.ID, filters)
+	events, err := h.repo.GetByFilters(userID, filters)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
