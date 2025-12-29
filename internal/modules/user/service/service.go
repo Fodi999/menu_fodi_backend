@@ -363,8 +363,14 @@ func (s *userService) GetSettings(userID uuid.UUID) (*models.UserSettings, error
 		return nil, err
 	}
 
-	// Return user settings (will use default if not set due to JSONB default in migration)
-	return &user.Settings, nil
+	settings := user.Settings
+	
+	// If settings are empty (zero values), return defaults
+	if settings.Language == "" {
+		settings = models.DefaultUserSettings()
+	}
+
+	return &settings, nil
 }
 
 // UpdateSettings updates user settings (partial update supported)
