@@ -110,7 +110,7 @@ func (r *IngredientRepository) DeleteStockItem(id string) error {
 
 // Search ищет ингредиенты по имени (для автокомплита)
 // Используется ВСЕМИ пользователями: home_chef, pro_chef, admin
-// Backward compatible: работает только с legacy колонкой 'name'
+// Multilingual search: поддерживает PL/EN/RU языки
 func (r *IngredientRepository) Search(query string) ([]models.Ingredient, error) {
 	var ingredients []models.Ingredient
 
@@ -118,10 +118,15 @@ func (r *IngredientRepository) Search(query string) ([]models.Ingredient, error)
 	// Убирает диакритику (ą→a, ł→l, ę→e) и приводит к lowercase
 	normalizedQuery := normalizeSearchQuery(query) + "%"
 
-	// SIMPLE QUERY: только legacy 'name' колонка (гарантированно существует)
-	// После применения миграций 051+052 можно будет добавить name_pl, name_ru
+	// MULTILINGUAL QUERY: поиск по всем языковым колонкам
+	// Поддерживает: Polish (name_pl), English (name_en), Russian (name_ru), legacy (name)
+	// Примеры:
+	//   "огур" → найдет "огурец" (name_ru)
+	//   "cucum" → найдет "cucumber" (name_en)
+	//   "ogór" → найдет "ogórek" (name_pl или name)
 	result := DB.
-		Where("LOWER(name) LIKE ?", normalizedQuery).
+		Where("LOWER(name) LIKE ? OR LOWER(name_pl) LIKE ? OR LOWER(name_en) LIKE ? OR LOWER(name_ru) LIKE ?",
+			normalizedQuery, normalizedQuery, normalizedQuery, normalizedQuery).
 		Order("name ASC").
 		Limit(20).
 		Find(&ingredients)
