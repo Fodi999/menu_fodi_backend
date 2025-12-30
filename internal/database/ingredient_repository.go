@@ -2,12 +2,29 @@ package database
 
 import (
 	"strings"
+	"unicode"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 // IngredientRepository репозиторий для работы с ингредиентами
 type IngredientRepository struct{}
+
+// normalizeSearchQuery removes diacritics and lowercases the query
+// Works for Polish (ą→a, ł→l) and other languages
+func normalizeSearchQuery(s string) string {
+	// Step 1: Lowercase
+	s = strings.ToLower(s)
+	
+	// Step 2: Remove diacritics (ą→a, ę→e, etc)
+	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+	result, _, _ := transform.String(t, s)
+	
+	return result
+}
 
 // FindAll возвращает все ингредиенты со складскими остатками
 func (r *IngredientRepository) FindAll() ([]models.StockItem, error) {
@@ -97,13 +114,20 @@ func (r *IngredientRepository) DeleteStockItem(id string) error {
 func (r *IngredientRepository) Search(query string) ([]models.Ingredient, error) {
 	var ingredients []models.Ingredient
 
-	// Нормализуем поисковый запрос (lowercase, без диакритики)
-	normalizedQuery := strings.ToLower(query) + "%"
+	// Нормализуем поисковый запрос в Go (без SQL unaccent)
+	// Убирает диакритику (ą→a, ł→l, ę→e) и приводит к lowercase
+	normalizedQuery := normalizeSearchQuery(query) + "%"
 
+	// Backward compatible: работает и без новых колонок (name_pl, name_ru, normalized_value)
+	// Если миграция 051 не применена, ищет только по legacy поле 'name'
 	result := DB.
-		Where("normalized_value LIKE ? OR LOWER(name_pl) LIKE ? OR LOWER(name_en) LIKE ? OR LOWER(name_ru) LIKE ? OR LOWER(name) LIKE ?",
+		Where("LOWER(name) LIKE ? OR "+
+			"(name_pl IS NOT NULL AND LOWER(name_pl) LIKE ?) OR "+
+			"(name_en IS NOT NULL AND LOWER(name_en) LIKE ?) OR "+
+			"(name_ru IS NOT NULL AND LOWER(name_ru) LIKE ?) OR "+
+			"(normalized_value IS NOT NULL AND normalized_value LIKE ?)",
 			normalizedQuery, normalizedQuery, normalizedQuery, normalizedQuery, normalizedQuery).
-		Order("name_pl ASC, name ASC").
+		Order("COALESCE(name_pl, name) ASC").
 		Limit(20).
 		Find(&ingredients)
 
