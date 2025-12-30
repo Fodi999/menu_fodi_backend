@@ -93,15 +93,17 @@ func (r *IngredientRepository) DeleteStockItem(id string) error {
 
 // Search ищет ингредиенты по имени (для автокомплита)
 // Используется ВСЕМИ пользователями: home_chef, pro_chef, admin
+// Поиск по всем языкам (PL, EN, RU) одновременно через normalized_value
 func (r *IngredientRepository) Search(query string) ([]models.Ingredient, error) {
 	var ingredients []models.Ingredient
 
-	// Поиск по началу имени (регистронезависимый)
-	searchPattern := strings.ToLower(query) + "%"
+	// Нормализуем поисковый запрос (lowercase, без диакритики)
+	normalizedQuery := strings.ToLower(query) + "%"
 
 	result := DB.
-		Where("LOWER(name) LIKE ?", searchPattern).
-		Order("name ASC").
+		Where("normalized_value LIKE ? OR LOWER(name_pl) LIKE ? OR LOWER(name_en) LIKE ? OR LOWER(name_ru) LIKE ? OR LOWER(name) LIKE ?",
+			normalizedQuery, normalizedQuery, normalizedQuery, normalizedQuery, normalizedQuery).
+		Order("name_pl ASC, name ASC").
 		Limit(20).
 		Find(&ingredients)
 

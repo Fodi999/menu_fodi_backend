@@ -17,7 +17,11 @@ const (
 // Используется для автокомплита и как справочник
 type Ingredient struct {
 	ID                   string    `gorm:"primaryKey;column:id" json:"id"`
-	Name                 string    `gorm:"column:name;not null" json:"name"`
+	Name                 string    `gorm:"column:name;not null" json:"name"` // Legacy field, use name_pl
+	NamePL               *string   `gorm:"column:name_pl" json:"namePl,omitempty"`
+	NameEN               *string   `gorm:"column:name_en" json:"nameEn,omitempty"`
+	NameRU               *string   `gorm:"column:name_ru" json:"nameRu,omitempty"`
+	NormalizedValue      *string   `gorm:"column:normalized_value" json:"-"` // For search only
 	Unit                 string    `gorm:"column:unit;not null" json:"unit"` // "g", "ml", "pcs"
 	Category             string    `gorm:"column:category;not null" json:"category"`
 	DefaultShelfLifeDays *int      `gorm:"column:defaultShelfLifeDays" json:"defaultShelfLifeDays,omitempty"`
@@ -28,6 +32,31 @@ type Ingredient struct {
 // TableName указывает имя таблицы для GORM
 func (Ingredient) TableName() string {
 	return "Ingredient"
+}
+
+// GetName returns ingredient name for specified language
+// Falls back to PL if requested language not available
+func (i *Ingredient) GetName(lang string) string {
+	switch lang {
+	case "en":
+		if i.NameEN != nil && *i.NameEN != "" {
+			return *i.NameEN
+		}
+	case "ru":
+		if i.NameRU != nil && *i.NameRU != "" {
+			return *i.NameRU
+		}
+	case "pl":
+		if i.NamePL != nil && *i.NamePL != "" {
+			return *i.NamePL
+		}
+	}
+	
+	// Fallback to legacy Name field or NamePL
+	if i.NamePL != nil && *i.NamePL != "" {
+		return *i.NamePL
+	}
+	return i.Name
 }
 
 // StockItem модель складских остатков - ДЛЯ PRO_CHEF (рестораны/бизнес)
