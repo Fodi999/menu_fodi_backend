@@ -11,7 +11,18 @@ import (
 type RecipeCatalog struct {
 	ID               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	CanonicalName    string         `gorm:"column:canonicalName;type:varchar(255);not null;uniqueIndex" json:"canonicalName"`
-	LocalName        string         `gorm:"column:localName;type:varchar(255);not null" json:"localName"`
+	LocalName        string         `gorm:"column:localName;type:varchar(255);not null" json:"localName"` // DEPRECATED: use Name* fields
+	
+	// Multilingual names (like Ingredient model)
+	NamePl           *string        `gorm:"column:name_pl;type:varchar(255)" json:"namePl,omitempty"`
+	NameEn           *string        `gorm:"column:name_en;type:varchar(255)" json:"nameEn,omitempty"`
+	NameRu           *string        `gorm:"column:name_ru;type:varchar(255)" json:"nameRu,omitempty"`
+	
+	// Multilingual descriptions
+	DescriptionPl    *string        `gorm:"column:description_pl;type:text" json:"descriptionPl,omitempty"`
+	DescriptionEn    *string        `gorm:"column:description_en;type:text" json:"descriptionEn,omitempty"`
+	DescriptionRu    *string        `gorm:"column:description_ru;type:text" json:"descriptionRu,omitempty"`
+	
 	Country          string         `gorm:"type:varchar(100);not null;index" json:"country"`
 	Region           *string        `gorm:"type:varchar(100)" json:"region,omitempty"`
 	Category         string         `gorm:"type:varchar(50);not null;index" json:"category"`   // appetizer, main, dessert, soup, salad
@@ -32,6 +43,68 @@ type RecipeCatalog struct {
 
 func (RecipeCatalog) TableName() string {
 	return "Recipe" // Uses same table as migration 035
+}
+
+// GetLocalizedName returns recipe name in the requested language
+// Falls back to English if requested language is not available
+func (r *RecipeCatalog) GetLocalizedName(lang string) string {
+	switch lang {
+	case "ru":
+		if r.NameRu != nil && *r.NameRu != "" {
+			return *r.NameRu
+		}
+	case "pl":
+		if r.NamePl != nil && *r.NamePl != "" {
+			return *r.NamePl
+		}
+	case "en":
+		if r.NameEn != nil && *r.NameEn != "" {
+			return *r.NameEn
+		}
+	}
+	
+	// Fallback chain: EN -> PL -> RU -> CanonicalName
+	if r.NameEn != nil && *r.NameEn != "" {
+		return *r.NameEn
+	}
+	if r.NamePl != nil && *r.NamePl != "" {
+		return *r.NamePl
+	}
+	if r.NameRu != nil && *r.NameRu != "" {
+		return *r.NameRu
+	}
+	return r.CanonicalName
+}
+
+// GetLocalizedDescription returns recipe description in the requested language
+// Falls back to English if requested language is not available
+func (r *RecipeCatalog) GetLocalizedDescription(lang string) string {
+	switch lang {
+	case "ru":
+		if r.DescriptionRu != nil && *r.DescriptionRu != "" {
+			return *r.DescriptionRu
+		}
+	case "pl":
+		if r.DescriptionPl != nil && *r.DescriptionPl != "" {
+			return *r.DescriptionPl
+		}
+	case "en":
+		if r.DescriptionEn != nil && *r.DescriptionEn != "" {
+			return *r.DescriptionEn
+		}
+	}
+	
+	// Fallback chain: EN -> PL -> RU -> empty
+	if r.DescriptionEn != nil && *r.DescriptionEn != "" {
+		return *r.DescriptionEn
+	}
+	if r.DescriptionPl != nil && *r.DescriptionPl != "" {
+		return *r.DescriptionPl
+	}
+	if r.DescriptionRu != nil && *r.DescriptionRu != "" {
+		return *r.DescriptionRu
+	}
+	return ""
 }
 
 // CatalogIngredient represents ingredient requirement in a catalog recipe
