@@ -1,36 +1,444 @@
-2025-12-28T17:59:59.901+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2025-12-28T18:00:01.691+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2025-12-28T18:00:01.691+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2025/12/28 18:00:01 ✅ EventBus initialized
-2025/12/28 18:00:01 📡 New subscriber for event: treasury_update (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: treasury_allocate (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: treasury_spend (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: token_balance_update (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: token_earn (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: token_spend (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: task_completed (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: task_reward_claimed (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: user_registered (total: 1)
-2025/12/28 18:00:01 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2025/12/28 18:00:01 📡 Hub subscribed to 10 event types
-2025/12/28 18:00:01 📡 WebSocket module initialized
-2025/12/28 18:00:01 🚀 WebSocket Hub started
-2025/12/28 18:00:01 🔧 Registering history module routes...
-2025/12/28 18:00:01 ✅ History module routes registered:
-2025/12/28 18:00:01    GET /api/history - Event history
-2025/12/28 18:00:01    GET /api/history/stats - Statistics
-2025/12/28 18:00:01    GET /api/history/recent - Recent activity
-2025/12/28 18:00:01    GET /api/history/losses - Expired items analytics
-2025/12/28 18:00:01 🔌 Registering WebSocket routes...
-2025/12/28 18:00:01 ✅ WebSocket routes registered:
-2025/12/28 18:00:01    GET /ws - General WebSocket connection
-2025/12/28 18:00:01    GET /ws/treasury - Treasury updates (admin)
-2025/12/28 18:00:01    GET /ws/tokens/{userID} - User token updates
-2025/12/28 18:00:01    GET /ws/stats - WebSocket statistics
-2025-12-28T18:00:01.693+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
-2025/12/28 18:00:11 🔐 AuthMiddleware: GET /api/history/losses
-2025/12/28 18:00:11 📋 Auth header present: false, length: 0
-2025/12/28 18:00:11 ❌ No Authorization header for GET /api/history/losses
-2025/12/28 18:00:11 [MacBook-Air-Dmitrij.local/8gd8ufAJew-000001] "GET http://localhost:8080/api/history/losses?days=30 HTTP/1.1" from [::1]:58701 - 401 42B in 441.833µs
-2025-12-28T18:00:29.150+0100	[34mINFO[0m	logger/logger.go:57	🛑 Shutting down server...
-2025-12-28T18:00:29.150+0100	[34mINFO[0m	logger/logger.go:57	✅ Server stopped gracefully
+2026-01-03T10:01:30.894+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-03T10:01:31.147+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
+2026-01-03T10:01:31.147+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
+2026/01/03 10:01:31 ✅ EventBus initialized
+2026/01/03 10:01:31 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: token_earn (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: token_spend (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: task_completed (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: user_registered (total: 1)
+2026/01/03 10:01:31 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/03 10:01:31 📡 Hub subscribed to 10 event types
+2026/01/03 10:01:31 📡 WebSocket module initialized
+2026/01/03 10:01:31 🚀 WebSocket Hub started
+2026/01/03 10:01:31 🔧 Registering history module routes...
+2026/01/03 10:01:31 ✅ History module routes registered:
+2026/01/03 10:01:31    GET /api/history - Event history
+2026/01/03 10:01:31    GET /api/history/stats - Statistics
+2026/01/03 10:01:31    GET /api/history/recent - Recent activity
+2026/01/03 10:01:31    GET /api/history/losses - Expired items analytics
+2026/01/03 10:01:31 🔌 Registering WebSocket routes...
+2026/01/03 10:01:31 ✅ WebSocket routes registered:
+2026/01/03 10:01:31    GET /ws - General WebSocket connection
+2026/01/03 10:01:31    GET /ws/treasury - Treasury updates (admin)
+2026/01/03 10:01:31    GET /ws/tokens/{userID} - User token updates
+2026/01/03 10:01:31    GET /ws/stats - WebSocket statistics
+2026-01-03T10:01:31.148+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2026-01-03T10:01:45.396+0100	[33mWARN[0m	http/handler.go:133	⚠️ DEV MODE: Using test userID from query parameter
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).GetAvailableRecipes
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:133
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026-01-03T10:01:45.397+0100	[34mINFO[0m	http/handler.go:141	Getting available recipes	{"userId": "b8b7e3b8-9c17-4532-b05f-da94be55a64a"}
+
+2026/01/03 10:01:45 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304 [33mSLOW SQL >= 200ms
+[0m[31;1m[304.948ms] [33m[rows:0][35m SELECT * FROM "user_fridge_items" WHERE user_id = 'b8b7e3b8-9c17-4532-b05f-da94be55a64a'[0m
+2026-01-03T10:01:45.702+0100	[34mINFO[0m	http/handler.go:209	Categorized recipes	{"userId": "b8b7e3b8-9c17-4532-b05f-da94be55a64a", "canCook": 0, "almostCook": 0, "needToBuy": 0}
+2026/01/03 10:01:45 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000001] "GET http://localhost:8080/api/recipes/available?testUserID=b8b7e3b8-9c17-4532-b05f-da94be55a64a HTTP/1.1" from [::1]:62125 - 200 102B in 306.452375ms
+2026/01/03 10:01:56 🔐 AuthMiddleware: GET /api/fridge
+2026/01/03 10:01:56 📋 Auth header present: false, length: 0
+2026/01/03 10:01:56 ❌ No Authorization header for GET /api/fridge
+2026/01/03 10:01:56 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000002] "GET http://localhost:8080/api/fridge?testUserID=b8b7e3b8-9c17-4532-b05f-da94be55a64a HTTP/1.1" from [::1]:62129 - 401 42B in 253.333µs
+2026/01/03 10:02:04 🔐 AuthMiddleware: POST /api/fridge
+2026/01/03 10:02:04 📋 Auth header present: false, length: 0
+2026/01/03 10:02:04 ❌ No Authorization header for POST /api/fridge
+2026/01/03 10:02:04 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000003] "POST http://localhost:8080/api/fridge?testUserID=b8b7e3b8-9c17-4532-b05f-da94be55a64a HTTP/1.1" from [::1]:62133 - 401 42B in 42.291µs
+2026/01/03 10:02:10 🔐 AuthMiddleware: POST /api/fridge
+2026/01/03 10:02:10 📋 Auth header present: false, length: 0
+2026/01/03 10:02:10 ❌ No Authorization header for POST /api/fridge
+2026/01/03 10:02:10 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000004] "POST http://localhost:8080/api/fridge?testUserID=b8b7e3b8-9c17-4532-b05f-da94be55a64a HTTP/1.1" from [::1]:62141 - 401 42B in 44.25µs
+2026-01-03T10:03:21.515+0100	[33mWARN[0m	http/handler.go:133	⚠️ DEV MODE: Using test userID from query parameter
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).GetAvailableRecipes
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:133
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026-01-03T10:03:21.515+0100	[34mINFO[0m	http/handler.go:141	Getting available recipes	{"userId": "fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86"}
+
+2026/01/03 10:03:21 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[93.544ms] [34;1m[rows:0][0m SELECT * FROM "user_fridge_items" WHERE user_id = 'fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86'
+2026-01-03T10:03:21.609+0100	[34mINFO[0m	http/handler.go:209	Categorized recipes	{"userId": "fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86", "canCook": 0, "almostCook": 0, "needToBuy": 0}
+2026/01/03 10:03:21 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000005] "GET http://localhost:8080/api/recipes/available?testUserID=fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86 HTTP/1.1" from [::1]:62171 - 200 102B in 93.739834ms
+2026-01-03T10:04:16.845+0100	[33mWARN[0m	http/handler.go:133	⚠️ DEV MODE: Using test userID from query parameter
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).GetAvailableRecipes
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:133
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026-01-03T10:04:16.845+0100	[34mINFO[0m	http/handler.go:141	Getting available recipes	{"userId": "fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86"}
+
+2026/01/03 10:04:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[68.396ms] [34;1m[rows:0][0m SELECT * FROM "user_fridge_items" WHERE user_id = 'fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86'
+2026-01-03T10:04:16.914+0100	[34mINFO[0m	http/handler.go:209	Categorized recipes	{"userId": "fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86", "canCook": 0, "almostCook": 0, "needToBuy": 0}
+2026/01/03 10:04:16 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000006] "GET http://localhost:8080/api/recipes/available?testUserID=fb2a96b4-ec5b-40e4-b1fe-34f3fe5aeb86 HTTP/1.1" from [::1]:62197 - 200 102B in 68.597833ms
+2026-01-03T10:05:34.226+0100	[33mWARN[0m	http/handler.go:133	⚠️ DEV MODE: Using test userID from query parameter
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).GetAvailableRecipes
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:133
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026-01-03T10:05:34.226+0100	[34mINFO[0m	http/handler.go:141	Getting available recipes	{"userId": "cmgds9uv60000l704ynyfeqs5"}
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[63.022ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" = '18c00a03-f052-4b27-882b-31189593b052'
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[131.123ms] [34;1m[rows:1][0m SELECT * FROM "user_fridge_items" WHERE user_id = 'cmgds9uv60000l704ynyfeqs5'
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[76.235ms] [34;1m[rows:11][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[68.525ms] [34;1m[rows:3][0m SELECT * FROM "Allergen" WHERE "Allergen"."id" IN ('2cb7679a-67fe-45a1-8722-ff9b348d0858','b1120e99-6eb8-47db-8f06-e5edf5c6cf6e','f54f0753-c466-45a9-b319-0849e741d0e5')
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[71.825ms] [34;1m[rows:8][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[68.036ms] [34;1m[rows:4][0m SELECT * FROM "DietTag" WHERE "DietTag"."id" IN ('11aae5c4-c281-4b6e-8a38-39cb65f464df','6c51f498-df7a-4a70-a4c5-3aaac7e87b6c','9bb4958c-5f91-4b8a-873b-c3579193cf53','ecc6379d-401d-4271-8dff-306dbc2399f4')
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[65.495ms] [34;1m[rows:23][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('a84c47ed-5927-48de-a34f-4aace9d3664a','d53c8dce-ee0d-4584-926b-1a22b17b389c','717781cd-25f4-4978-98e8-7b65c042e299','64932591-f590-4a2f-956d-7f8b6ec8d1f7','18c00a03-f052-4b27-882b-31189593b052','fc57dbf2-39bb-4f30-a8e2-cf6585074587','9bcf6cf1-149f-443c-af9d-96d360c3159f','89b388d2-2ca4-4959-94f7-2755d81afb6e','605bcbcf-2fd8-45fe-9202-522764676639','150c4bdb-2294-4643-8675-699b4e013ab0','fd1ad63e-1252-413b-9486-93200986ccf3','59bf118a-9dae-4ca3-a262-776e18b58338','a441e901-31ae-4805-80f3-cb48b0f9e39e','1bf2b50b-1ebd-44c3-bf45-edbe2aca22c6','785f6f0d-1149-495a-b4d8-0c5c0ae3ac01','0505f628-6546-4d43-a168-ab584078cde2','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','1d438f64-670f-482b-a0ee-6fde612c7cae','1305711b-14f6-47ba-9b8b-ab00fd61ba2d','4ace5955-ca1d-447b-8490-9263bd997fc6','8b112fc2-7726-4a8e-8d67-15534a7dee93','e1313231-540e-4d7b-bbf9-04bbab670b16','82717a87-c59d-4fe9-abf8-a2da02e12763')
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[168.568ms] [34;1m[rows:41][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403 [33mSLOW SQL >= 200ms
+[0m[31;1m[550.064ms] [33m[rows:10][35m SELECT * FROM "Recipe"[0m
+2026-01-03T10:05:34.907+0100	[34mINFO[0m	http/handler.go:209	Categorized recipes	{"userId": "cmgds9uv60000l704ynyfeqs5", "canCook": 1, "almostCook": 0, "needToBuy": 9}
+2026/01/03 10:05:34 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000007] "GET http://localhost:8080/api/recipes/available?testUserID=cmgds9uv60000l704ynyfeqs5 HTTP/1.1" from [::1]:62231 - 200 3319B in 681.864959ms
+2026-01-03T10:05:41.075+0100	[33mWARN[0m	http/handler.go:133	⚠️ DEV MODE: Using test userID from query parameter
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).GetAvailableRecipes
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:133
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026-01-03T10:05:41.075+0100	[34mINFO[0m	http/handler.go:141	Getting available recipes	{"userId": "cmgds9uv60000l704ynyfeqs5"}
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[37.041ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" = '18c00a03-f052-4b27-882b-31189593b052'
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[102.179ms] [34;1m[rows:1][0m SELECT * FROM "user_fridge_items" WHERE user_id = 'cmgds9uv60000l704ynyfeqs5'
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[31.336ms] [34;1m[rows:11][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[30.808ms] [34;1m[rows:3][0m SELECT * FROM "Allergen" WHERE "Allergen"."id" IN ('2cb7679a-67fe-45a1-8722-ff9b348d0858','b1120e99-6eb8-47db-8f06-e5edf5c6cf6e','f54f0753-c466-45a9-b319-0849e741d0e5')
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[34.011ms] [34;1m[rows:8][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[31.046ms] [34;1m[rows:4][0m SELECT * FROM "DietTag" WHERE "DietTag"."id" IN ('11aae5c4-c281-4b6e-8a38-39cb65f464df','6c51f498-df7a-4a70-a4c5-3aaac7e87b6c','9bb4958c-5f91-4b8a-873b-c3579193cf53','ecc6379d-401d-4271-8dff-306dbc2399f4')
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[34.880ms] [34;1m[rows:23][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('a84c47ed-5927-48de-a34f-4aace9d3664a','d53c8dce-ee0d-4584-926b-1a22b17b389c','717781cd-25f4-4978-98e8-7b65c042e299','64932591-f590-4a2f-956d-7f8b6ec8d1f7','18c00a03-f052-4b27-882b-31189593b052','fc57dbf2-39bb-4f30-a8e2-cf6585074587','9bcf6cf1-149f-443c-af9d-96d360c3159f','89b388d2-2ca4-4959-94f7-2755d81afb6e','605bcbcf-2fd8-45fe-9202-522764676639','150c4bdb-2294-4643-8675-699b4e013ab0','fd1ad63e-1252-413b-9486-93200986ccf3','59bf118a-9dae-4ca3-a262-776e18b58338','a441e901-31ae-4805-80f3-cb48b0f9e39e','1bf2b50b-1ebd-44c3-bf45-edbe2aca22c6','785f6f0d-1149-495a-b4d8-0c5c0ae3ac01','0505f628-6546-4d43-a168-ab584078cde2','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','1d438f64-670f-482b-a0ee-6fde612c7cae','1305711b-14f6-47ba-9b8b-ab00fd61ba2d','4ace5955-ca1d-447b-8490-9263bd997fc6','8b112fc2-7726-4a8e-8d67-15534a7dee93','e1313231-540e-4d7b-bbf9-04bbab670b16','82717a87-c59d-4fe9-abf8-a2da02e12763')
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[100.190ms] [34;1m[rows:41][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403 [33mSLOW SQL >= 200ms
+[0m[31;1m[296.269ms] [33m[rows:10][35m SELECT * FROM "Recipe"[0m
+2026-01-03T10:05:41.473+0100	[34mINFO[0m	http/handler.go:209	Categorized recipes	{"userId": "cmgds9uv60000l704ynyfeqs5", "canCook": 1, "almostCook": 0, "needToBuy": 9}
+2026/01/03 10:05:41 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000008] "GET http://localhost:8080/api/recipes/available?testUserID=cmgds9uv60000l704ynyfeqs5 HTTP/1.1" from [::1]:62235 - 200 3319B in 399.01725ms
+2026-01-03T10:05:49.738+0100	[33mWARN[0m	http/handler.go:133	⚠️ DEV MODE: Using test userID from query parameter
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/transport/http.(*RecipeHandler).GetAvailableRecipes
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/transport/http/handler.go:133
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026-01-03T10:05:49.738+0100	[34mINFO[0m	http/handler.go:141	Getting available recipes	{"userId": "cmgds9uv60000l704ynyfeqs5"}
+
+2026/01/03 10:05:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[30.878ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" = '18c00a03-f052-4b27-882b-31189593b052'
+
+2026/01/03 10:05:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:304
+[0m[33m[100.264ms] [34;1m[rows:1][0m SELECT * FROM "user_fridge_items" WHERE user_id = 'cmgds9uv60000l704ynyfeqs5'
+
+2026/01/03 10:05:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[33.035ms] [34;1m[rows:11][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[32.886ms] [34;1m[rows:3][0m SELECT * FROM "Allergen" WHERE "Allergen"."id" IN ('2cb7679a-67fe-45a1-8722-ff9b348d0858','b1120e99-6eb8-47db-8f06-e5edf5c6cf6e','f54f0753-c466-45a9-b319-0849e741d0e5')
+
+2026/01/03 10:05:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[30.554ms] [34;1m[rows:8][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:50 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[32.394ms] [34;1m[rows:4][0m SELECT * FROM "DietTag" WHERE "DietTag"."id" IN ('11aae5c4-c281-4b6e-8a38-39cb65f464df','6c51f498-df7a-4a70-a4c5-3aaac7e87b6c','9bb4958c-5f91-4b8a-873b-c3579193cf53','ecc6379d-401d-4271-8dff-306dbc2399f4')
+
+2026/01/03 10:05:50 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[33.667ms] [34;1m[rows:23][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('a84c47ed-5927-48de-a34f-4aace9d3664a','d53c8dce-ee0d-4584-926b-1a22b17b389c','717781cd-25f4-4978-98e8-7b65c042e299','64932591-f590-4a2f-956d-7f8b6ec8d1f7','18c00a03-f052-4b27-882b-31189593b052','fc57dbf2-39bb-4f30-a8e2-cf6585074587','9bcf6cf1-149f-443c-af9d-96d360c3159f','89b388d2-2ca4-4959-94f7-2755d81afb6e','605bcbcf-2fd8-45fe-9202-522764676639','150c4bdb-2294-4643-8675-699b4e013ab0','fd1ad63e-1252-413b-9486-93200986ccf3','59bf118a-9dae-4ca3-a262-776e18b58338','a441e901-31ae-4805-80f3-cb48b0f9e39e','1bf2b50b-1ebd-44c3-bf45-edbe2aca22c6','785f6f0d-1149-495a-b4d8-0c5c0ae3ac01','0505f628-6546-4d43-a168-ab584078cde2','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','1d438f64-670f-482b-a0ee-6fde612c7cae','1305711b-14f6-47ba-9b8b-ab00fd61ba2d','4ace5955-ca1d-447b-8490-9263bd997fc6','8b112fc2-7726-4a8e-8d67-15534a7dee93','e1313231-540e-4d7b-bbf9-04bbab670b16','82717a87-c59d-4fe9-abf8-a2da02e12763')
+
+2026/01/03 10:05:50 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403
+[0m[33m[97.631ms] [34;1m[rows:41][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('eb85b2a6-7d3b-4220-b7a3-f0b563e8ab35','e8ab233b-46dc-4a55-8e87-1c0dd3656790','13cda324-83af-40a7-b41b-084376200100','26f4c2df-1b55-4a84-af8b-3a5d4e5eba34','92691aae-c3af-427d-aaed-1408319f0a3c','e5d6124a-caf3-4c31-ab96-3cb08a99ad6f','c6ab09e3-41e7-4249-8d1c-7760cfc449fd','d429b550-4fac-42db-82d0-60a699b7861d','9033c676-8754-49ff-8f28-659d918bce30','d6cd03f5-60f5-439e-aead-4bf9b37c79df')
+
+2026/01/03 10:05:50 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/recipes/service/match_service.go:403 [33mSLOW SQL >= 200ms
+[0m[31;1m[288.256ms] [33m[rows:10][35m SELECT * FROM "Recipe"[0m
+2026-01-03T10:05:50.126+0100	[34mINFO[0m	http/handler.go:209	Categorized recipes	{"userId": "cmgds9uv60000l704ynyfeqs5", "canCook": 1, "almostCook": 0, "needToBuy": 9}
+2026/01/03 10:05:50 [MacBook-Air-Dmitrij.local/3aKIZFSjrC-000009] "GET http://localhost:8080/api/recipes/available?testUserID=cmgds9uv60000l704ynyfeqs5 HTTP/1.1" from [::1]:62239 - 200 3319B in 388.952667ms

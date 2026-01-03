@@ -121,6 +121,112 @@ func (h *RecipeHandler) MatchRecipes(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetAvailableRecipes returns categorized recipes by cooking availability
+// GET /api/recipes/available
+func (h *RecipeHandler) GetAvailableRecipes(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from context (set by auth middleware)
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok || userID == "" {
+		// DEV MODE: Allow testing without auth by using test user ID from query
+		testUserID := r.URL.Query().Get("testUserID")
+		if testUserID != "" {
+			h.logger.Warn("⚠️ DEV MODE: Using test userID from query parameter")
+			userID = testUserID
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+	}
+
+	h.logger.Info("Getting available recipes", zap.String("userId", userID))
+
+	// Get ALL matching recipes (no minScore filter)
+	filters := service.RecipeFilters{
+		MinScore:     0.0, // Get all recipes, we'll categorize by score
+		OnlyCookable: false,
+		Limit:        100, // Get more recipes for categorization
+	}
+
+	matches, err := h.matchService.MatchRecipesWithFridge(userID, filters)
+	if err != nil {
+		h.logger.Error("Failed to match recipes", zap.Error(err))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(dto.AvailableRecipesResponse{
+			Success: false,
+			Error:   "Failed to find recipes",
+		})
+		return
+	}
+
+	// Categorize recipes by match score
+	canCook := []dto.AvailableRecipeItem{}
+	almostCook := []dto.AvailableRecipeItem{}
+	needToBuy := []dto.AvailableRecipeItem{}
+
+	for _, match := range matches {
+		item := dto.AvailableRecipeItem{
+			RecipeID:         match.Recipe.ID.String(),
+			CanonicalName:    match.Recipe.CanonicalName,
+			LocalName:        match.Recipe.LocalName,
+			Category:         match.Recipe.Category,
+			Difficulty:       match.Recipe.Difficulty,
+			TimeMinutes:      match.Recipe.TimeMinutes,
+			Servings:         match.Recipe.Servings,
+			Match:            int(match.MatchScore), // Round to int for UI
+			CanCook:          match.CanMakeNow,
+			MissingCount:     len(match.MissingIngredients),
+			CostToComplete:   match.CostToComplete,
+			WasteRiskSaved:   match.WasteRiskSaved,
+			HasExpiringItems: match.HasExpiringItems,
+		}
+
+		// Extract missing ingredient names (Russian)
+		for _, ing := range match.MissingIngredients {
+			if !ing.Optional { // Only count required missing ingredients
+				item.Missing = append(item.Missing, ing.Name)
+			}
+		}
+
+		// Extract used ingredient names (Russian)
+		for _, ing := range match.MatchedIngredients {
+			item.UsedIngredients = append(item.UsedIngredients, ing.Name)
+		}
+
+		// Categorize by score
+		if match.CanMakeNow {
+			// 100% match - all required ingredients available
+			canCook = append(canCook, item)
+		} else if match.MatchScore >= 67.0 {
+			// 67-99% - missing 1-2 ingredients
+			almostCook = append(almostCook, item)
+		} else {
+			// <67% - need to buy more
+			needToBuy = append(needToBuy, item)
+		}
+	}
+
+	h.logger.Info("Categorized recipes",
+		zap.String("userId", userID),
+		zap.Int("canCook", len(canCook)),
+		zap.Int("almostCook", len(almostCook)),
+		zap.Int("needToBuy", len(needToBuy)),
+	)
+
+	// Return categorized results
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(dto.AvailableRecipesResponse{
+		Success: true,
+		Data: &dto.AvailableRecipesData{
+			CanCook:      canCook,
+			AlmostCook:   almostCook,
+			NeedToBuy:    needToBuy,
+			TotalCount:   len(matches),
+			CanCookCount: len(canCook),
+		},
+	})
+}
+
 // GetRecipeByID returns full recipe details
 // GET /api/recipes/:id
 func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
