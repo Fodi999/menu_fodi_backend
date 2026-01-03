@@ -31,6 +31,7 @@ func NewModule(db *gorm.DB) *Module {
 	adapterService := service.NewRecipeAdapterService(db, nil) // TODO: Pass Groq client
 	cookService := service.NewRecipeCookService(db)
 	catalogHandler := httphandlers.NewRecipeHandler(
+		db,
 		matchService,
 		adapterService,
 		cookService,

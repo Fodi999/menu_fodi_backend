@@ -15,11 +15,14 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes/service"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type RecipeHandler struct {
+	db                *gorm.DB
 	matchService      *service.RecipeMatchService
 	adapterService    *service.RecipeAdapterService
 	cookService       *service.RecipeCookService
@@ -29,6 +32,7 @@ type RecipeHandler struct {
 }
 
 func NewRecipeHandler(
+	db *gorm.DB,
 	matchService *service.RecipeMatchService,
 	adapterService *service.RecipeAdapterService,
 	cookService *service.RecipeCookService,
@@ -37,6 +41,7 @@ func NewRecipeHandler(
 	logger *zap.Logger,
 ) *RecipeHandler {
 	return &RecipeHandler{
+		db:                db,
 		matchService:      matchService,
 		adapterService:    adapterService,
 		cookService:       cookService,
@@ -314,10 +319,35 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 	// Set recipeID from URL
 	req.RecipeID = recipeID
 
-	// Default servings multiplier
-	if req.ServingsMultiplier <= 0 {
-		req.ServingsMultiplier = 1.0
+	// Load recipe to get base servings (needed for targetServings → multiplier conversion)
+	recipeUUID, err := uuid.Parse(recipeID)
+	if err != nil {
+		http.Error(w, "Invalid recipe ID", http.StatusBadRequest)
+		return
 	}
+
+	var recipe models.RecipeCatalog
+	if err := h.db.Where("id = ?", recipeUUID).First(&recipe).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			http.Error(w, "Recipe not found", http.StatusNotFound)
+			return
+		}
+		h.logger.Error("Failed to load recipe", zap.Error(err))
+		http.Error(w, "Failed to load recipe", http.StatusInternalServerError)
+		return
+	}
+
+	// Calculate servings multiplier (supports both servingsMultiplier and targetServings)
+	servingsMultiplier := req.GetMultiplier(recipe.Servings)
+
+	h.logger.Info("Cooking recipe request",
+		zap.String("userId", userID),
+		zap.String("recipeId", recipeID),
+		zap.Int("recipeBaseServings", recipe.Servings),
+		zap.Float64("requestServingsMultiplier", req.ServingsMultiplier),
+		zap.Int("requestTargetServings", req.TargetServings),
+		zap.Float64("calculatedMultiplier", servingsMultiplier),
+	)
 
 	// Safety check: force requires idempotency key to prevent accidental duplicate cooking
 	if req.Force && req.IdempotencyKey == "" {
@@ -361,7 +391,7 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("Cooking recipe",
 		zap.String("userId", userID),
 		zap.String("recipeId", recipeID),
-		zap.Float64("servingsMultiplier", req.ServingsMultiplier),
+		zap.Float64("servingsMultiplier", servingsMultiplier),
 		zap.String("idempotencyKey", req.IdempotencyKey),
 		zap.Bool("force", req.Force),
 	)
@@ -372,11 +402,11 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 		idempotencyKeyPtr = &req.IdempotencyKey
 	}
 
-	// Cook recipe
+	// Cook recipe (use calculated servingsMultiplier, not req.ServingsMultiplier)
 	cookData, err := h.cookService.CookRecipe(
 		userID,
 		recipeID,
-		req.ServingsMultiplier,
+		servingsMultiplier,
 		idempotencyKeyPtr,
 	)
 	if err != nil {
