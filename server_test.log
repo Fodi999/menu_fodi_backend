@@ -1,0 +1,52 @@
+2026-01-04T22:47:38.575+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-04T22:47:38.836+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
+2026-01-04T22:47:38.836+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
+2026/01/04 22:47:38 ✅ EventBus initialized
+2026/01/04 22:47:38 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: token_earn (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: token_spend (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: task_completed (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: user_registered (total: 1)
+2026/01/04 22:47:38 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/04 22:47:38 📡 Hub subscribed to 10 event types
+2026/01/04 22:47:38 📡 WebSocket module initialized
+2026/01/04 22:47:38 🚀 WebSocket Hub started
+2026/01/04 22:47:38 🔧 Registering history module routes...
+2026/01/04 22:47:38 ✅ History module routes registered:
+2026/01/04 22:47:38    GET /api/history - Event history
+2026/01/04 22:47:38    GET /api/history/stats - Statistics
+2026/01/04 22:47:38    GET /api/history/recent - Recent activity
+2026/01/04 22:47:38    GET /api/history/losses - Expired items analytics
+2026/01/04 22:47:38 🔌 Registering WebSocket routes...
+2026/01/04 22:47:38 ✅ WebSocket routes registered:
+2026/01/04 22:47:38    GET /ws - General WebSocket connection
+2026/01/04 22:47:38    GET /ws/treasury - Treasury updates (admin)
+2026/01/04 22:47:38    GET /ws/tokens/{userID} - User token updates
+2026/01/04 22:47:38    GET /ws/stats - WebSocket statistics
+2026-01-04T22:47:38.838+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+
+2026/01/04 22:47:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
+[0m[31;1m[271.753ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
+
+2026/01/04 22:47:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
+[0m[31;1m[336.940ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-04 22:47:57.743' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
+2026/01/04 22:47:58 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/04 22:47:58 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-04T22:47:58.080+0100	[34mINFO[0m	logger/logger.go:57	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/04 22:47:58 [MacBook-Air-Dmitrij.local/eT0YmcuS5w-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:53880 - 200 509B in 685.637167ms
+2026/01/04 22:47:58 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/04 22:47:58 📋 Auth header present: true, length: 264
+2026/01/04 22:47:58 🎫 Token extracted, length: 257
+2026/01/04 22:47:58 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/04 22:47:58 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/04 22:47:58 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+
+2026/01/04 22:47:58 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:575 [35;1mERROR: column "canonical_name" does not exist (SQLSTATE 42703)
+[0m[33m[80.027ms] [34;1m[rows:0][0m SELECT * FROM "Recipe" ORDER BY category ASC, canonical_name ASC
+2026/01/04 22:47:58 [MacBook-Air-Dmitrij.local/eT0YmcuS5w-000002] "GET http://localhost:8080/api/admin/recipes HTTP/1.1" from [::1]:53881 - 500 35B in 80.334ms
+2026-01-04T22:49:07.789+0100	[34mINFO[0m	logger/logger.go:57	🛑 Shutting down server...
+2026-01-04T22:49:07.789+0100	[34mINFO[0m	logger/logger.go:57	✅ Server stopped gracefully

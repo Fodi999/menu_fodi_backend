@@ -572,7 +572,8 @@ func (s *adminService) GetIngredientsStats() (map[string]interface{}, error) {
 func (s *adminService) GetAllRecipes() ([]models.RecipeCatalog, error) {
 	var recipes []models.RecipeCatalog
 	
-	if err := s.db.Order("category ASC, canonical_name ASC").Find(&recipes).Error; err != nil {
+	// Используем кавычки для camelCase колонок в PostgreSQL
+	if err := s.db.Order("category ASC, \"canonicalName\" ASC").Find(&recipes).Error; err != nil {
 		return nil, err
 	}
 	
