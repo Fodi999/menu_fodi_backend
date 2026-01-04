@@ -340,7 +340,12 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 
 	// Set localized fields before returning
 	recipe.LocalName = recipe.GetLocalizedName(userLang)
-	recipe.Steps = recipe.GetLocalizedSteps(userLang) // Localize cooking instructions
+	
+	// Get localized steps and convert to JSONB for backward compatibility
+	localizedSteps := recipe.GetLocalizedSteps(userLang)
+	if stepsJSON, err := json.Marshal(localizedSteps); err == nil {
+		recipe.Steps = stepsJSON
+	}
 	
 	// Localize ingredient names
 	for i := range recipe.Ingredients {

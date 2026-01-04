@@ -516,6 +516,9 @@ func (s *RecipeMatchService) GetRecipeByID(recipeID string) (*models.RecipeCatal
 		Preload("Ingredients.Ingredient").     // Load ingredient details
 		Preload("Allergens").                  // Load allergens
 		Preload("DietTags").                   // Load diet tags
+		Preload("RecipeSteps", func(db *gorm.DB) *gorm.DB {
+			return db.Order("step_number ASC") // Load steps in order
+		}).
 		Where("id = ?", recipeID).
 		First(&recipe).Error
 	if err != nil {

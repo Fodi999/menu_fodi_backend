@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,6 +46,7 @@ type RecipeCatalog struct {
 	Ingredients []CatalogIngredient `gorm:"foreignKey:RecipeID" json:"ingredients,omitempty"`
 	Allergens   []Allergen          `gorm:"many2many:RecipeAllergen;joinForeignKey:RecipeID;joinReferences:AllergenID" json:"allergens,omitempty"`
 	DietTags    []DietTag           `gorm:"many2many:RecipeDietTag;joinForeignKey:RecipeID;joinReferences:DietTagID" json:"dietTags,omitempty"`
+	RecipeSteps []RecipeStep        `gorm:"foreignKey:RecipeID;references:ID" json:"-"` // New relational steps (not exported to JSON by default)
 }
 
 func (RecipeCatalog) TableName() string {
@@ -114,34 +116,87 @@ func (r *RecipeCatalog) GetLocalizedDescription(lang string) string {
 }
 
 // GetLocalizedSteps returns recipe steps in the requested language
-// Falls back to English if requested language is not available
-func (r *RecipeCatalog) GetLocalizedSteps(lang string) datatypes.JSON {
+// Prefers RecipeSteps table (new relational structure) over JSONB columns (legacy)
+func (r *RecipeCatalog) GetLocalizedSteps(lang string) []string {
+	// Priority 1: Use new RecipeSteps table if available
+	if len(r.RecipeSteps) > 0 {
+		steps := GetStepsForRecipe(r.RecipeSteps, lang)
+		if len(steps) > 0 {
+			return steps
+		}
+		
+		// Fallback to English if requested language not found
+		if lang != "en" {
+			steps = GetStepsForRecipe(r.RecipeSteps, "en")
+			if len(steps) > 0 {
+				return steps
+			}
+		}
+		
+		// Fallback to Polish
+		if lang != "pl" {
+			steps = GetStepsForRecipe(r.RecipeSteps, "pl")
+			if len(steps) > 0 {
+				return steps
+			}
+		}
+		
+		// Fallback to Russian
+		if lang != "ru" {
+			steps = GetStepsForRecipe(r.RecipeSteps, "ru")
+			if len(steps) > 0 {
+				return steps
+			}
+		}
+	}
+	
+	// Priority 2: Fallback to legacy JSONB columns
+	return r.getLegacySteps(lang)
+}
+
+// getLegacySteps returns steps from old JSONB columns (backward compatibility)
+func (r *RecipeCatalog) getLegacySteps(lang string) []string {
+	var stepsJSON datatypes.JSON
+	
 	switch lang {
 	case "ru":
 		if len(r.StepsRu) > 0 {
-			return r.StepsRu
+			stepsJSON = r.StepsRu
 		}
 	case "pl":
 		if len(r.StepsPl) > 0 {
-			return r.StepsPl
+			stepsJSON = r.StepsPl
 		}
 	case "en":
 		if len(r.StepsEn) > 0 {
-			return r.StepsEn
+			stepsJSON = r.StepsEn
 		}
 	}
 	
 	// Fallback chain: EN -> PL -> RU -> Steps (legacy)
-	if len(r.StepsEn) > 0 {
-		return r.StepsEn
+	if len(stepsJSON) == 0 && len(r.StepsEn) > 0 {
+		stepsJSON = r.StepsEn
 	}
-	if len(r.StepsPl) > 0 {
-		return r.StepsPl
+	if len(stepsJSON) == 0 && len(r.StepsPl) > 0 {
+		stepsJSON = r.StepsPl
 	}
-	if len(r.StepsRu) > 0 {
-		return r.StepsRu
+	if len(stepsJSON) == 0 && len(r.StepsRu) > 0 {
+		stepsJSON = r.StepsRu
 	}
-	return r.Steps // Legacy fallback
+	if len(stepsJSON) == 0 {
+		stepsJSON = r.Steps
+	}
+	
+	// Parse JSONB array to []string
+	var steps []string
+	if len(stepsJSON) > 0 {
+		// datatypes.JSON is just []byte, use json.Unmarshal
+		if err := json.Unmarshal(stepsJSON, &steps); err == nil {
+			return steps
+		}
+	}
+	
+	return []string{}
 }
 
 // CatalogIngredient represents ingredient requirement in a catalog recipe
