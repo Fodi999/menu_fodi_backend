@@ -706,9 +706,13 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Формат совместимый с фронтендом (data + meta)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"ingredients": ingredients,
-		"count":       len(ingredients),
+		"data": ingredients,
+		"meta": map[string]interface{}{
+			"total": len(ingredients),
+			"count": len(ingredients),
+		},
 	})
 }
 
