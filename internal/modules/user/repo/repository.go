@@ -60,11 +60,18 @@ func (r *userRepository) GetProfile(userID uuid.UUID) (*models.UserProfile, erro
 		}
 		return nil, err
 	}
+	
+	// Get the actual role from User table (source of truth)
+	var user models.User
+	if err := r.db.Where("id = ?", userID.String()).First(&user).Error; err == nil {
+		profile.Role = user.Role // Update with current role from User table
+	}
+	
 	return &profile, nil
 }
 
 func (r *userRepository) CreateProfile(userID uuid.UUID) (*models.UserProfile, error) {
-	// First, get the user to extract name and email
+	// First, get the user to extract name, email, and role
 	var user models.User
 	if err := r.db.Where("id = ?", userID.String()).First(&user).Error; err != nil {
 		return nil, err
@@ -74,6 +81,7 @@ func (r *userRepository) CreateProfile(userID uuid.UUID) (*models.UserProfile, e
 		UserID:        userID,
 		Name:          user.Name,
 		Email:         user.Email,
+		Role:          user.Role, // Set role from User table (source of truth)
 		Level:         1,
 		Stars:         0,
 		XP:            0,
