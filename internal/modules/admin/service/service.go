@@ -568,12 +568,17 @@ func (s *adminService) GetIngredientsStats() (map[string]interface{}, error) {
 	}, nil
 }
 
-// GetAllRecipes возвращает все рецепты из каталога
+// GetAllRecipes возвращает все рецепты из каталога с ингредиентами
 func (s *adminService) GetAllRecipes() ([]models.RecipeCatalog, error) {
 	var recipes []models.RecipeCatalog
 	
-	// Используем кавычки для camelCase колонок в PostgreSQL
-	if err := s.db.Order("category ASC, \"canonicalName\" ASC").Find(&recipes).Error; err != nil {
+	// Загружаем рецепты с ингредиентами и связанными данными
+	if err := s.db.
+		Preload("Ingredients.Ingredient"). // Загружаем ингредиенты с их полной информацией
+		Preload("Allergens").              // Загружаем аллергены
+		Preload("DietTags").               // Загружаем диетические теги
+		Order("category ASC, \"canonicalName\" ASC").
+		Find(&recipes).Error; err != nil {
 		return nil, err
 	}
 	
