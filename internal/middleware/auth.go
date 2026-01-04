@@ -64,7 +64,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// AdminMiddleware проверяет права администратора
+// AdminMiddleware проверяет права администратора (admin или super_admin)
 func AdminMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)
@@ -73,11 +73,33 @@ func AdminMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if claims.Role != models.RoleAdmin {
+		// Allow both admin and super_admin
+		if claims.Role != models.RoleAdmin && claims.Role != models.RoleSuperAdmin {
 			utils.WriteError(w, http.StatusForbidden, "Admin access required")
 			return
 		}
 
+		next.ServeHTTP(w, r)
+	})
+}
+
+// SuperAdminMiddleware проверяет права супер администратора (только super_admin)
+// Используется для критичных операций: назначение ролей, удаление пользователей
+func SuperAdminMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := r.Context().Value(UserContextKey).(*authservice.Claims)
+		if !ok {
+			utils.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+			return
+		}
+
+		if claims.Role != models.RoleSuperAdmin {
+			log.Printf("❌ SuperAdmin required: User %s has role '%s'", claims.UserID, claims.Role)
+			utils.WriteError(w, http.StatusForbidden, "Super admin access required")
+			return
+		}
+
+		log.Printf("✅ SuperAdmin access granted for user %s", claims.UserID)
 		next.ServeHTTP(w, r)
 	})
 }

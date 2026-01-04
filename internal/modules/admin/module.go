@@ -24,7 +24,7 @@ func NewModule() *Module {
 	return &Module{handlers: handlers}
 }
 
-func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler, adminMiddleware func(http.Handler) http.Handler) {
+func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) http.Handler, adminMiddleware func(http.Handler) http.Handler, superAdminMiddleware func(http.Handler) http.Handler) {
 	// PUBLIC ENDPOINTS - NO AUTH REQUIRED
 	r.Route("/api/public", func(r chi.Router) {
 		r.Get("/treasury", m.handlers.GetTreasuryInfo) // Public treasury info
@@ -37,14 +37,16 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 	r.Route("/admin", func(r chi.Router) {
 		r.Use(authMiddleware)
-		r.Use(adminMiddleware)
+		r.Use(adminMiddleware) // Требует admin или super_admin
 
-		// Users
+		// Users (доступно admin + super_admin)
 		r.Get("/users", m.handlers.GetAllUsers)
 		r.Get("/users/stats", m.handlers.GetUsersStats)
 		r.Put("/users/{id}", m.handlers.UpdateUser)
 		r.Delete("/users/{id}", m.handlers.DeleteUser)
-		r.Patch("/users/update-role", m.handlers.UpdateUserRole)
+		
+		// CRITICAL: Change user role (только super_admin)
+		r.With(superAdminMiddleware).Patch("/users/update-role", m.handlers.UpdateUserRole)
 
 		// Orders
 		r.Get("/orders", m.handlers.GetAllOrders)

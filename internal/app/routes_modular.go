@@ -147,7 +147,7 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// === NEW MODULAR ROUTES ===
 		// Register admin module routes (with admin middleware)
-		adminModule.RegisterRoutes(r, middleware.AuthMiddleware, middleware.AdminMiddleware)
+		adminModule.RegisterRoutes(r, middleware.AuthMiddleware, middleware.AdminMiddleware, middleware.SuperAdminMiddleware)
 
 		// Register business module routes
 		businessModule.RegisterRoutes(r, middleware.AuthMiddleware)

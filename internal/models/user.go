@@ -8,9 +8,10 @@ import (
 
 // User roles constants - используй ТОЛЬКО эти константы для избежания опечаток
 const (
-	RoleHomeChef = "home_chef" // Домашний повар
-	RoleProChef  = "pro_chef"  // Профессиональный повар / ресторан
-	RoleAdmin    = "admin"     // Администратор
+	RoleHomeChef  = "home_chef"  // Домашний повар
+	RoleProChef   = "pro_chef"   // Профессиональный повар / ресторан
+	RoleAdmin     = "admin"      // Администратор
+	RoleSuperAdmin = "super_admin" // Супер администратор (управление ролями)
 )
 
 // User account status constants

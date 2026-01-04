@@ -241,13 +241,15 @@ func (s *adminService) DeleteUser(userID string) error {
 
 // UpdateUserRole изменяет роль пользователя
 func (s *adminService) UpdateUserRole(userID, role string) error {
-	// Валидация роли
+	// Валидация роли (все доступные роли)
 	validRoles := map[string]bool{
-		"user":  true,
-		"admin": true,
+		models.RoleHomeChef:  true,
+		models.RoleProChef:   true,
+		models.RoleAdmin:     true,
+		models.RoleSuperAdmin: true,
 	}
 	if !validRoles[role] {
-		return errors.New("invalid role")
+		return errors.New("invalid role: must be one of home_chef, pro_chef, admin, super_admin")
 	}
 
 	result := s.db.Model(&models.User{}).Where("id = ?", userID).Update("role", role)
