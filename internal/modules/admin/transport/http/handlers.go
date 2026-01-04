@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/service"
@@ -25,22 +26,47 @@ func NewAdminHandlers(svc service.AdminService, pol service.AdminPolicy) *AdminH
 }
 
 func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.GetAllUsers()
+	// Парсим query параметры
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+
+	// Получаем фильтры
+	role := r.URL.Query().Get("role")
+	status := r.URL.Query().Get("status")
+	search := r.URL.Query().Get("search")
+
+	// Создаём параметры
+	params := service.GetUsersParams{
+		Page:  page,
+		Limit: limit,
+	}
+
+	if role != "" {
+		params.Role = &role
+	}
+	if status != "" {
+		params.Status = &status
+	}
+	if search != "" {
+		params.Search = &search
+	}
+
+	// Получаем пользователей с фильтрами
+	response, err := h.service.GetUsersWithFilters(params)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch users")
 		return
 	}
-	
-	// Return in standard format with "users" field and pagination meta
-	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"users": users,
-		"meta": map[string]interface{}{
-			"total":       len(users),
-			"page":        1,
-			"limit":       len(users),
-			"totalPages":  1,
-		},
-	})
+
+	// Возвращаем ответ
+	utils.RespondWithJSON(w, http.StatusOK, response)
 }
 
 func (h *AdminHandlers) GetUsersStats(w http.ResponseWriter, r *http.Request) {

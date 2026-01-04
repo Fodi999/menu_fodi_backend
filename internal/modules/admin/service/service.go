@@ -2,16 +2,41 @@ package service
 
 import (
 	"errors"
+	"math"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"gorm.io/gorm"
 )
 
+// GetUsersParams параметры для фильтрации пользователей
+type GetUsersParams struct {
+	Page   int
+	Limit  int
+	Role   *string
+	Status *string
+	Search *string
+}
+
+// UserListResponse ответ со списком пользователей и метаданными
+type UserListResponse struct {
+	Users []models.User  `json:"users"`
+	Meta  PaginationMeta `json:"meta"`
+}
+
+// PaginationMeta метаданные пагинации
+type PaginationMeta struct {
+	Total      int `json:"total"`
+	Page       int `json:"page"`
+	Limit      int `json:"limit"`
+	TotalPages int `json:"totalPages"`
+}
+
 // AdminService интерфейс для бизнес-логики администратора
 type AdminService interface {
 	// Users
 	GetAllUsers() ([]models.User, error)
+	GetUsersWithFilters(params GetUsersParams) (*UserListResponse, error)
 	GetUsersStats() (map[string]interface{}, error)
 	UpdateUser(userID string, name, email string) (*models.User, error)
 	DeleteUser(userID string) error
@@ -83,6 +108,58 @@ func (s *adminService) GetAllUsers() ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// GetUsersWithFilters возвращает пользователей с фильтрацией и пагинацией
+func (s *adminService) GetUsersWithFilters(params GetUsersParams) (*UserListResponse, error) {
+	// Базовый запрос
+	query := s.db.Model(&models.User{})
+
+	// Применяем фильтры
+	if params.Role != nil && *params.Role != "" {
+		query = query.Where("role = ?", *params.Role)
+	}
+
+	if params.Status != nil && *params.Status != "" {
+		query = query.Where("status = ?", *params.Status)
+	}
+
+	if params.Search != nil && *params.Search != "" {
+		searchPattern := "%" + *params.Search + "%"
+		query = query.Where("email ILIKE ? OR name ILIKE ?", searchPattern, searchPattern)
+	}
+
+	// Считаем total с учётом фильтров
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Применяем пагинацию
+	offset := (params.Page - 1) * params.Limit
+	query = query.Limit(params.Limit).Offset(offset)
+
+	// Сортировка по дате создания (новые первыми)
+	query = query.Order("\"createdAt\" DESC")
+
+	// Выполняем запрос
+	var users []models.User
+	if err := query.Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	// Вычисляем количество страниц
+	totalPages := int(math.Ceil(float64(total) / float64(params.Limit)))
+
+	return &UserListResponse{
+		Users: users,
+		Meta: PaginationMeta{
+			Total:      int(total),
+			Page:       params.Page,
+			Limit:      params.Limit,
+			TotalPages: totalPages,
+		},
+	}, nil
 }
 
 // GetUsersStats возвращает статистику по пользователям
