@@ -91,6 +91,10 @@ type AdminService interface {
 		DefaultShelfLifeDays *int
 		DefaultPricePerUnit  *float64
 	}) (int, error)
+
+	// Recipes Catalog
+	GetAllRecipes() ([]models.RecipeCatalog, error)
+	GetRecipesStats() (map[string]interface{}, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -561,5 +565,73 @@ func (s *adminService) GetIngredientsStats() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"total":      total,
 		"categories": categoryStats,
+	}, nil
+}
+
+// GetAllRecipes возвращает все рецепты из каталога
+func (s *adminService) GetAllRecipes() ([]models.RecipeCatalog, error) {
+	var recipes []models.RecipeCatalog
+	
+	if err := s.db.Order("category ASC, canonical_name ASC").Find(&recipes).Error; err != nil {
+		return nil, err
+	}
+	
+	return recipes, nil
+}
+
+// GetRecipesStats возвращает статистику по рецептам
+func (s *adminService) GetRecipesStats() (map[string]interface{}, error) {
+	var total int64
+	if err := s.db.Model(&models.RecipeCatalog{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Статистика по категориям
+	var categoryStats []struct {
+		Category string `json:"category"`
+		Count    int64  `json:"count"`
+	}
+	
+	if err := s.db.Model(&models.RecipeCatalog{}).
+		Select("category, COUNT(*) as count").
+		Group("category").
+		Order("count DESC").
+		Scan(&categoryStats).Error; err != nil {
+		return nil, err
+	}
+
+	// Статистика по сложности
+	var difficultyStats []struct {
+		Difficulty string `json:"difficulty"`
+		Count      int64  `json:"count"`
+	}
+	
+	if err := s.db.Model(&models.RecipeCatalog{}).
+		Select("difficulty, COUNT(*) as count").
+		Group("difficulty").
+		Order("count DESC").
+		Scan(&difficultyStats).Error; err != nil {
+		return nil, err
+	}
+
+	// Статистика по странам
+	var countryStats []struct {
+		Country string `json:"country"`
+		Count   int64  `json:"count"`
+	}
+	
+	if err := s.db.Model(&models.RecipeCatalog{}).
+		Select("country, COUNT(*) as count").
+		Group("country").
+		Order("count DESC").
+		Scan(&countryStats).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total":       total,
+		"categories":  categoryStats,
+		"difficulty":  difficultyStats,
+		"countries":   countryStats,
 	}, nil
 }

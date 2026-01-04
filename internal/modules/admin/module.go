@@ -86,5 +86,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/ingredients", m.handlers.GetAllIngredients)           // GET /api/admin/ingredients - весь каталог
 		r.Get("/ingredients/stats", m.handlers.GetIngredientsStats)   // GET /api/admin/ingredients/stats - статистика
 		r.Post("/ingredients/import", m.handlers.ImportIngredients)   // Bulk import catalog
+
+		// Recipe Catalog Management
+		r.Get("/recipes", m.handlers.GetAllRecipes)                   // GET /api/admin/recipes - весь каталог рецептов
+		r.Get("/recipes/stats", m.handlers.GetRecipesStats)           // GET /api/admin/recipes/stats - статистика
 	})
 }

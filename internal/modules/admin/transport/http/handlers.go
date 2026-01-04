@@ -726,3 +726,32 @@ func (h *AdminHandlers) GetIngredientsStats(w http.ResponseWriter, r *http.Reque
 
 	utils.RespondWithJSON(w, http.StatusOK, stats)
 }
+
+// GetAllRecipes возвращает весь каталог рецептов для админ-панели
+func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
+	recipes, err := h.service.GetAllRecipes()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch recipes")
+		return
+	}
+
+	// Формат совместимый с фронтендом (data + meta)
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"data": recipes,
+		"meta": map[string]interface{}{
+			"total": len(recipes),
+			"count": len(recipes),
+		},
+	})
+}
+
+// GetRecipesStats возвращает статистику по рецептам
+func (h *AdminHandlers) GetRecipesStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.GetRecipesStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch recipes stats")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
