@@ -87,33 +87,41 @@ func (s *adminService) GetAllUsers() ([]models.User, error) {
 
 // GetUsersStats возвращает статистику по пользователям
 func (s *adminService) GetUsersStats() (map[string]interface{}, error) {
-	var total int64
-	var blocked int64
-	var premium int64
-	var activeToday int64
+	type Stats struct {
+		Total       int64 `gorm:"column:total"`
+		ActiveToday int64 `gorm:"column:active_today"`
+		Blocked     int64 `gorm:"column:blocked"`
+	}
 
-	// Total users count
-	if err := s.db.Model(&models.User{}).Count(&total).Error; err != nil {
+	var stats Stats
+
+	// Query with FILTER clause for efficient counting
+	// active_today: last_login within last 24 hours
+	// blocked: status = 'blocked'
+	err := s.db.Raw(`
+		SELECT
+			COUNT(*)                                        AS total,
+			COUNT(*) FILTER (
+				WHERE last_login >= NOW() - INTERVAL '24 hours'
+			)                                               AS active_today,
+			COUNT(*) FILTER (
+				WHERE status = 'blocked'
+			)                                               AS blocked
+		FROM "User"
+	`).Scan(&stats).Error
+
+	if err != nil {
 		return nil, err
 	}
 
-	// Blocked users (assuming status field exists, otherwise return 0)
-	// Note: User model doesn't have 'status' field, so blocked will be 0
-	blocked = 0
-
-	// Premium users (assuming is_premium field exists, otherwise return 0)
-	// Note: User model doesn't have 'is_premium' field, so premium will be 0
-	premium = 0
-
-	// Active today (users with last_login in last 24 hours)
-	// Note: User model doesn't have 'last_login' field, so active_today will be 0
-	activeToday = 0
-
+	// Note: Premium users logic depends on your business model
+	// Could be based on subscription, special role, or UserProfile field
+	// For now, returning 0 as placeholder
 	return map[string]interface{}{
-		"total":        total,
-		"active_today": activeToday,
-		"blocked":      blocked,
-		"premium":      premium,
+		"total":        stats.Total,
+		"active_today": stats.ActiveToday,
+		"blocked":      stats.Blocked,
+		"premium":      0, // TODO: implement premium logic when business model is defined
 	}, nil
 }
 

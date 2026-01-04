@@ -13,14 +13,23 @@ const (
 	RoleAdmin    = "admin"     // Администратор
 )
 
+// User account status constants
+const (
+	UserStatusActive  = "active"  // Normal user - can login and use all features
+	UserStatusBlocked = "blocked" // Blocked by admin - cannot login
+	UserStatusPending = "pending" // Unverified / limited access
+)
+
 // User модель пользователя (соответствует Prisma схеме)
 type User struct {
 	ID        string       `gorm:"primaryKey;column:id" json:"id"`
 	Email     string       `gorm:"unique;column:email" json:"email"`
 	Name      string       `gorm:"column:name" json:"name"`
-	Password  string       `gorm:"column:password" json:"-"`                  // не возвращается в JSON
-	Role      string       `gorm:"column:role;default:home_chef" json:"role"` // home_chef | pro_chef | admin
-	Settings  UserSettings `gorm:"type:jsonb;column:settings" json:"settings"` // User preferences
+	Password  string       `gorm:"column:password" json:"-"`                   // не возвращается в JSON
+	Role      string       `gorm:"column:role;default:home_chef" json:"role"`  // home_chef | pro_chef | admin
+	Status    string       `gorm:"column:status;default:active" json:"status"` // active | blocked | pending
+	Settings  UserSettings `gorm:"type:jsonb;column:settings" json:"settings"`  // User preferences
+	LastLogin *time.Time   `gorm:"column:last_login" json:"lastLogin,omitempty"` // Activity tracking
 	CreatedAt time.Time    `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
 

@@ -18,6 +18,7 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrUserNotFound       = errors.New("user not found")
 	ErrInvalidToken       = errors.New("invalid token")
+	ErrAccountBlocked     = errors.New("account is blocked")
 	ErrWeakPassword       = errors.New("password must be at least 6 characters")
 )
 
@@ -97,9 +98,22 @@ func (s *AuthService) Login(req dto.LoginRequest) (*dto.AuthResponse, error) {
 		return nil, ErrInvalidCredentials
 	}
 
+	// Check if user is blocked
+	if user.Status == models.UserStatusBlocked {
+		return nil, ErrAccountBlocked
+	}
+
 	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return nil, ErrInvalidCredentials
+	}
+
+	// Update last_login timestamp
+	now := time.Now()
+	user.LastLogin = &now
+	if err := s.repo.UpdateLastLogin(user.ID, now); err != nil {
+		// Log error but don't fail login
+		log.Printf("Warning: Failed to update last_login for user %s: %v\n", user.ID, err)
 	}
 
 	// Generate JWT token

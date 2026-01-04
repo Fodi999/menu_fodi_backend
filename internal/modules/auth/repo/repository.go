@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"time"
+
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/google/uuid"
@@ -13,6 +15,7 @@ type AuthRepository interface {
 	FindByID(id string) (*models.User, error)
 	Create(user *models.User) error
 	Update(user *models.User) error
+	UpdateLastLogin(userID string, loginTime time.Time) error
 	GetUserProfile(userID uuid.UUID) (*models.UserProfile, error)
 }
 
@@ -56,6 +59,13 @@ func (r *authRepository) Create(user *models.User) error {
 // Update updates existing user
 func (r *authRepository) Update(user *models.User) error {
 	return r.db.Save(user).Error
+}
+
+// UpdateLastLogin updates user's last login timestamp
+func (r *authRepository) UpdateLastLogin(userID string, loginTime time.Time) error {
+	return r.db.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("last_login", loginTime).Error
 }
 
 // GetUserProfile retrieves user profile
