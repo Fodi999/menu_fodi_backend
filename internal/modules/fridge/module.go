@@ -7,8 +7,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
-	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/service"
 	fridgehttp "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/transport/http"
 )
@@ -38,9 +36,8 @@ func NewModule(db *gorm.DB) *Module {
 // RegisterRoutes регистрирует маршруты холодильника
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) http.Handler) {
 	r.Route("/fridge", func(r chi.Router) {
-		// Требуется аутентификация + роль HOME_CHEF
+		// Требуется только аутентификация (доступно всем пользователям)
 		r.Use(jwtMiddleware)
-		r.Use(middleware.RequireRole(models.RoleHomeChef))
 
 		// Операции с продуктами
 		r.Get("/items", m.handlers.GetUserItems)              // GET /api/fridge/items - список продуктов
