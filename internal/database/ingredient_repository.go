@@ -5,8 +5,6 @@ import (
 	"unicode"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
-	"golang.org/x/text/runes"
-	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -19,9 +17,23 @@ func normalizeSearchQuery(s string) string {
 	// Step 1: Lowercase
 	s = strings.ToLower(s)
 	
-	// Step 2: Remove diacritics (ą→a, ę→e, etc)
-	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
-	result, _, _ := transform.String(t, s)
+	// Step 2: Only remove diacritics from Latin characters (ą→a, ę→e)
+	// Preserve Cyrillic, Greek, and other non-Latin scripts
+	result := ""
+	for _, r := range s {
+		// If character is Cyrillic (U+0400 to U+04FF) or other non-Latin, keep as-is
+		if (r >= 0x0400 && r <= 0x04FF) || !unicode.Is(unicode.Latin, r) {
+			result += string(r)
+		} else {
+			// For Latin characters, decompose and remove diacritics
+			normalized := norm.NFD.String(string(r))
+			for _, nr := range normalized {
+				if !unicode.Is(unicode.Mn, nr) { // Keep only non-mark characters
+					result += string(nr)
+				}
+			}
+		}
+	}
 	
 	return result
 }
