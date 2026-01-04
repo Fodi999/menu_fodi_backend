@@ -27,10 +27,11 @@ type RecipeCatalog struct {
 	Country          string         `gorm:"type:varchar(100);not null;index" json:"country"`
 	Region           *string        `gorm:"type:varchar(100)" json:"region,omitempty"`
 	Category         string         `gorm:"type:varchar(50);not null;index" json:"category"`   // appetizer, main, dessert, soup, salad
-	Difficulty       string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
-	TimeMinutes      int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
-	Servings         int            `gorm:"not null;default:1" json:"servings"` // Always 1 (base portion), use servingsMultiplier for scaling
-	Steps            datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                           // [{"step":1,"instruction":"..."}] - DEPRECATED: use Steps* fields
+	Difficulty          string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
+	TimeMinutes         int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
+	Servings            int            `gorm:"not null;default:1" json:"servings"` // Always 1 (base portion), use servingsMultiplier for scaling
+	PortionWeightGrams  *int           `gorm:"column:portionWeightGrams" json:"portionWeightGrams,omitempty"` // Total weight of one serving in grams
+	Steps               datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                           // [{"step":1,"instruction":"..."}] - DEPRECATED: use Steps* fields
 	
 	// Multilingual steps (cooking instructions)
 	StepsPl          datatypes.JSON `gorm:"column:steps_pl;type:jsonb" json:"stepsPl,omitempty"`
