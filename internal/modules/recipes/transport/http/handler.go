@@ -338,9 +338,9 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 		zap.String("name", recipe.GetLocalizedName(userLang)),
 	)
 
-	// Set the LocalName field to the localized value before returning
-	// This ensures the JSON response has the correct language
+	// Set localized fields before returning
 	recipe.LocalName = recipe.GetLocalizedName(userLang)
+	recipe.Steps = recipe.GetLocalizedSteps(userLang) // Localize cooking instructions
 
 	// Return recipe (frontend can use LocalName, or the specific name_* fields)
 	w.Header().Set("Content-Type", "application/json")

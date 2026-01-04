@@ -29,7 +29,13 @@ type RecipeCatalog struct {
 	Difficulty       string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
 	TimeMinutes      int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
 	Servings         int            `gorm:"not null;default:1" json:"servings"` // Always 1 (base portion), use servingsMultiplier for scaling
-	Steps            datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                           // [{"step":1,"instruction":"..."}]
+	Steps            datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                           // [{"step":1,"instruction":"..."}] - DEPRECATED: use Steps* fields
+	
+	// Multilingual steps (cooking instructions)
+	StepsPl          datatypes.JSON `gorm:"column:steps_pl;type:jsonb" json:"stepsPl,omitempty"`
+	StepsEn          datatypes.JSON `gorm:"column:steps_en;type:jsonb" json:"stepsEn,omitempty"`
+	StepsRu          datatypes.JSON `gorm:"column:steps_ru;type:jsonb" json:"stepsRu,omitempty"`
+	
 	NutritionProfile datatypes.JSON `gorm:"column:nutritionProfile;type:jsonb;default:'{}'" json:"nutritionProfile"` // {"type":"balanced","calories":450}
 	Source           datatypes.JSON `gorm:"type:jsonb;not null" json:"source"`                                       // {"type":"cookbook","reference":"..."}
 	CreatedAt        time.Time      `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
@@ -105,6 +111,37 @@ func (r *RecipeCatalog) GetLocalizedDescription(lang string) string {
 		return *r.DescriptionRu
 	}
 	return ""
+}
+
+// GetLocalizedSteps returns recipe steps in the requested language
+// Falls back to English if requested language is not available
+func (r *RecipeCatalog) GetLocalizedSteps(lang string) datatypes.JSON {
+	switch lang {
+	case "ru":
+		if len(r.StepsRu) > 0 {
+			return r.StepsRu
+		}
+	case "pl":
+		if len(r.StepsPl) > 0 {
+			return r.StepsPl
+		}
+	case "en":
+		if len(r.StepsEn) > 0 {
+			return r.StepsEn
+		}
+	}
+	
+	// Fallback chain: EN -> PL -> RU -> Steps (legacy)
+	if len(r.StepsEn) > 0 {
+		return r.StepsEn
+	}
+	if len(r.StepsPl) > 0 {
+		return r.StepsPl
+	}
+	if len(r.StepsRu) > 0 {
+		return r.StepsRu
+	}
+	return r.Steps // Legacy fallback
 }
 
 // CatalogIngredient represents ingredient requirement in a catalog recipe
