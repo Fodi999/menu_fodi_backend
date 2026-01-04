@@ -21,8 +21,8 @@ CREATE INDEX idx_user_last_login ON "User"(last_login);
 
 -- 3️⃣ Initialize last_login for existing users (set to account creation time)
 UPDATE "User"
-SET last_login = created_at
-WHERE last_login IS NULL AND created_at IS NOT NULL;
+SET last_login = "createdAt"
+WHERE last_login IS NULL AND "createdAt" IS NOT NULL;
 
 -- Comment explaining the columns
 COMMENT ON COLUMN "User".status IS 'Account status: active (normal user), blocked (banned by admin), pending (unverified)';
