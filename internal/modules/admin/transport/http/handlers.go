@@ -43,6 +43,16 @@ func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *AdminHandlers) GetUsersStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.GetUsersStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch user stats")
+		return
+	}
+	
+	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
+
 func (h *AdminHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
 

@@ -12,6 +12,7 @@ import (
 type AdminService interface {
 	// Users
 	GetAllUsers() ([]models.User, error)
+	GetUsersStats() (map[string]interface{}, error)
 	UpdateUser(userID string, name, email string) (*models.User, error)
 	DeleteUser(userID string) error
 	UpdateUserRole(userID, role string) error
@@ -82,6 +83,38 @@ func (s *adminService) GetAllUsers() ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// GetUsersStats возвращает статистику по пользователям
+func (s *adminService) GetUsersStats() (map[string]interface{}, error) {
+	var total int64
+	var blocked int64
+	var premium int64
+	var activeToday int64
+
+	// Total users count
+	if err := s.db.Model(&models.User{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Blocked users (assuming status field exists, otherwise return 0)
+	// Note: User model doesn't have 'status' field, so blocked will be 0
+	blocked = 0
+
+	// Premium users (assuming is_premium field exists, otherwise return 0)
+	// Note: User model doesn't have 'is_premium' field, so premium will be 0
+	premium = 0
+
+	// Active today (users with last_login in last 24 hours)
+	// Note: User model doesn't have 'last_login' field, so active_today will be 0
+	activeToday = 0
+
+	return map[string]interface{}{
+		"total":        total,
+		"active_today": activeToday,
+		"blocked":      blocked,
+		"premium":      premium,
+	}, nil
 }
 
 // UpdateUser обновляет данные пользователя (имя и email)

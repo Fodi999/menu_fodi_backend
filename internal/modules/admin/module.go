@@ -41,6 +41,7 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 
 		// Users
 		r.Get("/users", m.handlers.GetAllUsers)
+		r.Get("/users/stats", m.handlers.GetUsersStats)
 		r.Put("/users/{id}", m.handlers.UpdateUser)
 		r.Delete("/users/{id}", m.handlers.DeleteUser)
 		r.Patch("/users/update-role", m.handlers.UpdateUserRole)
