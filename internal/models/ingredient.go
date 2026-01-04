@@ -59,6 +59,36 @@ func (i *Ingredient) GetName(lang string) string {
 	return i.Name
 }
 
+// IngredientBasicInfo - lightweight DTO for ingredient data in API responses
+// Contains all language fields for instant frontend language switching
+type IngredientBasicInfo struct {
+	ID       string  `json:"id"`
+	Key      string  `json:"key"`       // Normalized key for search (deprecated, use id)
+	Name     string  `json:"name"`      // Legacy field (same as name_pl)
+	NamePL   *string `json:"name_pl"`   // Polish name
+	NameEN   *string `json:"name_en"`   // English name
+	NameRU   *string `json:"name_ru"`   // Russian name
+	Category string  `json:"category"`  // protein, vegetable, dairy, grain, condiment, other
+	Unit     string  `json:"unit"`      // g, ml, szt
+}
+
+// NewIngredientBasicInfo creates DTO from Ingredient model
+func NewIngredientBasicInfo(ing *Ingredient) *IngredientBasicInfo {
+	if ing == nil {
+		return nil
+	}
+	return &IngredientBasicInfo{
+		ID:       ing.ID,
+		Key:      ing.ID, // Using ID as key for consistency
+		Name:     ing.GetName("pl"),
+		NamePL:   ing.NamePL,
+		NameEN:   ing.NameEN,
+		NameRU:   ing.NameRU,
+		Category: ing.Category,
+		Unit:     ing.Unit,
+	}
+}
+
 // StockItem модель складских остатков - ДЛЯ PRO_CHEF (рестораны/бизнес)
 // Содержит детальную информацию о партиях, поставщиках, ценах
 type StockItem struct {

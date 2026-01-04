@@ -175,14 +175,16 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
-			ID:        item.ID,
-			Name:      item.Ingredient.Name,
-			Category:  item.Ingredient.Category, // Добавляем категорию для группировки
-			Quantity:  item.Quantity,
-			Unit:      item.Unit,
-			ArrivedAt: item.ArrivedAt, // Дата поступления в холодильник
-			DaysLeft:  daysLeft,
-			Status:    models.GetFridgeItemStatus(daysLeft),
+			ID:         item.ID,
+			Name:       item.Ingredient.Name,
+			Category:   item.Ingredient.Category, // Добавляем категорию для группировки
+			Quantity:   item.Quantity,
+			Unit:       item.Unit,
+			Ingredient: models.NewIngredientBasicInfo(item.Ingredient), // 🌍 Full multilingual data
+			ArrivedAt:  item.ArrivedAt,                                 // Дата поступления в холодильник
+			ExpiresAt:  item.ExpiresAt,                                 // Срок годности
+			DaysLeft:   daysLeft,
+			Status:     models.GetFridgeItemStatus(daysLeft),
 		}
 
 		// Добавляем цену только если она есть (из кэша current_price_*)

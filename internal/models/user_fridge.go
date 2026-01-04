@@ -136,12 +136,20 @@ type IngredientShortInfo struct {
 //     Example: 3560g * 0.00581 PLN/g = 20.68 PLN (NOT 20.6836)
 //  3. Frontend MUST NOT recalculate totalPrice from quantity * pricePerUnit
 //  4. Wartość lodówki = SUM(totalPrice) where all values already rounded
+//
+// 🌍 MULTILINGUAL SUPPORT (NEW):
+//  5. Ingredient: Full ingredient object with all language fields (name, name_pl, name_en, name_ru)
+//  6. Frontend can switch languages instantly without re-fetching data
+//  7. Search works in any language, autocomplete uses same data structure
 type FridgeItemListResponse struct {
 	ID       string  `json:"id"`
-	Name     string  `json:"name"`
+	Name     string  `json:"name"` // DEPRECATED: Use Ingredient.GetName(lang) instead
 	Category string  `json:"category"` // protein, vegetable, dairy, grain, condiment, other
 	Quantity float64 `json:"quantity"`
 	Unit     string  `json:"unit"`
+	
+	// 🌍 MULTILINGUAL INGREDIENT DATA - MUST HAVE for production
+	Ingredient *IngredientBasicInfo `json:"ingredient"` // Full ingredient with all translations
 
 	// PRICE FIELDS - See API CONTRACT above ⬆️
 	PricePerUnit *float64 `json:"pricePerUnit,omitempty"` // Normalized price per base unit (high precision, for reference only)
