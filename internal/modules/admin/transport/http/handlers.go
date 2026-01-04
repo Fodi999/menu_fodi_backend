@@ -31,9 +31,15 @@ func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// Return in standard format with "users" field
+	// Return in standard format with "users" field and pagination meta
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"users": users,
+		"meta": map[string]interface{}{
+			"total":       len(users),
+			"page":        1,
+			"limit":       len(users),
+			"totalPages":  1,
+		},
 	})
 }
 
