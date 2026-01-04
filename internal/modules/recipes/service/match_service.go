@@ -38,23 +38,25 @@ type RecipeMatch struct {
 }
 
 type MatchedIngredient struct {
-	IngredientID   string     `json:"ingredientId"`
-	Name           string     `json:"name"`
-	Required       float64    `json:"required"`
-	Available      float64    `json:"available"`
-	Unit           string     `json:"unit"`
-	IsExpiringSoon bool       `json:"isExpiringSoon"`
-	ExpiresAt      *time.Time `json:"expiresAt,omitempty"`
-	Optional       bool       `json:"optional"` // Is this ingredient optional for the recipe?
+	IngredientID   string              `json:"ingredientId"`
+	Name           string              `json:"name"`
+	Required       float64             `json:"required"`
+	Available      float64             `json:"available"`
+	Unit           string              `json:"unit"`
+	IsExpiringSoon bool                `json:"isExpiringSoon"`
+	ExpiresAt      *time.Time          `json:"expiresAt,omitempty"`
+	Optional       bool                `json:"optional"` // Is this ingredient optional for the recipe?
+	Ingredient     *models.Ingredient  `json:"-"`        // Full ingredient for localization (not exported to JSON)
 }
 
 type MissingIngredient struct {
-	IngredientID  string  `json:"ingredientId"`
-	Name          string  `json:"name"`
-	Required      float64 `json:"required"`
-	Unit          string  `json:"unit"`
-	EstimatedCost float64 `json:"estimatedCost"` // PLN
-	Optional      bool    `json:"optional"`
+	IngredientID  string              `json:"ingredientId"`
+	Name          string              `json:"name"`
+	Required      float64             `json:"required"`
+	Unit          string              `json:"unit"`
+	EstimatedCost float64             `json:"estimatedCost"` // PLN
+	Optional      bool                `json:"optional"`
+	Ingredient    *models.Ingredient  `json:"-"`             // Full ingredient for localization (not exported to JSON)
 }
 
 // MatchRecipesWithFridge finds recipes that match user's fridge contents
@@ -157,6 +159,7 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 					IsExpiringSoon: fridgeItem.IsExpiringSoon,
 					ExpiresAt:      fridgeItem.ExpiresAt,
 					Optional:       true,
+					Ingredient:     &recipeIng.Ingredient, // Store full ingredient for localization
 				})
 			}
 			continue
@@ -189,6 +192,7 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 				IsExpiringSoon: fridgeItem.IsExpiringSoon,
 				ExpiresAt:      fridgeItem.ExpiresAt,
 				Optional:       false,
+				Ingredient:     &recipeIng.Ingredient, // Store full ingredient for localization
 			}
 			match.MatchedIngredients = append(match.MatchedIngredients, matched)
 		} else {
@@ -205,6 +209,7 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 				Unit:          recipeIng.Unit,
 				EstimatedCost: estimatedCost,
 				Optional:      recipeIng.Optional,
+				Ingredient:    &recipeIng.Ingredient, // Store full ingredient for localization
 			}
 			match.MissingIngredients = append(match.MissingIngredients, missing)
 			match.CostToComplete += estimatedCost

@@ -238,16 +238,24 @@ func (h *RecipeHandler) GetAvailableRecipes(w http.ResponseWriter, r *http.Reque
 			HasExpiringItems: match.HasExpiringItems,
 		}
 
-		// Extract missing ingredient names (Russian)
+		// Extract missing ingredient names (localized)
 		for _, ing := range match.MissingIngredients {
 			if !ing.Optional { // Only count required missing ingredients
-				item.Missing = append(item.Missing, ing.Name)
+				ingredientName := ing.Name
+				if ing.Ingredient != nil {
+					ingredientName = ing.Ingredient.GetName(userLang)
+				}
+				item.Missing = append(item.Missing, ingredientName)
 			}
 		}
 
-		// Extract used ingredient names (Russian)
+		// Extract used ingredient names (localized)
 		for _, ing := range match.MatchedIngredients {
-			item.UsedIngredients = append(item.UsedIngredients, ing.Name)
+			ingredientName := ing.Name
+			if ing.Ingredient != nil {
+				ingredientName = ing.Ingredient.GetName(userLang)
+			}
+			item.UsedIngredients = append(item.UsedIngredients, ingredientName)
 		}
 
 		// Categorize by score
@@ -683,12 +691,18 @@ func parseArrayQuery(r *http.Request, key string) []string {
 
 // convertToRecipeMatchItem converts service.RecipeMatch to dto.RecipeMatchItem
 func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.RecipeMatchItem {
-	// Convert used ingredients
+	// Convert used ingredients with localization
 	usedIngredients := make([]dto.IngredientMatch, len(match.MatchedIngredients))
 	for i, ing := range match.MatchedIngredients {
+		// Get localized ingredient name
+		ingredientName := ing.Name // Fallback to original name
+		if ing.Ingredient != nil {
+			ingredientName = ing.Ingredient.GetName(lang)
+		}
+		
 		usedIngredients[i] = dto.IngredientMatch{
 			IngredientID:   ing.IngredientID,
-			Name:           ing.Name,
+			Name:           ingredientName,
 			Quantity:       ing.Required,
 			Unit:           ing.Unit,
 			Available:      ing.Available,
@@ -696,12 +710,18 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 		}
 	}
 
-	// Convert missing ingredients
+	// Convert missing ingredients with localization
 	missingIngredients := make([]dto.IngredientMatch, len(match.MissingIngredients))
 	for i, ing := range match.MissingIngredients {
+		// Get localized ingredient name
+		ingredientName := ing.Name // Fallback to original name
+		if ing.Ingredient != nil {
+			ingredientName = ing.Ingredient.GetName(lang)
+		}
+		
 		missingIngredients[i] = dto.IngredientMatch{
 			IngredientID:  ing.IngredientID,
-			Name:          ing.Name,
+			Name:          ingredientName,
 			Quantity:      ing.Required,
 			Unit:          ing.Unit,
 			Optional:      ing.Optional,
@@ -965,13 +985,18 @@ func convertToRecommendationResponse(match *service.RecipeMatch, lang string) dt
 	}
 	recipeInfo.DietTags = dietTags
 
-	// Missing ingredients (required only, no optional)
+	// Missing ingredients (required only, no optional) - localized
 	missingRequired := []dto.MissingIngredientForBuy{}
 	for _, missing := range match.MissingIngredients {
 		if !missing.Optional {
+			ingredientName := missing.Name
+			if missing.Ingredient != nil {
+				ingredientName = missing.Ingredient.GetName(lang)
+			}
+			
 			missingRequired = append(missingRequired, dto.MissingIngredientForBuy{
 				IngredientID:  missing.IngredientID,
-				Name:          missing.Name,
+				Name:          ingredientName,
 				Quantity:      missing.Required,
 				Unit:          missing.Unit,
 				EstimatedCost: missing.EstimatedCost,
@@ -979,12 +1004,17 @@ func convertToRecommendationResponse(match *service.RecipeMatch, lang string) dt
 		}
 	}
 
-	// Used ingredients
+	// Used ingredients - localized
 	usedIngredients := make([]dto.UsedIngredient, len(match.MatchedIngredients))
 	for i, matched := range match.MatchedIngredients {
+		ingredientName := matched.Name
+		if matched.Ingredient != nil {
+			ingredientName = matched.Ingredient.GetName(lang)
+		}
+		
 		usedIngredients[i] = dto.UsedIngredient{
 			IngredientID:   matched.IngredientID,
-			Name:           matched.Name,
+			Name:           ingredientName,
 			Quantity:       matched.Required,
 			Unit:           matched.Unit,
 			Available:      matched.Available,
