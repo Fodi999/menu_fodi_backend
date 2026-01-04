@@ -79,6 +79,10 @@ type AdminService interface {
 	GetTransactionsByType(txType string, limit, offset int) ([]models.TokenTransaction, error)
 	GetTransactionStats() (map[string]interface{}, error)
 
+	// Ingredients Catalog
+	GetAllIngredients() ([]models.Ingredient, error)
+	GetIngredientsStats() (map[string]interface{}, error)
+
 	// Ingredient Catalog Management
 	BulkImportIngredients(ingredients []struct {
 		Name                 string
@@ -520,4 +524,42 @@ func (s *adminService) BulkImportIngredients(ingredients []struct {
 	}
 
 	return imported, nil
+}
+
+// GetAllIngredients возвращает весь каталог ингредиентов
+func (s *adminService) GetAllIngredients() ([]models.Ingredient, error) {
+	var ingredients []models.Ingredient
+	
+	if err := s.db.Order("category ASC, name ASC").Find(&ingredients).Error; err != nil {
+		return nil, err
+	}
+	
+	return ingredients, nil
+}
+
+// GetIngredientsStats возвращает статистику по ингредиентам
+func (s *adminService) GetIngredientsStats() (map[string]interface{}, error) {
+	var total int64
+	if err := s.db.Model(&models.Ingredient{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Статистика по категориям
+	var categoryStats []struct {
+		Category string `json:"category"`
+		Count    int64  `json:"count"`
+	}
+	
+	if err := s.db.Model(&models.Ingredient{}).
+		Select("category, COUNT(*) as count").
+		Group("category").
+		Order("count DESC").
+		Scan(&categoryStats).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total":      total,
+		"categories": categoryStats,
+	}, nil
 }

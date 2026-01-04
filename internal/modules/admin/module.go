@@ -83,6 +83,8 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Post("/treasury/allocate", m.handlers.AllocateFromTreasury)
 
 		// Ingredient Catalog Management
-		r.Post("/ingredients/import", m.handlers.ImportIngredients) // Bulk import catalog
+		r.Get("/ingredients", m.handlers.GetAllIngredients)           // GET /api/admin/ingredients - весь каталог
+		r.Get("/ingredients/stats", m.handlers.GetIngredientsStats)   // GET /api/admin/ingredients/stats - статистика
+		r.Post("/ingredients/import", m.handlers.ImportIngredients)   // Bulk import catalog
 	})
 }

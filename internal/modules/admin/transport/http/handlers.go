@@ -697,3 +697,28 @@ func (h *AdminHandlers) ImportIngredients(w http.ResponseWriter, r *http.Request
 		"total":    len(req),
 	})
 }
+
+// GetAllIngredients возвращает полный каталог ингредиентов для админ-панели
+func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request) {
+	ingredients, err := h.service.GetAllIngredients()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch ingredients")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"ingredients": ingredients,
+		"count":       len(ingredients),
+	})
+}
+
+// GetIngredientsStats возвращает статистику по ингредиентам
+func (h *AdminHandlers) GetIngredientsStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.GetIngredientsStats()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch ingredients stats")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
