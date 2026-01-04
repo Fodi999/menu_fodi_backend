@@ -51,6 +51,54 @@ func NewRecipeHandler(
 	}
 }
 
+// getUserLanguage extracts language from Accept-Language header
+// Returns: "ru", "pl", or "en" (default)
+func (h *RecipeHandler) getUserLanguage(r *http.Request) string {
+	// 1. Check Accept-Language header
+	acceptLang := r.Header.Get("Accept-Language")
+	if acceptLang != "" {
+		// Parse first language from "ru-RU,ru;q=0.9,en;q=0.8"
+		parts := strings.Split(acceptLang, ",")
+		if len(parts) > 0 {
+			lang := strings.TrimSpace(parts[0])
+			// Extract language code (before "-")
+			if idx := strings.Index(lang, "-"); idx > 0 {
+				lang = lang[:idx]
+			}
+			// Remove quality factor
+			if idx := strings.Index(lang, ";"); idx > 0 {
+				lang = lang[:idx]
+			}
+			lang = strings.ToLower(strings.TrimSpace(lang))
+			
+			// Support only ru, pl, en
+			switch lang {
+			case "ru":
+				return "ru"
+			case "pl":
+				return "pl"
+			case "en":
+				return "en"
+			}
+		}
+	}
+	
+	// 2. Check query parameter (for testing/override)
+	if langParam := r.URL.Query().Get("lang"); langParam != "" {
+		switch strings.ToLower(langParam) {
+		case "ru":
+			return "ru"
+		case "pl":
+			return "pl"
+		case "en":
+			return "en"
+		}
+	}
+	
+	// 3. Default to English
+	return "en"
+}
+
 // MatchRecipes finds recipes matching user's fridge
 // GET /api/recipes/match?country=Poland&maxTime=60&excludeAllergens=gluten,lactose&minScore=50
 func (h *RecipeHandler) MatchRecipes(w http.ResponseWriter, r *http.Request) {
@@ -104,10 +152,13 @@ func (h *RecipeHandler) MatchRecipes(w http.ResponseWriter, r *http.Request) {
 		zap.Int("count", len(matches)),
 	)
 
-	// Convert to DTO format
+	// Get user's preferred language
+	userLang := h.getUserLanguage(r)
+
+	// Convert to DTO format with localization
 	recipeItems := make([]dto.RecipeMatchItem, len(matches))
 	for i, match := range matches {
-		recipeItems[i] = convertToRecipeMatchItem(match)
+		recipeItems[i] = convertToRecipeMatchItem(match, userLang)
 	}
 
 	// Return results with standard contract
@@ -140,6 +191,9 @@ func (h *RecipeHandler) GetAvailableRecipes(w http.ResponseWriter, r *http.Reque
 
 	h.logger.Info("Getting available recipes", zap.String("userId", userID))
 
+	// Get user's preferred language
+	userLang := h.getUserLanguage(r)
+
 	// Get ALL matching recipes (no minScore filter)
 	filters := service.RecipeFilters{
 		MinScore:     0.0, // Get all recipes, we'll categorize by score
@@ -165,10 +219,13 @@ func (h *RecipeHandler) GetAvailableRecipes(w http.ResponseWriter, r *http.Reque
 	needToBuy := []dto.AvailableRecipeItem{}
 
 	for _, match := range matches {
+		// Use localized recipe name
+		localizedName := match.Recipe.GetLocalizedName(userLang)
+		
 		item := dto.AvailableRecipeItem{
 			RecipeID:         match.Recipe.ID.String(),
 			CanonicalName:    match.Recipe.CanonicalName,
-			LocalName:        match.Recipe.LocalName,
+			LocalName:        localizedName, // Use localized name based on user's language
 			Category:         match.Recipe.Category,
 			Difficulty:       match.Recipe.Difficulty,
 			TimeMinutes:      match.Recipe.TimeMinutes,
@@ -238,6 +295,9 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("Getting recipe by ID", zap.String("recipeId", recipeID))
 
+	// Get user's preferred language
+	userLang := h.getUserLanguage(r)
+
 	// Get recipe from database
 	recipe, err := h.matchService.GetRecipeByID(recipeID)
 	if err != nil {
@@ -267,10 +327,14 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("Recipe found", 
 		zap.String("recipeId", recipeID),
-		zap.String("name", recipe.LocalName),
+		zap.String("name", recipe.GetLocalizedName(userLang)),
 	)
 
-	// Return recipe
+	// Set the LocalName field to the localized value before returning
+	// This ensures the JSON response has the correct language
+	recipe.LocalName = recipe.GetLocalizedName(userLang)
+
+	// Return recipe (frontend can use LocalName, or the specific name_* fields)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
@@ -618,7 +682,7 @@ func parseArrayQuery(r *http.Request, key string) []string {
 }
 
 // convertToRecipeMatchItem converts service.RecipeMatch to dto.RecipeMatchItem
-func convertToRecipeMatchItem(match service.RecipeMatch) dto.RecipeMatchItem {
+func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.RecipeMatchItem {
 	// Convert used ingredients
 	usedIngredients := make([]dto.IngredientMatch, len(match.MatchedIngredients))
 	for i, ing := range match.MatchedIngredients {
@@ -680,10 +744,13 @@ func convertToRecipeMatchItem(match service.RecipeMatch) dto.RecipeMatchItem {
 		coverage = roundToTwoDecimals(coverage)
 	}
 
+	// Get localized recipe name and description
+	localizedName := match.Recipe.GetLocalizedName(lang)
+	
 	return dto.RecipeMatchItem{
 		RecipeID:           match.Recipe.ID.String(),
 		CanonicalName:      match.Recipe.CanonicalName,
-		LocalName:          match.Recipe.LocalName,
+		LocalName:          localizedName, // Use localized name based on user's language
 		Country:            match.Recipe.Country,
 		Category:           match.Recipe.Category,
 		Difficulty:         match.Recipe.Difficulty,
@@ -727,6 +794,9 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 			return
 		}
 	}
+
+	// Get user's preferred language
+	userLang := h.getUserLanguage(r)
 
 	// Parse request body
 	var req dto.RecommendationRequest
@@ -853,8 +923,8 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		// Continue anyway, this is not critical
 	}
 
-	// Convert to recommendation response format (UI-compatible)
-	response := convertToRecommendationResponse(bestMatch)
+	// Convert to recommendation response format (UI-compatible) with localization
+	response := convertToRecommendationResponse(bestMatch, userLang)
 
 	// Return result
 	w.Header().Set("Content-Type", "application/json")
@@ -862,12 +932,15 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 }
 
 // convertToRecommendationResponse преобразует RecipeMatch в формат совместимый с текущим UI
-func convertToRecommendationResponse(match *service.RecipeMatch) dto.RecommendationResponse {
+func convertToRecommendationResponse(match *service.RecipeMatch, lang string) dto.RecommendationResponse {
+	// Get localized recipe name
+	localizedName := match.Recipe.GetLocalizedName(lang)
+	
 	// Recipe info
 	recipeInfo := dto.RecipeInfo{
 		ID:            match.Recipe.ID.String(),
 		CanonicalName: match.Recipe.CanonicalName,
-		LocalName:     match.Recipe.LocalName,
+		LocalName:     localizedName, // Use localized name based on user's language
 		Country:       match.Recipe.Country,
 		Category:      match.Recipe.Category,
 		Difficulty:    match.Recipe.Difficulty,
