@@ -30,7 +30,11 @@ func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch users")
 		return
 	}
-	utils.RespondWithJSON(w, http.StatusOK, users)
+	
+	// Return in standard format with "users" field
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"users": users,
+	})
 }
 
 func (h *AdminHandlers) UpdateUser(w http.ResponseWriter, r *http.Request) {
