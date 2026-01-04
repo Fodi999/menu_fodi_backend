@@ -341,6 +341,15 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 	// Set localized fields before returning
 	recipe.LocalName = recipe.GetLocalizedName(userLang)
 	recipe.Steps = recipe.GetLocalizedSteps(userLang) // Localize cooking instructions
+	
+	// Localize ingredient names
+	for i := range recipe.Ingredients {
+		if recipe.Ingredients[i].Ingredient.ID != "" {
+			// Set localized ingredient name
+			localizedName := recipe.Ingredients[i].Ingredient.GetName(userLang)
+			recipe.Ingredients[i].Ingredient.Name = localizedName
+		}
+	}
 
 	// Return recipe (frontend can use LocalName, or the specific name_* fields)
 	w.Header().Set("Content-Type", "application/json")
