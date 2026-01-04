@@ -6,7 +6,7 @@
 SELECT
   COUNT(*)                                        AS total_users,
   COUNT(*) FILTER (
-    WHERE last_login >= NOW() - INTERVAL '24 hours'
+    WHERE last_login >= DATE_TRUNC('day', NOW())
   )                                               AS active_today,
   COUNT(*) FILTER (
     WHERE last_login >= NOW() - INTERVAL '7 days'
@@ -91,7 +91,7 @@ SELECT
   role,
   COUNT(*) AS total,
   COUNT(*) FILTER (
-    WHERE last_login >= NOW() - INTERVAL '24 hours'
+    WHERE last_login >= DATE_TRUNC('day', NOW())
   ) AS active_today,
   COUNT(*) FILTER (
     WHERE last_login >= NOW() - INTERVAL '7 days'

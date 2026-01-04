@@ -14,7 +14,7 @@ echo ""
 psql "$DB_URL" -c "
 SELECT
   COUNT(*) AS \"📈 Total Users\",
-  COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '24 hours') AS \"🟢 Active Today\",
+  COUNT(*) FILTER (WHERE last_login >= DATE_TRUNC('day', NOW())) AS \"🟢 Active Today\",
   COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '7 days') AS \"🟡 Active This Week\",
   COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '30 days') AS \"🟠 Active This Month\",
   COUNT(*) FILTER (WHERE last_login < NOW() - INTERVAL '30 days') AS \"🔴 Inactive 30+ days\",
@@ -32,7 +32,7 @@ psql "$DB_URL" -c "
 SELECT
   role AS \"Role\",
   COUNT(*) AS \"Total\",
-  COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '24 hours') AS \"Active 24h\",
+  COUNT(*) FILTER (WHERE last_login >= DATE_TRUNC('day', NOW())) AS \"Active 24h\",
   COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '7 days') AS \"Active 7d\",
   COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '30 days') AS \"Active 30d\",
   ROUND(COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '30 days') * 100.0 / NULLIF(COUNT(*), 0), 1) || '%' AS \"Active %\"

@@ -30,12 +30,21 @@
 
 **Использование**:
 ```sql
--- Активные сегодня (за последние 24 часа)
+-- ✅ Активные сегодня (с 00:00 текущего дня) - ПРАВИЛЬНО
+WHERE last_login >= DATE_TRUNC('day', NOW())
+
+-- ❌ За последние 24 часа (плавающая цифра) - НЕ рекомендуется
 WHERE last_login >= NOW() - INTERVAL '24 hours'
 
--- Активные сегодня (строже - только сегодняшняя дата)
+-- ✅ Альтернатива (PostgreSQL)
 WHERE DATE(last_login) = CURRENT_DATE
 ```
+
+**Почему `DATE_TRUNC('day', NOW())` лучше?**
+- ✅ Цифры стабильны в течение дня (не "плавают")
+- ✅ Понятно: "сегодня" = с 00:00 до текущего момента
+- ✅ Админ видит: кто заходил **сегодня**, а не "за последние 24ч"
+- ✅ Соответствует бизнес-логике дневных отчётов
 
 ### 3️⃣ Premium Status - БИЗНЕС-МОДЕЛЬ
 
@@ -146,7 +155,7 @@ func (s *AuthService) Login(req dto.LoginRequest) (*dto.AuthResponse, error) {
 SELECT
   COUNT(*)                         AS total,
   COUNT(*) FILTER (
-    WHERE last_login >= NOW() - INTERVAL '24 hours'
+    WHERE last_login >= DATE_TRUNC('day', NOW())
   )                                AS active_today,
   COUNT(*) FILTER (
     WHERE status = 'blocked'

@@ -96,13 +96,13 @@ func (s *adminService) GetUsersStats() (map[string]interface{}, error) {
 	var stats Stats
 
 	// Query with FILTER clause for efficient counting
-	// active_today: last_login within last 24 hours
+	// active_today: last_login today (since 00:00)
 	// blocked: status = 'blocked'
 	err := s.db.Raw(`
 		SELECT
 			COUNT(*)                                        AS total,
 			COUNT(*) FILTER (
-				WHERE last_login >= NOW() - INTERVAL '24 hours'
+				WHERE last_login >= DATE_TRUNC('day', NOW())
 			)                                               AS active_today,
 			COUNT(*) FILTER (
 				WHERE status = 'blocked'

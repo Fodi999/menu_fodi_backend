@@ -100,6 +100,28 @@ ORDER BY date DESC;
 
 ---
 
+### 📌 Важно: Определение "Active Today"
+
+**✅ ПРАВИЛЬНО** (используется в системе):
+```sql
+WHERE last_login >= DATE_TRUNC('day', NOW())
+```
+Означает: **заходил сегодня** (с 00:00 текущего дня)
+
+**❌ НЕ используется**:
+```sql
+WHERE last_login >= NOW() - INTERVAL '24 hours'
+```
+Это "за последние 24 часа" — плавающая цифра
+
+**Преимущества DATE_TRUNC**:
+- ✅ Цифры стабильны в течение дня
+- ✅ Понятно: "сегодня" = с 00:00 до текущего момента
+- ✅ Админ видит: кто заходил **сегодня**, а не "за последние 24ч"
+- ✅ Соответствует бизнес-логике дневных отчётов
+
+---
+
 ## 📊 API для фронтенда
 
 ### GET /api/admin/users/stats
@@ -212,9 +234,10 @@ WHERE id = $1;
 
 ### 1. DAU (Daily Active Users)
 ```sql
-SELECT COUNT(DISTINCT user_id) 
+-- Пользователи, заходившие сегодня (с 00:00)
+SELECT COUNT(*) 
 FROM "User"
-WHERE last_login >= CURRENT_DATE;
+WHERE last_login >= DATE_TRUNC('day', NOW());
 ```
 
 ### 2. WAU (Weekly Active Users)
@@ -296,7 +319,7 @@ FROM "User";
 psql "$DATABASE_URL" -f sql/check_user_activity.sql
 
 # Только статистика
-psql "$DATABASE_URL" -c "SELECT COUNT(*) FILTER (WHERE last_login >= NOW() - INTERVAL '24 hours') AS active_today, COUNT(*) AS total FROM \"User\";"
+psql "$DATABASE_URL" -c "SELECT COUNT(*) FILTER (WHERE last_login >= DATE_TRUNC('day', NOW())) AS active_today, COUNT(*) AS total FROM \"User\";"
 
 # ТОП-5 активных
 psql "$DATABASE_URL" -c "SELECT name, email, last_login FROM \"User\" ORDER BY last_login DESC LIMIT 5;"
