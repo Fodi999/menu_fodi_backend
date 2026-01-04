@@ -43,10 +43,10 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/users", m.handlers.GetAllUsers)
 		r.Get("/users/stats", m.handlers.GetUsersStats)
 		r.Put("/users/{id}", m.handlers.UpdateUser)
-		r.Delete("/users/{id}", m.handlers.DeleteUser)
 		
-		// CRITICAL: Change user role (только super_admin)
-		r.With(superAdminMiddleware).Patch("/users/update-role", m.handlers.UpdateUserRole)
+		// CRITICAL: Super admin only operations
+		r.With(superAdminMiddleware).Delete("/users/{id}", m.handlers.DeleteUser)          // Удаление пользователя
+		r.With(superAdminMiddleware).Patch("/users/update-role", m.handlers.UpdateUserRole) // Изменение ролей
 
 		// Orders
 		r.Get("/orders", m.handlers.GetAllOrders)
