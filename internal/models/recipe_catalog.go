@@ -13,6 +13,7 @@ type RecipeCatalog struct {
 	ID               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	CanonicalName    string         `gorm:"column:canonicalName;type:varchar(255);not null;uniqueIndex" json:"canonicalName"`
 	LocalName        string         `gorm:"column:localName;type:varchar(255);not null" json:"localName"` // DEPRECATED: use Name* fields
+	Title            string         `gorm:"column:title;type:text;not null" json:"title"` // Primary title (unified, typically Polish)
 	
 	// Multilingual names (like Ingredient model)
 	NamePl           *string        `gorm:"column:name_pl;type:varchar(255)" json:"namePl,omitempty"`
