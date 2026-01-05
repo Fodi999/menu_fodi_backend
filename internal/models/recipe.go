@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+	
+	"gorm.io/datatypes"
 )
 
 // Recipe represents a culinary recipe posted by a user
@@ -14,11 +16,12 @@ type Recipe struct {
 	ImageUrl      string  `json:"imageUrl" gorm:"column:imageUrl;type:text"`
 	
 	// Recipe Metadata (shared with catalog recipes)
-	Country     string `json:"country" gorm:"column:country;type:varchar(100);not null"`
-	Category    string `json:"category" gorm:"column:category;type:varchar(50);not null"`
-	Difficulty  string `json:"difficulty" gorm:"column:difficulty;type:varchar(20);not null"`
-	TimeMinutes int    `json:"timeMinutes" gorm:"column:timeMinutes;not null"`
-	Servings    int    `json:"servings" gorm:"column:servings;not null;default:1"`
+	Country     string         `json:"country" gorm:"column:country;type:varchar(100);not null"`
+	Category    string         `json:"category" gorm:"column:category;type:varchar(50);not null"`
+	Difficulty  string         `json:"difficulty" gorm:"column:difficulty;type:varchar(20);not null"`
+	TimeMinutes int            `json:"timeMinutes" gorm:"column:timeMinutes;not null"`
+	Servings    int            `json:"servings" gorm:"column:servings;not null;default:1"`
+	Source      datatypes.JSON `json:"source" gorm:"column:source;type:jsonb;not null;default:'{\"type\":\"manual\"}'"`
 	
 	AuthorID      string  `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
 	Author        User    `json:"author" gorm:"foreignKey:AuthorID;references:ID"`

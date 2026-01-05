@@ -269,3 +269,134 @@ curl -X POST https://your-api.com/api/admin/recipes \
 ✅ Proper separation via author_id discriminator  
 
 **Status:** 🎉 All errors resolved, system fully operational
+
+---
+
+## Problem 4: Missing Required Fields in Recipe Model
+
+### Error (2026-01-05 10:26:14)
+```
+ERROR: null value in column "country" of relation "Recipe" violates not-null constraint (SQLSTATE 23502)
+INSERT INTO "Recipe" (...) VALUES ('98d6792e...',NULL,'Pierogi ruskie',...)
+```
+
+### Root Cause
+**User Recipe Model vs Catalog Recipe Model Mismatch**
+
+Frontend sent complete payload:
+```json
+{
+  "country": "PL",
+  "category": "main",
+  "difficulty": "easy",
+  "timeMinutes": 30,
+  "servings": 1
+}
+```
+
+But `Recipe` model didn't include these fields (only `RecipeCatalog` had them):
+- ❌ `Recipe` struct: Missing Country, Category, Difficulty, TimeMinutes, Servings
+- ✅ `RecipeCatalog` struct: Had all these fields
+- ❌ Handler: Input struct didn't parse these fields from JSON
+- ❌ Database: Columns exist but marked as NOT NULL
+
+### Solution (Commit 6b99813)
+
+**1. Updated Recipe Model:**
+```go
+type Recipe struct {
+    // ... existing fields
+    
+    // Recipe Metadata (shared with catalog recipes)
+    Country     string `json:"country" gorm:"column:country;type:varchar(100);not null"`
+    Category    string `json:"category" gorm:"column:category;type:varchar(50);not null"`
+    Difficulty  string `json:"difficulty" gorm:"column:difficulty;type:varchar(20);not null"`
+    TimeMinutes int    `json:"timeMinutes" gorm:"column:timeMinutes;not null"`
+    Servings    int    `json:"servings" gorm:"column:servings;not null;default:1"`
+    
+    // ... author, nutrition fields
+}
+```
+
+**2. Updated CreateRecipe Handler:**
+```go
+var input struct {
+    Title        string   `json:"title"`
+    Description  string   `json:"description"`
+    Country      string   `json:"country"`      // NEW
+    Category     string   `json:"category"`     // NEW
+    Difficulty   string   `json:"difficulty"`   // NEW
+    TimeMinutes  int      `json:"timeMinutes"`  // NEW
+    Servings     int      `json:"servings"`     // NEW
+    // ... other fields
+}
+
+recipe := models.Recipe{
+    Country:      input.Country,      // Map from input
+    Category:     input.Category,     // Map from input
+    Difficulty:   input.Difficulty,   // Map from input
+    TimeMinutes:  input.TimeMinutes,  // Map from input
+    Servings:     input.Servings,     // Map from input
+    // ... other fields
+}
+```
+
+### Why This Happened
+When we created migrations 065-066, we added user-specific fields (author_id, nutrition, tokens) but **forgot** that catalog recipes already had base metadata fields (country, category, difficulty) that user recipes also need.
+
+### Table Schema (Complete)
+Both recipe types now share ALL fields in the Recipe table:
+
+**Shared Base Fields:**
+- country, category, difficulty, timeMinutes, servings ✅ **NOW IN BOTH MODELS**
+- title, description, imageUrl, createdAt, updatedAt
+
+**Catalog-Only (Optional for Users):**
+- canonicalName (NULL for user recipes)
+
+**User-Only (Optional for Catalog):**
+- author_id (NULL for catalog recipes)
+- gross_weight, net_weight, calories, protein, fats, carbs
+- tokens_reward, views_count, tokens_earned
+
+### Testing
+```bash
+curl -X POST http://localhost:3000/api/recipes \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test Recipe",
+    "country": "PL",
+    "category": "main",
+    "difficulty": "easy",
+    "timeMinutes": 30,
+    "servings": 4
+  }'
+```
+
+**Expected:** `201 Created` with all fields populated
+
+---
+
+## Updated Deployment Timeline
+
+| Time | Action | Commit | Status |
+|------|--------|--------|--------|
+| 10:10 | Migration 064: Fix title type | `f8ddb63` | ✅ Deployed |
+| 10:15 | Migration 065: Add user columns | `e4a684c` | ✅ Deployed |
+| 10:22 | Migration 066: Optional canonicalName | `55275ec` | ✅ Deployed |
+| 10:32 | Fix: Add base fields to Recipe model | `6b99813` | ✅ Deployed |
+
+---
+
+## Final Key Takeaways (Updated)
+
+1. ✅ **Shared Table Strategy**: Both models use same "Recipe" table
+2. ✅ **Model Parity**: Both models must include ALL shared fields from the table
+3. ✅ **Input Validation**: Handler input struct must parse all required JSON fields
+4. ✅ **Column Naming**: Always use explicit `column:` tags in GORM
+5. ✅ **Type Consistency**: Multiple models using same table MUST have identical types
+6. ✅ **Nullable Fields**: Only discriminator fields (canonicalName, author_id) should be optional
+7. ⚠️ **Migration Planning**: When adding columns, check BOTH models using the table
+
+**Status:** 🎉 All 4 errors resolved (prepared statement, column naming, canonicalName, missing fields)

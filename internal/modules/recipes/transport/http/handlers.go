@@ -12,6 +12,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type RecipeHandlers struct{}
@@ -106,6 +107,7 @@ func (h *RecipeHandlers) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 		Difficulty:   input.Difficulty,   // Required field
 		TimeMinutes:  input.TimeMinutes,  // Required field
 		Servings:     input.Servings,     // Required field
+		Source:       datatypes.JSON([]byte(`{"type":"manual"}`)), // User-generated recipe
 		AuthorID:     authorID,
 		GrossWeight:  input.GrossWeight,
 		NetWeight:    input.NetWeight,
