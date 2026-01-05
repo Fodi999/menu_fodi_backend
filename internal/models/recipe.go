@@ -6,12 +6,14 @@ import (
 
 // Recipe represents a culinary recipe posted by a user
 type Recipe struct {
-	ID          string `json:"id" gorm:"type:varchar(255);primaryKey"`
-	Title       string `json:"title" gorm:"column:title;type:varchar(255);not null"`
-	Description string `json:"description" gorm:"column:description;type:text"`
-	ImageUrl    string `json:"imageUrl" gorm:"column:imageUrl;type:text"`
-	AuthorID    string `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
-	Author      User   `json:"author" gorm:"foreignKey:AuthorID;references:ID"`
+	ID            string  `json:"id" gorm:"type:varchar(255);primaryKey"`
+	CanonicalName *string `json:"canonicalName,omitempty" gorm:"column:canonicalName;type:varchar(255)"` // Optional for user recipes
+	LocalName     string  `json:"localName" gorm:"column:localName;type:varchar(255);not null;default:''"`
+	Title         string  `json:"title" gorm:"column:title;type:varchar(255);not null"`
+	Description   string  `json:"description" gorm:"column:description;type:text"`
+	ImageUrl      string  `json:"imageUrl" gorm:"column:imageUrl;type:text"`
+	AuthorID      string  `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
+	Author        User    `json:"author" gorm:"foreignKey:AuthorID;references:ID"`
 
 	// Nutrition & Metrics
 	GrossWeight *int     `json:"grossWeight,omitempty" gorm:"column:gross_weight"` // Брутто (г)

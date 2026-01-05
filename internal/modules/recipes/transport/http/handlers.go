@@ -92,6 +92,7 @@ func (h *RecipeHandlers) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 
 	recipe := models.Recipe{
 		ID:           uuid.New().String(),
+		LocalName:    input.Title, // Use title as localName for user recipes
 		Title:        input.Title,
 		Description:  input.Description,
 		ImageUrl:     input.ImageUrl,
