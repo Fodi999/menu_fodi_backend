@@ -7,10 +7,10 @@ import (
 // Recipe represents a culinary recipe posted by a user
 type Recipe struct {
 	ID          string `json:"id" gorm:"type:varchar(255);primaryKey"`
-	Title       string `json:"title" gorm:"type:varchar(255);not null"`
-	Description string `json:"description" gorm:"type:text"`
-	ImageUrl    string `json:"imageUrl" gorm:"type:varchar(500)"`
-	AuthorID    string `json:"authorId" gorm:"type:varchar(255);not null;index"`
+	Title       string `json:"title" gorm:"column:title;type:varchar(255);not null"`
+	Description string `json:"description" gorm:"column:description;type:text"`
+	ImageUrl    string `json:"imageUrl" gorm:"column:imageUrl;type:text"`
+	AuthorID    string `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
 	Author      User   `json:"author" gorm:"foreignKey:AuthorID;references:ID"`
 
 	// Nutrition & Metrics
@@ -28,8 +28,8 @@ type Recipe struct {
 	ViewsCount   int  `json:"viewsCount" gorm:"column:views_count;default:0"`                // Просмотры
 	TokensEarned int  `json:"tokensEarned" gorm:"column:tokens_earned;default:0"`            // Заработано токенов
 
-	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
-	UpdatedAt time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+	CreatedAt time.Time `json:"createdAt" gorm:"column:createdAt;autoCreateTime"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"column:updatedAt;autoUpdateTime"`
 }
 
 // TableName specifies the table name for Recipe model
