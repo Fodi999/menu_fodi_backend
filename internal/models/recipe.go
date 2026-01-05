@@ -22,6 +22,7 @@ type Recipe struct {
 	TimeMinutes int            `json:"timeMinutes" gorm:"column:timeMinutes;not null"`
 	Servings    int            `json:"servings" gorm:"column:servings;not null;default:1"`
 	Source      datatypes.JSON `json:"source" gorm:"column:source;type:jsonb;not null;default:'{\"type\":\"manual\"}'"`
+	Status      string         `json:"status" gorm:"column:status;type:varchar(20);not null;default:'draft'"` // draft, published, archived
 	
 	AuthorID      string  `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
 	Author        User    `json:"author" gorm:"foreignKey:AuthorID;references:ID"`

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -118,6 +119,19 @@ func (r *IngredientRepository) DeleteStockItem(id string) error {
 	}
 
 	return tx.Commit().Error
+}
+
+// DeleteIngredient удаляет ингредиент из каталога (admin operation)
+// Cascade: автоматически удалит связанные StockItem через foreign key constraints
+func (r *IngredientRepository) DeleteIngredient(ingredientID string) error {
+	result := DB.Delete(&models.Ingredient{}, "id = ?", ingredientID)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("ingredient not found")
+	}
+	return nil
 }
 
 // Search ищет ингредиенты по имени (для автокомплита)

@@ -26,6 +26,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/nutrition"
 	prepareddishes "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/prepared_dishes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes_admin"
 	// "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/semi_finished" // DISABLED: Not used in MVP
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/stats"
 	// "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/task" // DISABLED: Not used in MVP
@@ -97,6 +98,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	nutritionModule := nutrition.NewModule()
 	preparedDishesModule := prepareddishes.NewModule(a.db) // Prepared dishes after cooking
 	recipesModule := recipes.NewModule(a.db)                // Updated: Pass DB for catalog services
+	recipesAdminModule := recipes_admin.NewModule()         // NEW: Admin recipe management (draft/publish workflow)
 	// semiFinishedModule := semi_finished.NewModule(a.db) // DISABLED: Not used in MVP
 	statsModule := stats.NewModule(a.db)
 	// taskModule := task.NewModule() // DISABLED: Not used in MVP
@@ -174,6 +176,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register recipes module routes
 		recipesModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register recipes_admin module routes (NEW: Professional admin CRUD)
+		recipesAdminModule.RegisterRoutes(r)
 
 		// DISABLED: Semi-finished module not used in MVP
 		// semiFinishedModule.RegisterRoutes(r, middleware.AuthMiddleware)

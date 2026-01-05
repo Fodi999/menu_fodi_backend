@@ -119,25 +119,51 @@ func (h *IngredientsHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	httpx.Success(w, stockItem)
 }
 
-// Delete удаление ингредиента
-// @Summary Delete ingredient
-// @Description Delete ingredient by ID
+// Delete удаление StockItem со склада (pro_chef operation)
+// @Summary Delete stock item
+// @Description Delete stock item by ID
 // @Tags Ingredients
 // @Produce json
-// @Param id path string true "Ingredient ID"
+// @Param id path string true "Stock Item ID"
 // @Success 200 {object} map[string]string
 // @Failure 500 {object} httpx.ErrorResponse
 // @Security BearerAuth
-// @Router /api/ingredients/{id} [delete]
+// @Router /api/stock/{id} [delete]
 func (h *IngredientsHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if err := h.service.Delete(id); err != nil {
-		httpx.InternalError(w, "Failed to delete ingredient")
+		httpx.InternalError(w, "Failed to delete stock item")
 		return
 	}
 
-	httpx.Success(w, map[string]string{"message": "Ingredient deleted successfully"})
+	httpx.Success(w, map[string]string{"message": "Stock item deleted successfully"})
+}
+
+// DeleteFromCatalog удаление ингредиента из каталога (admin operation)
+// @Summary Delete ingredient from catalog
+// @Description Delete ingredient by ID (admin only)
+// @Tags Ingredients
+// @Produce json
+// @Param id path string true "Ingredient ID"
+// @Success 200 {object} map[string]string
+// @Failure 404 {object} httpx.ErrorResponse
+// @Failure 500 {object} httpx.ErrorResponse
+// @Security BearerAuth
+// @Router /api/admin/ingredients/{id} [delete]
+func (h *IngredientsHandlers) DeleteFromCatalog(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.service.DeleteIngredientFromCatalog(id); err != nil {
+		if err.Error() == "ingredient not found" {
+			httpx.NotFound(w, "Ingredient not found")
+			return
+		}
+		httpx.InternalError(w, "Failed to delete ingredient from catalog")
+		return
+	}
+
+	httpx.Success(w, map[string]string{"message": "Ingredient deleted from catalog successfully"})
 }
 
 // GetStockMovements получение истории движений

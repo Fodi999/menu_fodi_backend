@@ -205,9 +205,15 @@ func (s *IngredientsService) Update(id string, req *dto.UpdateIngredientRequest)
 	return stockItem, nil
 }
 
-// Delete удаление ингредиента
+// Delete удаление StockItem (для складского управления)
 func (s *IngredientsService) Delete(id string) error {
 	return s.repo.DeleteStockItem(id)
+}
+
+// DeleteIngredientFromCatalog удаление ингредиента из каталога (admin operation)
+// Cascade: автоматически удалит связанные StockItem
+func (s *IngredientsService) DeleteIngredientFromCatalog(ingredientID string) error {
+	return s.repo.DeleteIngredient(ingredientID)
 }
 
 // GetStockMovements получение истории движений товара
