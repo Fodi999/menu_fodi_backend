@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/service"
 	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
@@ -700,10 +702,29 @@ func (h *AdminHandlers) ImportIngredients(w http.ResponseWriter, r *http.Request
 
 // GetAllIngredients возвращает полный каталог ингредиентов для админ-панели
 func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request) {
+	// Получаем параметр поиска из query
+	searchQuery := r.URL.Query().Get("search")
+	
 	ingredients, err := h.service.GetAllIngredients()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch ingredients")
 		return
+	}
+
+	// 🔍 Фильтруем по поисковому запросу если он указан
+	if searchQuery != "" {
+		searchQuery = strings.ToLower(searchQuery)
+		var filtered []models.Ingredient
+		for _, ing := range ingredients {
+			// Ищем в name, namePl, nameEn, nameRu
+			if strings.Contains(strings.ToLower(ing.Name), searchQuery) ||
+				(ing.NamePL != nil && strings.Contains(strings.ToLower(*ing.NamePL), searchQuery)) ||
+				(ing.NameEN != nil && strings.Contains(strings.ToLower(*ing.NameEN), searchQuery)) ||
+				(ing.NameRU != nil && strings.Contains(strings.ToLower(*ing.NameRU), searchQuery)) {
+				filtered = append(filtered, ing)
+			}
+		}
+		ingredients = filtered
 	}
 
 	// Формат совместимый с фронтендом (data + meta)
@@ -786,7 +807,14 @@ func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request)
 		utils.RespondWithError(w, http.StatusBadRequest, "inputName is required")
 		return
 	}
-	if req.InputLang == "" || (req.InputLang != "pl" && req.InputLang != "en" && req.InputLang != "ru") {
+	
+	// 🔧 FALLBACK: Если inputLang не указан, используем польский по умолчанию
+	if req.InputLang == "" {
+		req.InputLang = "pl"
+		fmt.Printf("⚠️ inputLang not provided, using default: 'pl'\n")
+	}
+	
+	if req.InputLang != "pl" && req.InputLang != "en" && req.InputLang != "ru" {
 		utils.RespondWithError(w, http.StatusBadRequest, "inputLang must be pl, en, or ru")
 		return
 	}
