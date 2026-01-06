@@ -39,7 +39,7 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 			r.Post("/meal-plan", m.handlers.GenerateMealPlan)
 			r.Post("/fridge-recommendations", m.handlers.GetFridgeRecommendations)
 			r.Post("/save-ingredients", m.handlers.SaveRecipeIngredientsToFridge)
-			
+
 			// DISABLED: Duplicates or unused endpoints
 			// r.Post("/fridge/analyze", m.handlers.AnalyzeFridge) // Duplicate: decision-engine handles this
 			// r.Post("/create-recipe-from-fridge", m.handlers.CreateRecipeFromFridge) // Not used in MVP

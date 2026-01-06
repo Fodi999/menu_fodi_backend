@@ -10,35 +10,35 @@ import (
 
 // RecipeCatalog represents a structured recipe from catalog (NOT user-generated)
 type RecipeCatalog struct {
-	ID               uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	CanonicalName    string         `gorm:"column:canonicalName;type:varchar(255);not null;uniqueIndex" json:"canonicalName"`
-	LocalName        string         `gorm:"column:localName;type:varchar(255);not null" json:"localName"` // DEPRECATED: use Name* fields
-	Title            string         `gorm:"column:title;type:varchar(255);not null" json:"title"` // Primary title (unified, typically Polish)
-	
+	ID            uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	CanonicalName string    `gorm:"column:canonicalName;type:varchar(255);not null;uniqueIndex" json:"canonicalName"`
+	LocalName     string    `gorm:"column:localName;type:varchar(255);not null" json:"localName"` // DEPRECATED: use Name* fields
+	Title         string    `gorm:"column:title;type:varchar(255);not null" json:"title"`         // Primary title (unified, typically Polish)
+
 	// Multilingual names (like Ingredient model)
-	NamePl           *string        `gorm:"column:name_pl;type:varchar(255)" json:"namePl,omitempty"`
-	NameEn           *string        `gorm:"column:name_en;type:varchar(255)" json:"nameEn,omitempty"`
-	NameRu           *string        `gorm:"column:name_ru;type:varchar(255)" json:"nameRu,omitempty"`
-	
+	NamePl *string `gorm:"column:name_pl;type:varchar(255)" json:"namePl,omitempty"`
+	NameEn *string `gorm:"column:name_en;type:varchar(255)" json:"nameEn,omitempty"`
+	NameRu *string `gorm:"column:name_ru;type:varchar(255)" json:"nameRu,omitempty"`
+
 	// Multilingual descriptions
-	DescriptionPl    *string        `gorm:"column:description_pl;type:text" json:"descriptionPl,omitempty"`
-	DescriptionEn    *string        `gorm:"column:description_en;type:text" json:"descriptionEn,omitempty"`
-	DescriptionRu    *string        `gorm:"column:description_ru;type:text" json:"descriptionRu,omitempty"`
-	
-	Country          string         `gorm:"type:varchar(100);not null;index" json:"country"`
-	Region           *string        `gorm:"type:varchar(100)" json:"region,omitempty"`
-	Category         string         `gorm:"type:varchar(50);not null;index" json:"category"`   // appetizer, main, dessert, soup, salad
-	Difficulty          string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
-	TimeMinutes         int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
-	Servings            int            `gorm:"not null;default:1" json:"servings"` // Always 1 (base portion), use servingsMultiplier for scaling
-	PortionWeightGrams  *int           `gorm:"column:portionWeightGrams" json:"portionWeightGrams,omitempty"` // Total weight of one serving in grams
-	Steps               datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                           // [{"step":1,"instruction":"..."}] - DEPRECATED: use Steps* fields
-	
+	DescriptionPl *string `gorm:"column:description_pl;type:text" json:"descriptionPl,omitempty"`
+	DescriptionEn *string `gorm:"column:description_en;type:text" json:"descriptionEn,omitempty"`
+	DescriptionRu *string `gorm:"column:description_ru;type:text" json:"descriptionRu,omitempty"`
+
+	Country            string         `gorm:"type:varchar(100);not null;index" json:"country"`
+	Region             *string        `gorm:"type:varchar(100)" json:"region,omitempty"`
+	Category           string         `gorm:"type:varchar(50);not null;index" json:"category"`   // appetizer, main, dessert, soup, salad
+	Difficulty         string         `gorm:"type:varchar(20);not null;index" json:"difficulty"` // easy, medium, hard
+	TimeMinutes        int            `gorm:"column:timeMinutes;not null;index" json:"timeMinutes"`
+	Servings           int            `gorm:"not null;default:1" json:"servings"`                            // Always 1 (base portion), use servingsMultiplier for scaling
+	PortionWeightGrams *int           `gorm:"column:portionWeightGrams" json:"portionWeightGrams,omitempty"` // Total weight of one serving in grams
+	Steps              datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                 // [{"step":1,"instruction":"..."}] - DEPRECATED: use Steps* fields
+
 	// Multilingual steps (cooking instructions)
-	StepsPl          datatypes.JSON `gorm:"column:steps_pl;type:jsonb" json:"stepsPl,omitempty"`
-	StepsEn          datatypes.JSON `gorm:"column:steps_en;type:jsonb" json:"stepsEn,omitempty"`
-	StepsRu          datatypes.JSON `gorm:"column:steps_ru;type:jsonb" json:"stepsRu,omitempty"`
-	
+	StepsPl datatypes.JSON `gorm:"column:steps_pl;type:jsonb" json:"stepsPl,omitempty"`
+	StepsEn datatypes.JSON `gorm:"column:steps_en;type:jsonb" json:"stepsEn,omitempty"`
+	StepsRu datatypes.JSON `gorm:"column:steps_ru;type:jsonb" json:"stepsRu,omitempty"`
+
 	NutritionProfile datatypes.JSON `gorm:"column:nutritionProfile;type:jsonb;default:'{}'" json:"nutritionProfile"` // {"type":"balanced","calories":450}
 	Source           datatypes.JSON `gorm:"type:jsonb;not null" json:"source"`                                       // {"type":"cookbook","reference":"..."}
 	CreatedAt        time.Time      `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
@@ -72,7 +72,7 @@ func (r *RecipeCatalog) GetLocalizedName(lang string) string {
 			return *r.NameEn
 		}
 	}
-	
+
 	// Fallback chain: EN -> PL -> RU -> CanonicalName
 	if r.NameEn != nil && *r.NameEn != "" {
 		return *r.NameEn
@@ -103,7 +103,7 @@ func (r *RecipeCatalog) GetLocalizedDescription(lang string) string {
 			return *r.DescriptionEn
 		}
 	}
-	
+
 	// Fallback chain: EN -> PL -> RU -> empty
 	if r.DescriptionEn != nil && *r.DescriptionEn != "" {
 		return *r.DescriptionEn
@@ -126,7 +126,7 @@ func (r *RecipeCatalog) GetLocalizedSteps(lang string) []string {
 		if len(steps) > 0 {
 			return steps
 		}
-		
+
 		// Fallback to English if requested language not found
 		if lang != "en" {
 			steps = GetStepsForRecipe(r.RecipeSteps, "en")
@@ -134,7 +134,7 @@ func (r *RecipeCatalog) GetLocalizedSteps(lang string) []string {
 				return steps
 			}
 		}
-		
+
 		// Fallback to Polish
 		if lang != "pl" {
 			steps = GetStepsForRecipe(r.RecipeSteps, "pl")
@@ -142,7 +142,7 @@ func (r *RecipeCatalog) GetLocalizedSteps(lang string) []string {
 				return steps
 			}
 		}
-		
+
 		// Fallback to Russian
 		if lang != "ru" {
 			steps = GetStepsForRecipe(r.RecipeSteps, "ru")
@@ -151,7 +151,7 @@ func (r *RecipeCatalog) GetLocalizedSteps(lang string) []string {
 			}
 		}
 	}
-	
+
 	// Priority 2: Fallback to legacy JSONB columns
 	return r.getLegacySteps(lang)
 }
@@ -159,7 +159,7 @@ func (r *RecipeCatalog) GetLocalizedSteps(lang string) []string {
 // getLegacySteps returns steps from old JSONB columns (backward compatibility)
 func (r *RecipeCatalog) getLegacySteps(lang string) []string {
 	var stepsJSON datatypes.JSON
-	
+
 	switch lang {
 	case "ru":
 		if len(r.StepsRu) > 0 {
@@ -174,7 +174,7 @@ func (r *RecipeCatalog) getLegacySteps(lang string) []string {
 			stepsJSON = r.StepsEn
 		}
 	}
-	
+
 	// Fallback chain: EN -> PL -> RU -> Steps (legacy)
 	if len(stepsJSON) == 0 && len(r.StepsEn) > 0 {
 		stepsJSON = r.StepsEn
@@ -188,7 +188,7 @@ func (r *RecipeCatalog) getLegacySteps(lang string) []string {
 	if len(stepsJSON) == 0 {
 		stepsJSON = r.Steps
 	}
-	
+
 	// Parse JSONB array to []string
 	var steps []string
 	if len(stepsJSON) > 0 {
@@ -197,7 +197,7 @@ func (r *RecipeCatalog) getLegacySteps(lang string) []string {
 			return steps
 		}
 	}
-	
+
 	return []string{}
 }
 

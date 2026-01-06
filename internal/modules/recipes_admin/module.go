@@ -23,19 +23,19 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 	r.Route("/api/admin/recipes", func(r chi.Router) {
 		// All routes require authentication
 		r.Use(middleware.AuthMiddleware)
-		
+
 		// Create draft recipe (minimal validation)
 		r.Post("/", m.handlers.CreateDraft)
-		
+
 		// Get all draft recipes
 		r.Get("/drafts", m.handlers.GetDrafts)
-		
+
 		// Update draft recipe (PATCH - partial updates)
 		r.Patch("/{id}", m.handlers.UpdateDraft)
-		
+
 		// Publish recipe (full validation)
 		r.Post("/{id}/publish", m.handlers.Publish)
-		
+
 		// Archive recipe
 		r.Post("/{id}/archive", m.handlers.Archive)
 	})

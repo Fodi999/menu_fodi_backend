@@ -17,7 +17,7 @@ const (
 // Используется для автокомплита и как справочник
 type Ingredient struct {
 	ID                   string    `gorm:"primaryKey;column:id" json:"id"`
-	Name                 string    `gorm:"column:name;not null" json:"name"` // Legacy field, use name_pl
+	Name                 string    `gorm:"column:name" json:"name"` // Legacy field, use name_pl
 	NamePL               *string   `gorm:"column:name_pl" json:"namePl,omitempty"`
 	NameEN               *string   `gorm:"column:name_en" json:"nameEn,omitempty"`
 	NameRU               *string   `gorm:"column:name_ru" json:"nameRu,omitempty"`
@@ -26,6 +26,7 @@ type Ingredient struct {
 	Category             string    `gorm:"column:category;not null" json:"category"`
 	DefaultShelfLifeDays *int      `gorm:"column:defaultShelfLifeDays" json:"defaultShelfLifeDays,omitempty"`
 	DefaultPricePerUnit  *float64  `gorm:"column:defaultPricePerUnit" json:"defaultPricePerUnit,omitempty"`
+	AutoTranslated       bool      `gorm:"column:auto_translated;default:false" json:"autoTranslated"`
 	CreatedAt            time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
 
@@ -51,7 +52,7 @@ func (i *Ingredient) GetName(lang string) string {
 			return *i.NamePL
 		}
 	}
-	
+
 	// Fallback to legacy Name field or NamePL
 	if i.NamePL != nil && *i.NamePL != "" {
 		return *i.NamePL
@@ -63,13 +64,13 @@ func (i *Ingredient) GetName(lang string) string {
 // Contains all language fields for instant frontend language switching
 type IngredientBasicInfo struct {
 	ID       string  `json:"id"`
-	Key      string  `json:"key"`       // Normalized key for search (deprecated, use id)
-	Name     string  `json:"name"`      // Legacy field (same as name_pl)
-	NamePL   *string `json:"name_pl"`   // Polish name
-	NameEN   *string `json:"name_en"`   // English name
-	NameRU   *string `json:"name_ru"`   // Russian name
-	Category string  `json:"category"`  // protein, vegetable, dairy, grain, condiment, other
-	Unit     string  `json:"unit"`      // g, ml, szt
+	Key      string  `json:"key"`      // Normalized key for search (deprecated, use id)
+	Name     string  `json:"name"`     // Legacy field (same as name_pl)
+	NamePL   *string `json:"name_pl"`  // Polish name
+	NameEN   *string `json:"name_en"`  // English name
+	NameRU   *string `json:"name_ru"`  // Russian name
+	Category string  `json:"category"` // protein, vegetable, dairy, grain, condiment, other
+	Unit     string  `json:"unit"`     // g, ml, szt
 }
 
 // NewIngredientBasicInfo creates DTO from Ingredient model

@@ -156,11 +156,11 @@ func (r *UserSavedRecipeRepository) FindSavedRecipe(userID, recipeID string) (*m
 
 // SavedRecipeFilters represents filter options for saved recipes
 type SavedRecipeFilters struct {
-	Category   string // salad, main, soup, pizza, sushi, dessert, breakfast, drink
-	Country    string
-	Difficulty string // easy, medium, hard
-	CookedOnly bool   // Only show cooked recipes
-	UncokedOnly bool  // Only show recipes not yet cooked
+	Category    string // salad, main, soup, pizza, sushi, dessert, breakfast, drink
+	Country     string
+	Difficulty  string // easy, medium, hard
+	CookedOnly  bool   // Only show cooked recipes
+	UncokedOnly bool   // Only show recipes not yet cooked
 }
 
 // GetSavedRecipesWithFilters retrieves saved recipes with filters via JOIN

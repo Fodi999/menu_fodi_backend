@@ -67,18 +67,18 @@ func (h *HistoryHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 	// Use filtered query if filters present
 	if eventType != "" || sourceType != "" || startDate != nil || endDate != nil {
 		filters := database.HistoryFilters{
-		EventType:  eventType,
-		SourceType: sourceType,
-		StartDate:  startDate,
-		EndDate:    endDate,
-		Limit:      limit,
+			EventType:  eventType,
+			SourceType: sourceType,
+			StartDate:  startDate,
+			EndDate:    endDate,
+			Limit:      limit,
+		}
+		events, err = h.repo.GetByFilters(userID, filters)
+	} else {
+		events, err = h.repo.GetByUserID(userID, limit)
 	}
-	events, err = h.repo.GetByFilters(userID, filters)
-} else {
-	events, err = h.repo.GetByUserID(userID, limit)
-}
 
-if err != nil {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"success": false,
@@ -239,17 +239,17 @@ func (h *HistoryHandler) GetFridgeLosses(w http.ResponseWriter, r *http.Request)
 		var metadata models.ExpiredItemMetadata
 		if err := json.Unmarshal(event.Metadata, &metadata); err == nil {
 			totalCost += metadata.Cost
-			
+
 			// Format event for frontend compatibility
 			formattedEvent := map[string]interface{}{
-				"id":          event.ID,
-				"name":        metadata.IngredientName,
-				"quantity":    metadata.Quantity,
-				"unit":        metadata.Unit,
-				"loss":        metadata.Cost,
-				"reason":      metadata.Reason,
-				"addedDate":   metadata.ArrivedAt,
-				"expiryDate":  metadata.ExpiryDate,
+				"id":           event.ID,
+				"name":         metadata.IngredientName,
+				"quantity":     metadata.Quantity,
+				"unit":         metadata.Unit,
+				"loss":         metadata.Cost,
+				"reason":       metadata.Reason,
+				"addedDate":    metadata.ArrivedAt,
+				"expiryDate":   metadata.ExpiryDate,
 				"daysInFridge": metadata.DaysInFridge,
 			}
 			formattedEvents = append(formattedEvents, formattedEvent)

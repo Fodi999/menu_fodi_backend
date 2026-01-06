@@ -31,12 +31,12 @@ func (s *RecipeAdminService) CreateDraft(authorID string, req *dto.CreateRecipeR
 	if country == "" {
 		country = "PL" // Default country
 	}
-	
+
 	timeMinutes := req.TimeMinutes
 	if timeMinutes == 0 {
 		timeMinutes = 30 // Default time
 	}
-	
+
 	servings := req.Servings
 	if servings == 0 {
 		servings = 1 // Default servings
@@ -44,26 +44,26 @@ func (s *RecipeAdminService) CreateDraft(authorID string, req *dto.CreateRecipeR
 
 	recipe := &models.Recipe{
 		ID:            uuid.New().String(),
-		LocalName:     req.LocalName,                              // Required: display name
-		Title:         req.LocalName,                              // Sync title with localName
-		CanonicalName: req.CanonicalName,                          // Optional: slug
-		Description:   req.Description,                            // Optional
-		ImageUrl:      req.ImageUrl,                               // Optional
-		Country:       country,                                    // Default: PL
-		Category:      req.Category,                               // Required
-		Difficulty:    req.Difficulty,                             // Required
-		TimeMinutes:   timeMinutes,                                // Default: 30
-		Servings:      servings,                                   // Default: 1
+		LocalName:     req.LocalName,                               // Required: display name
+		Title:         req.LocalName,                               // Sync title with localName
+		CanonicalName: req.CanonicalName,                           // Optional: slug
+		Description:   req.Description,                             // Optional
+		ImageUrl:      req.ImageUrl,                                // Optional
+		Country:       country,                                     // Default: PL
+		Category:      req.Category,                                // Required
+		Difficulty:    req.Difficulty,                              // Required
+		TimeMinutes:   timeMinutes,                                 // Default: 30
+		Servings:      servings,                                    // Default: 1
 		Source:        datatypes.JSON([]byte(`{"type":"manual"}`)), // Backend controlled
-		Status:        "draft",                                    // Backend controlled (КРИТИЧНО)
-		AuthorID:      authorID,                                   // From JWT
-		GrossWeight:   req.GrossWeight,                            // Optional
-		NetWeight:     req.NetWeight,                              // Optional
-		Calories:      req.Calories,                               // Optional
-		Protein:       req.Protein,                                // Optional
-		Fats:          req.Fats,                                   // Optional
-		Carbs:         req.Carbs,                                  // Optional
-		TokensReward:  intPtr(10),                                 // Default
+		Status:        "draft",                                     // Backend controlled (КРИТИЧНО)
+		AuthorID:      authorID,                                    // From JWT
+		GrossWeight:   req.GrossWeight,                             // Optional
+		NetWeight:     req.NetWeight,                               // Optional
+		Calories:      req.Calories,                                // Optional
+		Protein:       req.Protein,                                 // Optional
+		Fats:          req.Fats,                                    // Optional
+		Carbs:         req.Carbs,                                   // Optional
+		TokensReward:  intPtr(10),                                  // Default
 		ViewsCount:    0,
 		TokensEarned:  0,
 		CreatedAt:     time.Now(),

@@ -1,85 +1,80 @@
-2026-01-04T18:23:11.053+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-04T18:23:12.084+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2026-01-04T18:23:12.085+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2026/01/04 18:23:12 ✅ EventBus initialized
-2026/01/04 18:23:12 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: token_earn (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: token_spend (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: task_completed (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: user_registered (total: 1)
-2026/01/04 18:23:12 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/04 18:23:12 📡 Hub subscribed to 10 event types
-2026/01/04 18:23:12 📡 WebSocket module initialized
-2026/01/04 18:23:12 🚀 WebSocket Hub started
-2026/01/04 18:23:12 🔧 Registering history module routes...
-2026/01/04 18:23:12 ✅ History module routes registered:
-2026/01/04 18:23:12    GET /api/history - Event history
-2026/01/04 18:23:12    GET /api/history/stats - Statistics
-2026/01/04 18:23:12    GET /api/history/recent - Recent activity
-2026/01/04 18:23:12    GET /api/history/losses - Expired items analytics
-2026/01/04 18:23:12 🔌 Registering WebSocket routes...
-2026/01/04 18:23:12 ✅ WebSocket routes registered:
-2026/01/04 18:23:12    GET /ws - General WebSocket connection
-2026/01/04 18:23:12    GET /ws/treasury - Treasury updates (admin)
-2026/01/04 18:23:12    GET /ws/tokens/{userID} - User token updates
-2026/01/04 18:23:12    GET /ws/stats - WebSocket statistics
-2026-01-04T18:23:12.087+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2026-01-06T10:31:31.896+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-06T10:31:32.741+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
+2026-01-06T10:31:32.741+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
+2026/01/06 10:31:32 ✅ EventBus initialized
+2026/01/06 10:31:32 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: token_earn (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: token_spend (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: task_completed (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: user_registered (total: 1)
+2026/01/06 10:31:32 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/06 10:31:32 📡 Hub subscribed to 10 event types
+2026/01/06 10:31:32 📡 WebSocket module initialized
+2026/01/06 10:31:32 🚀 WebSocket Hub started
+2026/01/06 10:31:32 🔧 Registering history module routes...
+2026/01/06 10:31:32 ✅ History module routes registered:
+2026/01/06 10:31:32    GET /api/history - Event history
+2026/01/06 10:31:32    GET /api/history/stats - Statistics
+2026/01/06 10:31:32    GET /api/history/recent - Recent activity
+2026/01/06 10:31:32    GET /api/history/losses - Expired items analytics
+2026/01/06 10:31:32 🔌 Registering WebSocket routes...
+2026/01/06 10:31:32 ✅ WebSocket routes registered:
+2026/01/06 10:31:32    GET /ws - General WebSocket connection
+2026/01/06 10:31:32    GET /ws/treasury - Treasury updates (admin)
+2026/01/06 10:31:32    GET /ws/tokens/{userID} - User token updates
+2026/01/06 10:31:32    GET /ws/stats - WebSocket statistics
+2026-01-06T10:31:32.742+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2026/01/06 10:31:49 🔐 AuthMiddleware: POST /api/admin/ingredients
+2026/01/06 10:31:49 📋 Auth header present: true, length: 264
+2026/01/06 10:31:49 🎫 Token extracted, length: 257
+2026/01/06 10:31:49 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/06 10:31:49 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/06 10:31:49 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/ingredients
+🎯 CreateIngredient handler called
+📦 Received: inputName='Арбуз', inputLang='ru', category='vegetable', unit='g'
+🤖 Translating 'Арбуз' from ru to all languages via Groq...
+✅ Translations: PL='arbuz', EN='watermelon', RU='Арбуз'
 
-2026/01/04 18:23:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
-[0m[33m[92.813ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@fodi.com' ORDER BY "User"."id" LIMIT 1
-2026-01-04T18:23:35.188+0100	[31mERROR[0m	logger/logger.go:64	Login failed	{"error": "invalid credentials", "email": "admin@fodi.com"}
-github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger.Error
-	/Users/dmitrijfomin/Desktop/backend/internal/platform/logger/logger.go:64
-github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/transport/http.(*AuthHandler).Login
-	/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/transport/http/handlers.go:70
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).routeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).ServeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
-github.com/go-chi/chi/v5.(*Mux).Mount.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).routeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.Recoverer.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.RealIP.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5/middleware.RequestID.func1
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
-net/http.HandlerFunc.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
-github.com/go-chi/chi/v5.(*Mux).ServeHTTP
-	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
-net/http.serverHandler.ServeHTTP
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
-net/http.(*conn).serve
-	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
-2026/01/04 18:23:35 [MacBook-Air-Dmitrij.local/JTEuNuq4m0-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:57286 - 401 61B in 169.572833ms
+2026/01/06 10:31:55 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:754 [33mSLOW SQL >= 200ms
+[0m[31;1m[511.746ms] [33m[rows:1][35m INSERT INTO "Ingredient" ("id","name","name_pl","name_en","name_ru","normalized_value","unit","category","defaultShelfLifeDays","defaultPricePerUnit","auto_translated","createdAt") VALUES ('e2eef9a6-62f0-4005-93df-5090b00c5ee0','watermelon','arbuz','watermelon','Арбуз','watermelon','g','vegetable',NULL,NULL,true,'2026-01-06 10:31:55.259')[0m
+💾 Ingredient saved to DB with ID: e2eef9a6-62f0-4005-93df-5090b00c5ee0 (auto_translated=true)
+2026/01/06 10:31:55 [MacBook-Air-Dmitrij.local/WdAbn5ffMM-000001] "POST http://localhost:8080/api/admin/ingredients HTTP/1.1" from [::1]:57729 - 201 245B in 5.636549375s
+2026/01/06 10:32:09 🔐 AuthMiddleware: GET /api/admin/ingredients
+2026/01/06 10:32:09 📋 Auth header present: true, length: 264
+2026/01/06 10:32:09 🎫 Token extracted, length: 257
+2026/01/06 10:32:09 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/06 10:32:09 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/06 10:32:09 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
+
+2026/01/06 10:32:09 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:545 [33mSLOW SQL >= 200ms
+[0m[31;1m[497.642ms] [33m[rows:212][35m SELECT * FROM "Ingredient" ORDER BY category ASC, name ASC[0m
+2026/01/06 10:32:09 [MacBook-Air-Dmitrij.local/WdAbn5ffMM-000002] "GET http://localhost:8080/api/admin/ingredients?search=watermelon HTTP/1.1" from [::1]:57816 - 200 59821B in 498.588833ms
+2026/01/06 10:32:43 🔐 AuthMiddleware: GET /api/admin/ingredients
+2026/01/06 10:32:43 📋 Auth header present: true, length: 264
+2026/01/06 10:32:43 🎫 Token extracted, length: 257
+2026/01/06 10:32:43 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/06 10:32:43 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/06 10:32:43 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
+
+2026/01/06 10:32:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:545 [33mSLOW SQL >= 200ms
+[0m[31;1m[1114.244ms] [33m[rows:212][35m SELECT * FROM "Ingredient" ORDER BY category ASC, name ASC[0m
+2026/01/06 10:32:44 [MacBook-Air-Dmitrij.local/WdAbn5ffMM-000003] "GET http://localhost:8080/api/admin/ingredients?search=watermelon HTTP/1.1" from [::1]:57964 - 200 59821B in 1.115143375s
+2026/01/06 10:33:03 🔐 AuthMiddleware: POST /api/admin/ingredients
+2026/01/06 10:33:03 📋 Auth header present: true, length: 264
+2026/01/06 10:33:03 🎫 Token extracted, length: 257
+2026/01/06 10:33:03 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/06 10:33:03 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/06 10:33:03 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/ingredients
+🎯 CreateIngredient handler called
+📦 Received: inputName='Арбуз', inputLang='ru', category='vegetable', unit='g'
+🤖 Translating 'Арбуз' from ru to all languages via Groq...
+✅ Translations: PL='arbuz', EN='watermelon', RU='Арбуз'
+
+2026/01/06 10:33:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:754 [33mSLOW SQL >= 200ms
+[0m[31;1m[375.385ms] [33m[rows:1][35m INSERT INTO "Ingredient" ("id","name","name_pl","name_en","name_ru","normalized_value","unit","category","defaultShelfLifeDays","defaultPricePerUnit","auto_translated","createdAt") VALUES ('453b6fd4-97af-40fc-9011-0d57eacadffa','watermelon','arbuz','watermelon','Арбуз','watermelon','g','vegetable',NULL,NULL,true,'2026-01-06 10:33:03.84')[0m
+💾 Ingredient saved to DB with ID: 453b6fd4-97af-40fc-9011-0d57eacadffa (auto_translated=true)
+2026/01/06 10:33:04 [MacBook-Air-Dmitrij.local/WdAbn5ffMM-000004] "POST http://localhost:8080/api/admin/ingredients HTTP/1.1" from [::1]:58049 - 201 245B in 580.988791ms

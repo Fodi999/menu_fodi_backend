@@ -328,12 +328,12 @@ func (h *FridgeHandlers) AddMissingIngredients(w http.ResponseWriter, r *http.Re
 			zap.String("userId", userID),
 			zap.String("recipeId", req.RecipeID),
 		)
-		
+
 		if err.Error() == "recipe not found" {
 			respondError(w, http.StatusNotFound, "recipe not found")
 			return
 		}
-		
+
 		respondError(w, http.StatusInternalServerError, "failed to add missing ingredients")
 		return
 	}

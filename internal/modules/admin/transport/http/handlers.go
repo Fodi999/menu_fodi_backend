@@ -75,7 +75,7 @@ func (h *AdminHandlers) GetUsersStats(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch user stats")
 		return
 	}
-	
+
 	utils.RespondWithJSON(w, http.StatusOK, stats)
 }
 
@@ -754,4 +754,77 @@ func (h *AdminHandlers) GetRecipesStats(w http.ResponseWriter, r *http.Request) 
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, stats)
+}
+
+// CreateIngredient создает новый ингредиент в каталоге
+// POST /api/admin/ingredients
+// Создаёт новый ингредиент с автоматическим переводом через Groq AI
+func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("🎯 CreateIngredient handler called\n")
+	
+	var req struct {
+		InputName string `json:"inputName"`
+		InputLang string `json:"inputLang"`
+		Category  string `json:"category"`
+		Unit      string `json:"unit"`
+	}
+
+	// Декодируем запрос
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Printf("❌ Failed to decode body: %v\n", err)
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Логируем полученные данные
+	fmt.Printf("📦 Received: inputName='%s', inputLang='%s', category='%s', unit='%s'\n", 
+		req.InputName, req.InputLang, req.Category, req.Unit)
+
+	// Валидация
+	if req.InputName == "" {
+		fmt.Printf("❌ inputName is empty\n")
+		utils.RespondWithError(w, http.StatusBadRequest, "inputName is required")
+		return
+	}
+	if req.InputLang == "" || (req.InputLang != "pl" && req.InputLang != "en" && req.InputLang != "ru") {
+		utils.RespondWithError(w, http.StatusBadRequest, "inputLang must be pl, en, or ru")
+		return
+	}
+	if req.Category == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "category is required")
+		return
+	}
+	if req.Unit == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "unit is required")
+		return
+	}
+
+	// Получаем userID из контекста (опционально, для логирования)
+	userID := middleware.GetUserID(r)
+	var userIDStr string
+	if userID != nil {
+		userIDStr = userID.String()
+	}
+
+	// 🤖 Вызываем сервис для создания ингредиента С ПЕРЕВОДОМ ЧЕРЕЗ AI
+	ingredient, err := h.service.CreateIngredientSimple(req.InputName, req.InputLang, req.Category, req.Unit, userIDStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to create ingredient: %v", err))
+		return
+	}
+
+	// Формируем ответ
+	utils.RespondWithJSON(w, http.StatusCreated, map[string]interface{}{
+		"success": true,
+		"message": "Ingredient created and translated successfully",
+		"data": map[string]interface{}{
+			"id":             ingredient.ID,
+			"namePl":         ingredient.NamePL,
+			"nameEn":         ingredient.NameEN,
+			"nameRu":         ingredient.NameRU,
+			"category":       ingredient.Category,
+			"unit":           ingredient.Unit,
+			"autoTranslated": ingredient.AutoTranslated,
+		},
+	})
 }

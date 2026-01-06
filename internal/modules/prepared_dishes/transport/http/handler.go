@@ -144,14 +144,14 @@ func (h *PreparedDishesHandler) ConsumePortion(w http.ResponseWriter, r *http.Re
 	if updated.Recipe != nil {
 		recipeName = updated.Recipe.LocalName
 	}
-	
+
 	portions := req.Portions
 	metadata := map[string]interface{}{
 		"recipe_name":        recipeName,
 		"portions_remaining": updated.PortionsAvailable,
 		"dish_id":            dishID,
 	}
-	
+
 	err = h.historyRepo.CreateWithMetadata(
 		user.ID,
 		models.EventTypeConsume,
@@ -237,7 +237,7 @@ func (h *PreparedDishesHandler) WasteDish(w http.ResponseWriter, r *http.Request
 	if dish.Recipe != nil {
 		recipeName = dish.Recipe.LocalName
 	}
-	
+
 	portionsWasted := dish.PortionsAvailable
 	metadata := map[string]interface{}{
 		"recipe_name":     recipeName,
@@ -246,7 +246,7 @@ func (h *PreparedDishesHandler) WasteDish(w http.ResponseWriter, r *http.Request
 		"dish_id":         dishID,
 		"reason":          "manual_waste", // Could be expanded with user input
 	}
-	
+
 	err = h.historyRepo.CreateWithMetadata(
 		user.ID,
 		models.EventTypeWaste,
@@ -281,10 +281,10 @@ func (h *PreparedDishesHandler) WasteDish(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success":       true,
-		"message":       "Dish marked as wasted",
+		"success":         true,
+		"message":         "Dish marked as wasted",
 		"portions_wasted": portionsWasted,
-		"waste_cost":    wasteCost,
+		"waste_cost":      wasteCost,
 	})
 }
 

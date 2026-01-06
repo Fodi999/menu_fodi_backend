@@ -26,13 +26,13 @@ func NewMetaService() MetaService {
 
 // CountryInfo represents country metadata
 type CountryInfo struct {
-	Code       string `json:"code"`       // ISO 3166-1 alpha-2 (e.g., "PL", "IT", "GR")
-	Name       string `json:"name"`       // English name
-	NameLocal  string `json:"nameLocal"`  // Local name (e.g., "Polska", "Italia", "Ελλάδα")
-	NamePL     string `json:"namePL"`     // Polish translation
-	NameRU     string `json:"nameRU"`     // Russian translation
-	RecipeCount int   `json:"recipeCount"` // Number of recipes from this country
-	Flag       string `json:"flag"`       // Unicode flag emoji
+	Code        string `json:"code"`        // ISO 3166-1 alpha-2 (e.g., "PL", "IT", "GR")
+	Name        string `json:"name"`        // English name
+	NameLocal   string `json:"nameLocal"`   // Local name (e.g., "Polska", "Italia", "Ελλάδα")
+	NamePL      string `json:"namePL"`      // Polish translation
+	NameRU      string `json:"nameRU"`      // Russian translation
+	RecipeCount int    `json:"recipeCount"` // Number of recipes from this country
+	Flag        string `json:"flag"`        // Unicode flag emoji
 }
 
 // CuisineInfo represents cuisine type metadata (synonym for country-based cuisine)
@@ -79,7 +79,7 @@ func (s *metaService) GetCountries() ([]CountryInfo, error) {
 	err := s.db.
 		Raw(`SELECT country, COUNT(*) as count FROM "Recipe" GROUP BY country ORDER BY country`).
 		Scan(&results).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,100 +87,100 @@ func (s *metaService) GetCountries() ([]CountryInfo, error) {
 	// Map countries to full info with translations
 	countryMap := map[string]CountryInfo{
 		"Poland": {
-			Code:       "PL",
-			Name:       "Poland",
-			NameLocal:  "Polska",
-			NamePL:     "Polska",
-			NameRU:     "Польша",
-			Flag:       "🇵🇱",
+			Code:      "PL",
+			Name:      "Poland",
+			NameLocal: "Polska",
+			NamePL:    "Polska",
+			NameRU:    "Польша",
+			Flag:      "🇵🇱",
 		},
 		"Italy": {
-			Code:       "IT",
-			Name:       "Italy",
-			NameLocal:  "Italia",
-			NamePL:     "Włochy",
-			NameRU:     "Италия",
-			Flag:       "🇮🇹",
+			Code:      "IT",
+			Name:      "Italy",
+			NameLocal: "Italia",
+			NamePL:    "Włochy",
+			NameRU:    "Италия",
+			Flag:      "🇮🇹",
 		},
 		"Greece": {
-			Code:       "GR",
-			Name:       "Greece",
-			NameLocal:  "Ελλάδα",
-			NamePL:     "Grecja",
-			NameRU:     "Греция",
-			Flag:       "🇬🇷",
+			Code:      "GR",
+			Name:      "Greece",
+			NameLocal: "Ελλάδα",
+			NamePL:    "Grecja",
+			NameRU:    "Греция",
+			Flag:      "🇬🇷",
 		},
 		"France": {
-			Code:       "FR",
-			Name:       "France",
-			NameLocal:  "France",
-			NamePL:     "Francja",
-			NameRU:     "Франция",
-			Flag:       "🇫🇷",
+			Code:      "FR",
+			Name:      "France",
+			NameLocal: "France",
+			NamePL:    "Francja",
+			NameRU:    "Франция",
+			Flag:      "🇫🇷",
 		},
 		"Spain": {
-			Code:       "ES",
-			Name:       "Spain",
-			NameLocal:  "España",
-			NamePL:     "Hiszpania",
-			NameRU:     "Испания",
-			Flag:       "🇪🇸",
+			Code:      "ES",
+			Name:      "Spain",
+			NameLocal: "España",
+			NamePL:    "Hiszpania",
+			NameRU:    "Испания",
+			Flag:      "🇪🇸",
 		},
 		"Germany": {
-			Code:       "DE",
-			Name:       "Germany",
-			NameLocal:  "Deutschland",
-			NamePL:     "Niemcy",
-			NameRU:     "Германия",
-			Flag:       "🇩🇪",
+			Code:      "DE",
+			Name:      "Germany",
+			NameLocal: "Deutschland",
+			NamePL:    "Niemcy",
+			NameRU:    "Германия",
+			Flag:      "🇩🇪",
 		},
 		"Ukraine": {
-			Code:       "UA",
-			Name:       "Ukraine",
-			NameLocal:  "Україна",
-			NamePL:     "Ukraina",
-			NameRU:     "Украина",
-			Flag:       "🇺🇦",
+			Code:      "UA",
+			Name:      "Ukraine",
+			NameLocal: "Україна",
+			NamePL:    "Ukraina",
+			NameRU:    "Украина",
+			Flag:      "🇺🇦",
 		},
 		"Japan": {
-			Code:       "JP",
-			Name:       "Japan",
-			NameLocal:  "日本",
-			NamePL:     "Japonia",
-			NameRU:     "Япония",
-			Flag:       "🇯🇵",
+			Code:      "JP",
+			Name:      "Japan",
+			NameLocal: "日本",
+			NamePL:    "Japonia",
+			NameRU:    "Япония",
+			Flag:      "🇯🇵",
 		},
 		"China": {
-			Code:       "CN",
-			Name:       "China",
-			NameLocal:  "中国",
-			NamePL:     "Chiny",
-			NameRU:     "Китай",
-			Flag:       "🇨🇳",
+			Code:      "CN",
+			Name:      "China",
+			NameLocal: "中国",
+			NamePL:    "Chiny",
+			NameRU:    "Китай",
+			Flag:      "🇨🇳",
 		},
 		"India": {
-			Code:       "IN",
-			Name:       "India",
-			NameLocal:  "भारत",
-			NamePL:     "Indie",
-			NameRU:     "Индия",
-			Flag:       "🇮🇳",
+			Code:      "IN",
+			Name:      "India",
+			NameLocal: "भारत",
+			NamePL:    "Indie",
+			NameRU:    "Индия",
+			Flag:      "🇮🇳",
 		},
 		"Mexico": {
-			Code:       "MX",
-			Name:       "Mexico",
-			NameLocal:  "México",
-			NamePL:     "Meksyk",
-			NameRU:     "Мексика",
-			Flag:       "🇲🇽",
+			Code:      "MX",
+			Name:      "Mexico",
+			NameLocal: "México",
+			NamePL:    "Meksyk",
+			NameRU:    "Мексика",
+			Flag:      "🇲🇽",
 		},
 		"Thailand": {
-			Code:       "TH",
-			Name:       "Thailand",
-			NameLocal:  "ประเทศไทย",
-			NamePL:     "Tajlandia",
-			NameRU:     "Таиланд",
-			Flag:       "🇹🇭",
+			Code:      "TH",
+			Name:      "Thailand",
+			NameLocal: "ประเทศไทย",
+			NamePL:    "Tajlandia",
+			NameRU:    "Таиланд",
+			Flag:      "🇹🇭",
 		},
 	}
 
@@ -229,7 +229,7 @@ func (s *metaService) GetCategories() ([]CategoryInfo, error) {
 	err := s.db.
 		Raw(`SELECT category, COUNT(*) as count FROM "Recipe" GROUP BY category ORDER BY category`).
 		Scan(&results).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (s *metaService) GetDifficulties() ([]DifficultyInfo, error) {
 	err := s.db.
 		Raw(`SELECT difficulty, COUNT(*) as count FROM "Recipe" GROUP BY difficulty ORDER BY difficulty`).
 		Scan(&results).Error
-	
+
 	if err != nil {
 		return nil, err
 	}

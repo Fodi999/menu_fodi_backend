@@ -38,25 +38,25 @@ type RecipeMatch struct {
 }
 
 type MatchedIngredient struct {
-	IngredientID   string              `json:"ingredientId"`
-	Name           string              `json:"name"`
-	Required       float64             `json:"required"`
-	Available      float64             `json:"available"`
-	Unit           string              `json:"unit"`
-	IsExpiringSoon bool                `json:"isExpiringSoon"`
-	ExpiresAt      *time.Time          `json:"expiresAt,omitempty"`
-	Optional       bool                `json:"optional"` // Is this ingredient optional for the recipe?
-	Ingredient     *models.Ingredient  `json:"-"`        // Full ingredient for localization (not exported to JSON)
+	IngredientID   string             `json:"ingredientId"`
+	Name           string             `json:"name"`
+	Required       float64            `json:"required"`
+	Available      float64            `json:"available"`
+	Unit           string             `json:"unit"`
+	IsExpiringSoon bool               `json:"isExpiringSoon"`
+	ExpiresAt      *time.Time         `json:"expiresAt,omitempty"`
+	Optional       bool               `json:"optional"` // Is this ingredient optional for the recipe?
+	Ingredient     *models.Ingredient `json:"-"`        // Full ingredient for localization (not exported to JSON)
 }
 
 type MissingIngredient struct {
-	IngredientID  string              `json:"ingredientId"`
-	Name          string              `json:"name"`
-	Required      float64             `json:"required"`
-	Unit          string              `json:"unit"`
-	EstimatedCost float64             `json:"estimatedCost"` // PLN
-	Optional      bool                `json:"optional"`
-	Ingredient    *models.Ingredient  `json:"-"`             // Full ingredient for localization (not exported to JSON)
+	IngredientID  string             `json:"ingredientId"`
+	Name          string             `json:"name"`
+	Required      float64            `json:"required"`
+	Unit          string             `json:"unit"`
+	EstimatedCost float64            `json:"estimatedCost"` // PLN
+	Optional      bool               `json:"optional"`
+	Ingredient    *models.Ingredient `json:"-"` // Full ingredient for localization (not exported to JSON)
 }
 
 // MatchRecipesWithFridge finds recipes that match user's fridge contents
@@ -510,12 +510,12 @@ func (s *RecipeMatchService) GetBestRecommendation(
 // GetRecipeByID returns full recipe details by ID (with ingredients)
 func (s *RecipeMatchService) GetRecipeByID(recipeID string) (*models.RecipeCatalog, error) {
 	var recipe models.RecipeCatalog
-	
+
 	err := s.db.
-		Preload("Ingredients").                // Load recipe ingredients
-		Preload("Ingredients.Ingredient").     // Load ingredient details
-		Preload("Allergens").                  // Load allergens
-		Preload("DietTags").                   // Load diet tags
+		Preload("Ingredients").            // Load recipe ingredients
+		Preload("Ingredients.Ingredient"). // Load ingredient details
+		Preload("Allergens").              // Load allergens
+		Preload("DietTags").               // Load diet tags
 		Preload("RecipeSteps", func(db *gorm.DB) *gorm.DB {
 			return db.Order("step_number ASC") // Load steps in order
 		}).
@@ -546,7 +546,7 @@ func (s *RecipeMatchService) GetStats() (totalRecipes int, byCategory map[string
 		Category string
 		Count    int
 	}
-	
+
 	var categoryCounts []CategoryCount
 	err = s.db.Model(&models.RecipeCatalog{}).
 		Select("category, COUNT(*) as count").
@@ -601,7 +601,7 @@ func (s *RecipeMatchService) ListRecipes(filters RecipeFilters) ([]models.Recipe
 	if limit <= 0 || limit > 100 {
 		limit = 20 // Default limit
 	}
-	
+
 	err := query.Limit(limit).Find(&recipes).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to list recipes: %w", err)
@@ -639,7 +639,7 @@ func (s *RecipeMatchService) EnrichRecipeWithFridgeInfo(userID string, recipe *m
 		if fridgeItem, found := fridgeMap[recipeIng.IngredientID]; found {
 			// Ingredient exists in fridge
 			recipeIng.FridgeQuantity = &fridgeItem.Quantity
-			
+
 			// Check if quantity is sufficient (same unit)
 			if fridgeItem.Unit == recipeIng.Unit && fridgeItem.Quantity >= recipeIng.Quantity {
 				recipeIng.InFridge = true

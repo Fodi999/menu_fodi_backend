@@ -49,7 +49,7 @@ func (h *AIRecommendationsHandler) GetRecommendations(w http.ResponseWriter, r *
 
 	// Вызываем AI engine
 	log.Printf("[AI] Generating recommendations for user: %s", user.ID)
-	
+
 	recommendations, err := h.service.GetRecommendations(user.ID)
 	if err != nil {
 		log.Printf("[AI] Error generating recommendations: %v", err)

@@ -364,7 +364,7 @@ func (s *userService) GetSettings(userID uuid.UUID) (*models.UserSettings, error
 	}
 
 	settings := user.Settings
-	
+
 	// If settings are empty (zero values), return defaults
 	if settings.Language == "" {
 		settings = models.DefaultUserSettings()

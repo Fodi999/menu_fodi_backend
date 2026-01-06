@@ -46,16 +46,6 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handl
 		r.Get("/{id}/movements", m.handlers.GetStockMovements) // История движений
 	})
 
-	// 🔧 ADMIN ROUTES - Управление справочником ингредиентов (ТОЛЬКО admin/super_admin)
-	r.Route("/admin/ingredients", func(r chi.Router) {
-		r.Use(jwtMiddleware)
-		r.Use(middleware.AdminMiddleware)
-
-		r.Get("/", m.handlers.ListIngredients)        // Список ингредиентов
-		r.Post("/", m.handlers.Create)                // Создать ингредиент
-		r.Get("/{id}", m.handlers.GetOne)             // Детали ингредиента
-		r.Put("/{id}", m.handlers.Update)             // Обновить ингредиент
-		r.Delete("/{id}", m.handlers.DeleteFromCatalog) // Удалить ингредиент (из каталога)
-		r.Get("/search", m.handlers.Search)           // Поиск ингредиентов
-	})
+	// 🔧 ADMIN ROUTES - УДАЛЕНО! Теперь управляется через admin module с AI переводом
+	// Все /admin/ingredients теперь идут через internal/modules/admin/
 }

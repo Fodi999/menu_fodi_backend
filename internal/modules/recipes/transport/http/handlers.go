@@ -56,11 +56,11 @@ func (h *RecipeHandlers) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 		Title        string   `json:"title"`
 		Description  string   `json:"description"`
 		ImageUrl     string   `json:"imageUrl"`
-		Country      string   `json:"country"`      // Required
-		Category     string   `json:"category"`     // Required
-		Difficulty   string   `json:"difficulty"`   // Required
-		TimeMinutes  int      `json:"timeMinutes"`  // Required
-		Servings     int      `json:"servings"`     // Required
+		Country      string   `json:"country"`     // Required
+		Category     string   `json:"category"`    // Required
+		Difficulty   string   `json:"difficulty"`  // Required
+		TimeMinutes  int      `json:"timeMinutes"` // Required
+		Servings     int      `json:"servings"`    // Required
 		GrossWeight  *int     `json:"grossWeight"`
 		NetWeight    *int     `json:"netWeight"`
 		Calories     *int     `json:"calories"`
@@ -102,11 +102,11 @@ func (h *RecipeHandlers) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 		Title:        input.Title,
 		Description:  input.Description,
 		ImageUrl:     input.ImageUrl,
-		Country:      input.Country,      // Required field
-		Category:     input.Category,     // Required field
-		Difficulty:   input.Difficulty,   // Required field
-		TimeMinutes:  input.TimeMinutes,  // Required field
-		Servings:     input.Servings,     // Required field
+		Country:      input.Country,                               // Required field
+		Category:     input.Category,                              // Required field
+		Difficulty:   input.Difficulty,                            // Required field
+		TimeMinutes:  input.TimeMinutes,                           // Required field
+		Servings:     input.Servings,                              // Required field
 		Source:       datatypes.JSON([]byte(`{"type":"manual"}`)), // User-generated recipe
 		AuthorID:     authorID,
 		GrossWeight:  input.GrossWeight,

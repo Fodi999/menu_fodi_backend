@@ -60,13 +60,13 @@ func (r *userRepository) GetProfile(userID uuid.UUID) (*models.UserProfile, erro
 		}
 		return nil, err
 	}
-	
+
 	// Get the actual role from User table (source of truth)
 	var user models.User
 	if err := r.db.Where("id = ?", userID.String()).First(&user).Error; err == nil {
 		profile.Role = user.Role // Update with current role from User table
 	}
-	
+
 	return &profile, nil
 }
 

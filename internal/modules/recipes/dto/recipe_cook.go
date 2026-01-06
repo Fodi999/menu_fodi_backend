@@ -29,12 +29,12 @@ func (r *CookRecipeRequest) GetMultiplier(recipeServings int) float64 {
 
 // CookRecipeResponse - результат приготовления
 type CookRecipeResponse struct {
-	Success bool                   `json:"success"`
-	Data    *CookRecipeData        `json:"data,omitempty"`
-	Message string                 `json:"message,omitempty"`
-	Error   string                 `json:"error,omitempty"`
-	Code    string                 `json:"code,omitempty"`    // Error code like "INSUFFICIENT_INGREDIENTS"
-	Missing []MissingIngredient    `json:"missing,omitempty"` // Detailed list of missing ingredients
+	Success bool                `json:"success"`
+	Data    *CookRecipeData     `json:"data,omitempty"`
+	Message string              `json:"message,omitempty"`
+	Error   string              `json:"error,omitempty"`
+	Code    string              `json:"code,omitempty"`    // Error code like "INSUFFICIENT_INGREDIENTS"
+	Missing []MissingIngredient `json:"missing,omitempty"` // Detailed list of missing ingredients
 }
 
 // MissingIngredient - детали недостающего ингредиента

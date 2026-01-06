@@ -43,9 +43,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/users", m.handlers.GetAllUsers)
 		r.Get("/users/stats", m.handlers.GetUsersStats)
 		r.Put("/users/{id}", m.handlers.UpdateUser)
-		
+
 		// CRITICAL: Super admin only operations
-		r.With(superAdminMiddleware).Delete("/users/{id}", m.handlers.DeleteUser)          // Удаление пользователя
+		r.With(superAdminMiddleware).Delete("/users/{id}", m.handlers.DeleteUser)           // Удаление пользователя
 		r.With(superAdminMiddleware).Patch("/users/update-role", m.handlers.UpdateUserRole) // Изменение ролей
 
 		// Orders
@@ -83,12 +83,13 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Post("/treasury/allocate", m.handlers.AllocateFromTreasury)
 
 		// Ingredient Catalog Management
-		r.Get("/ingredients", m.handlers.GetAllIngredients)           // GET /api/admin/ingredients - весь каталог
-		r.Get("/ingredients/stats", m.handlers.GetIngredientsStats)   // GET /api/admin/ingredients/stats - статистика
-		r.Post("/ingredients/import", m.handlers.ImportIngredients)   // Bulk import catalog
+		r.Get("/ingredients", m.handlers.GetAllIngredients)         // GET /api/admin/ingredients - весь каталог
+		r.Get("/ingredients/stats", m.handlers.GetIngredientsStats) // GET /api/admin/ingredients/stats - статистика
+		r.Post("/ingredients", m.handlers.CreateIngredient)         // POST /api/admin/ingredients - создать ингредиент
+		r.Post("/ingredients/import", m.handlers.ImportIngredients) // Bulk import catalog
 
 		// Recipe Catalog Management
-		r.Get("/recipes", m.handlers.GetAllRecipes)                   // GET /api/admin/recipes - весь каталог рецептов
-		r.Get("/recipes/stats", m.handlers.GetRecipesStats)           // GET /api/admin/recipes/stats - статистика
+		r.Get("/recipes", m.handlers.GetAllRecipes)         // GET /api/admin/recipes - весь каталог рецептов
+		r.Get("/recipes/stats", m.handlers.GetRecipesStats) // GET /api/admin/recipes/stats - статистика
 	})
 }

@@ -44,14 +44,14 @@ func (h *BudgetHandler) GetCurrentWeekBudget(w http.ResponseWriter, r *http.Requ
 
 	// Add computed fields
 	response := map[string]interface{}{
-		"budget":            budget,
-		"remaining":         budget.GetRemainingBudget(),
-		"waste_percentage":  budget.GetWastePercentage(),
-		"spent_percentage":  budget.GetSpentPercentage(),
-		"is_over_budget":    budget.IsOverBudget(),
-		"saved_money":       budget.GetSavedMoney(),
-		"efficiency_score":  budget.GetEfficiencyScore(),
-		"week_number":       budget.GetWeekNumber(),
+		"budget":           budget,
+		"remaining":        budget.GetRemainingBudget(),
+		"waste_percentage": budget.GetWastePercentage(),
+		"spent_percentage": budget.GetSpentPercentage(),
+		"is_over_budget":   budget.IsOverBudget(),
+		"saved_money":      budget.GetSavedMoney(),
+		"efficiency_score": budget.GetEfficiencyScore(),
+		"week_number":      budget.GetWeekNumber(),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -8,9 +8,9 @@ import (
 
 // User roles constants - используй ТОЛЬКО эти константы для избежания опечаток
 const (
-	RoleHomeChef  = "home_chef"  // Домашний повар
-	RoleProChef   = "pro_chef"   // Профессиональный повар / ресторан
-	RoleAdmin     = "admin"      // Администратор
+	RoleHomeChef   = "home_chef"   // Домашний повар
+	RoleProChef    = "pro_chef"    // Профессиональный повар / ресторан
+	RoleAdmin      = "admin"       // Администратор
 	RoleSuperAdmin = "super_admin" // Супер администратор (управление ролями)
 )
 
@@ -26,10 +26,10 @@ type User struct {
 	ID        string       `gorm:"primaryKey;column:id" json:"id"`
 	Email     string       `gorm:"unique;column:email" json:"email"`
 	Name      string       `gorm:"column:name" json:"name"`
-	Password  string       `gorm:"column:password" json:"-"`                   // не возвращается в JSON
-	Role      string       `gorm:"column:role;default:home_chef" json:"role"`  // home_chef | pro_chef | admin
-	Status    string       `gorm:"column:status;default:active" json:"status"` // active | blocked | pending
-	Settings  UserSettings `gorm:"type:jsonb;column:settings" json:"settings"`  // User preferences
+	Password  string       `gorm:"column:password" json:"-"`                     // не возвращается в JSON
+	Role      string       `gorm:"column:role;default:home_chef" json:"role"`    // home_chef | pro_chef | admin
+	Status    string       `gorm:"column:status;default:active" json:"status"`   // active | blocked | pending
+	Settings  UserSettings `gorm:"type:jsonb;column:settings" json:"settings"`   // User preferences
 	LastLogin *time.Time   `gorm:"column:last_login" json:"lastLogin,omitempty"` // Activity tracking
 	CreatedAt time.Time    `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }

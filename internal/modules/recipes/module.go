@@ -65,10 +65,10 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	// === NEW CATALOG RECIPE ROUTES ===
 	// Recipe catalog statistics (public - no sensitive data, only counts)
 	r.Get("/recipes/stats", m.catalogHandler.GetRecipeStats)
-	
+
 	// Recipe listing with filters (public for browsing catalog)
 	r.Get("/recipes", m.catalogHandler.ListRecipes)
-	
+
 	// TODO: Remove public access after testing - these should be protected
 	// Recipe matching (finds recipes based on fridge) - TEMPORARILY PUBLIC FOR TESTING
 	r.Get("/recipes/match", m.catalogHandler.MatchRecipes)
@@ -84,14 +84,14 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	// Protected routes (require auth)
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
-		
+
 		// User saved recipes - NOW PROTECTED
 		r.Post("/user/recipes/save", m.catalogHandler.SaveRecipe)
 		r.Get("/user/recipes/saved", m.catalogHandler.GetSavedRecipes)
-		
+
 		// Recipe cooking (deducts from fridge)
 		r.Post("/recipes/{id}/cook", m.catalogHandler.CookRecipe)
-		
+
 		// Recipe adaptation (AI adapts recipe to available ingredients)
 		r.Post("/recipes/{id}/adapt", m.catalogHandler.AdaptRecipe)
 	})

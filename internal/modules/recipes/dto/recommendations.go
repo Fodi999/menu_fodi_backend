@@ -12,13 +12,13 @@ type RecommendationRequest struct {
 type RecommendationResponse struct {
 	Success            bool                   `json:"success"`
 	Data               *RecommendationData    `json:"data,omitempty"`
-	Code               string                 `json:"code,omitempty"`              // Error code: NO_RECIPES_FOR_FRIDGE, INVALID_REQUEST, etc
-	Context            map[string]interface{} `json:"context,omitempty"`           // Context data for frontend (fridgeItems, matchedRecipes, etc)
+	Code               string                 `json:"code,omitempty"`               // Error code: NO_RECIPES_FOR_FRIDGE, INVALID_REQUEST, etc
+	Context            map[string]interface{} `json:"context,omitempty"`            // Context data for frontend (fridgeItems, matchedRecipes, etc)
 	RequiresUserAction bool                   `json:"requiresUserAction,omitempty"` // true = показать модальное окно с кнопкой
-	
+
 	// DEPRECATED: Use code + context instead
-	Message            string                 `json:"message,omitempty"` // OLD: Will be removed
-	Error              string                 `json:"error,omitempty"`   // OLD: Will be removed
+	Message string `json:"message,omitempty"` // OLD: Will be removed
+	Error   string `json:"error,omitempty"`   // OLD: Will be removed
 }
 
 // RecommendationData - данные рекомендации (1 лучший рецепт)
@@ -45,9 +45,9 @@ type RecipeInfo struct {
 
 // MatchInfo - информация о матчинге с холодильником
 type MatchInfo struct {
-	CanCookNow      bool                       `json:"canCookNow"`      // true если все required есть
-	MissingRequired []MissingIngredientForBuy  `json:"missingRequired"` // Что нужно докупить
-	UsedIngredients []UsedIngredient           `json:"usedIngredients"` // Что используется из холодильника
+	CanCookNow      bool                      `json:"canCookNow"`      // true если все required есть
+	MissingRequired []MissingIngredientForBuy `json:"missingRequired"` // Что нужно докупить
+	UsedIngredients []UsedIngredient          `json:"usedIngredients"` // Что используется из холодильника
 }
 
 // MissingIngredientForBuy - недостающий ингредиент для покупки

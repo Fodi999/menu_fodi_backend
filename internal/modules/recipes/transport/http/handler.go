@@ -70,7 +70,7 @@ func (h *RecipeHandler) getUserLanguage(r *http.Request) string {
 				lang = lang[:idx]
 			}
 			lang = strings.ToLower(strings.TrimSpace(lang))
-			
+
 			// Support only ru, pl, en
 			switch lang {
 			case "ru":
@@ -82,7 +82,7 @@ func (h *RecipeHandler) getUserLanguage(r *http.Request) string {
 			}
 		}
 	}
-	
+
 	// 2. Check query parameter (for testing/override)
 	if langParam := r.URL.Query().Get("lang"); langParam != "" {
 		switch strings.ToLower(langParam) {
@@ -94,7 +94,7 @@ func (h *RecipeHandler) getUserLanguage(r *http.Request) string {
 			return "en"
 		}
 	}
-	
+
 	// 3. Default to English
 	return "en"
 }
@@ -221,7 +221,7 @@ func (h *RecipeHandler) GetAvailableRecipes(w http.ResponseWriter, r *http.Reque
 	for _, match := range matches {
 		// Use localized recipe name
 		localizedName := match.Recipe.GetLocalizedName(userLang)
-		
+
 		item := dto.AvailableRecipeItem{
 			RecipeID:         match.Recipe.ID.String(),
 			CanonicalName:    match.Recipe.CanonicalName,
@@ -320,7 +320,7 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 		// Enrich recipe with fridge info (which ingredients are available)
 		err := h.matchService.EnrichRecipeWithFridgeInfo(userID, recipe)
 		if err != nil {
-			h.logger.Warn("Failed to enrich recipe with fridge info", 
+			h.logger.Warn("Failed to enrich recipe with fridge info",
 				zap.Error(err),
 				zap.String("userId", userID),
 			)
@@ -333,20 +333,20 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.logger.Info("Recipe found", 
+	h.logger.Info("Recipe found",
 		zap.String("recipeId", recipeID),
 		zap.String("name", recipe.GetLocalizedName(userLang)),
 	)
 
 	// Set localized fields before returning
 	recipe.LocalName = recipe.GetLocalizedName(userLang)
-	
+
 	// Get localized steps and convert to JSONB for backward compatibility
 	localizedSteps := recipe.GetLocalizedSteps(userLang)
 	if stepsJSON, err := json.Marshal(localizedSteps); err == nil {
 		recipe.Steps = stepsJSON
 	}
-	
+
 	// Localize ingredient names
 	for i := range recipe.Ingredients {
 		if recipe.Ingredients[i].Ingredient.ID != "" {
@@ -492,7 +492,7 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	
+
 	userID := claims.UserID
 
 	recipeID := chi.URLParam(r, "id")
@@ -713,7 +713,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 		if ing.Ingredient != nil {
 			ingredientName = ing.Ingredient.GetName(lang)
 		}
-		
+
 		usedIngredients[i] = dto.IngredientMatch{
 			IngredientID:   ing.IngredientID,
 			Name:           ingredientName,
@@ -732,7 +732,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 		if ing.Ingredient != nil {
 			ingredientName = ing.Ingredient.GetName(lang)
 		}
-		
+
 		missingIngredients[i] = dto.IngredientMatch{
 			IngredientID:  ing.IngredientID,
 			Name:          ingredientName,
@@ -780,7 +780,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 
 	// Get localized recipe name and description
 	localizedName := match.Recipe.GetLocalizedName(lang)
-	
+
 	return dto.RecipeMatchItem{
 		RecipeID:           match.Recipe.ID.String(),
 		CanonicalName:      match.Recipe.CanonicalName,
@@ -879,24 +879,24 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 
 	// Merge excluded recipe IDs from: 1) request, 2) session, 3) saved recipes
 	excludeMap := make(map[string]bool)
-	
+
 	// Add from request (explicit exclusions from frontend)
 	for _, id := range req.ExcludeRecipeIds {
 		excludeMap[id] = true
 	}
-	
+
 	// Add from session (previously shown in this browsing session)
 	if session != nil {
 		for _, id := range session.ExcludedRecipeIDs {
 			excludeMap[id] = true
 		}
 	}
-	
+
 	// Add saved recipes (user already saved these, don't show again)
 	for _, id := range savedRecipeIDs {
 		excludeMap[id] = true
 	}
-	
+
 	// Convert map back to slice
 	excludeRecipeIds := make([]string, 0, len(excludeMap))
 	for id := range excludeMap {
@@ -930,8 +930,8 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		// Frontend decides what message to show based on code + context
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(dto.RecommendationResponse{
-			Success:            false,
-			Code:               "NO_RECIPES_FOR_FRIDGE", // Frontend will translate this
+			Success: false,
+			Code:    "NO_RECIPES_FOR_FRIDGE", // Frontend will translate this
 			Context: map[string]interface{}{
 				"fridgeItems":    fridgeItemCount,
 				"matchedRecipes": 0,
@@ -969,7 +969,7 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 func convertToRecommendationResponse(match *service.RecipeMatch, lang string) dto.RecommendationResponse {
 	// Get localized recipe name
 	localizedName := match.Recipe.GetLocalizedName(lang)
-	
+
 	// Recipe info
 	recipeInfo := dto.RecipeInfo{
 		ID:            match.Recipe.ID.String(),
@@ -1007,7 +1007,7 @@ func convertToRecommendationResponse(match *service.RecipeMatch, lang string) dt
 			if missing.Ingredient != nil {
 				ingredientName = missing.Ingredient.GetName(lang)
 			}
-			
+
 			missingRequired = append(missingRequired, dto.MissingIngredientForBuy{
 				IngredientID:  missing.IngredientID,
 				Name:          ingredientName,
@@ -1025,7 +1025,7 @@ func convertToRecommendationResponse(match *service.RecipeMatch, lang string) dt
 		if matched.Ingredient != nil {
 			ingredientName = matched.Ingredient.GetName(lang)
 		}
-		
+
 		usedIngredients[i] = dto.UsedIngredient{
 			IngredientID:   matched.IngredientID,
 			Name:           ingredientName,
@@ -1101,7 +1101,7 @@ func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	
+
 	userID := claims.UserID
 
 	// Parse request body
@@ -1177,15 +1177,15 @@ func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	
+
 	userID := claims.UserID
-	
+
 	// Parse query filters
 	category := r.URL.Query().Get("category")
 	country := r.URL.Query().Get("country")
 	difficulty := r.URL.Query().Get("difficulty")
 	cookedStr := r.URL.Query().Get("cooked") // "true" or "false"
-	
+
 	h.logger.Info("Getting saved recipes with filters",
 		zap.String("userId", userID),
 		zap.String("category", category),
@@ -1204,13 +1204,13 @@ func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) 
 			Country:    country,
 			Difficulty: difficulty,
 		}
-		
+
 		if cookedStr == "true" {
 			filters.CookedOnly = true
 		} else if cookedStr == "false" {
 			filters.UncokedOnly = true
 		}
-		
+
 		savedRecipes, err = h.savedRecipeRepo.GetSavedRecipesWithFilters(userID, filters)
 	} else {
 		// No filters, get all

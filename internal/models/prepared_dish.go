@@ -7,18 +7,18 @@ import (
 // PreparedDish represents a dish prepared by user from a recipe
 // Category is NOT stored here - accessed via JOIN to Recipe table (single source of truth)
 type PreparedDish struct {
-	ID                string    `gorm:"column:id;type:uuid;primaryKey" json:"id"`
-	UserID            string    `gorm:"column:user_id;type:text;not null" json:"user_id"`
-	RecipeID          string    `gorm:"column:recipe_id;type:uuid;not null" json:"recipe_id"`
-	PortionsAvailable int       `gorm:"column:portions_available;not null;default:0" json:"portions_available"`
-	PortionsInitial   int       `gorm:"column:portions_initial;not null" json:"portions_initial"`
-	PreparedAt        time.Time `gorm:"column:prepared_at;not null;default:NOW()" json:"prepared_at"`
+	ID                string     `gorm:"column:id;type:uuid;primaryKey" json:"id"`
+	UserID            string     `gorm:"column:user_id;type:text;not null" json:"user_id"`
+	RecipeID          string     `gorm:"column:recipe_id;type:uuid;not null" json:"recipe_id"`
+	PortionsAvailable int        `gorm:"column:portions_available;not null;default:0" json:"portions_available"`
+	PortionsInitial   int        `gorm:"column:portions_initial;not null" json:"portions_initial"`
+	PreparedAt        time.Time  `gorm:"column:prepared_at;not null;default:NOW()" json:"prepared_at"`
 	ExpiresAt         *time.Time `gorm:"column:expires_at" json:"expires_at,omitempty"`
-	Source            string    `gorm:"column:source;not null;default:'cook'" json:"source"` // 'cook' or 'manual'
-	CostPerPortion    *float64  `gorm:"column:cost_per_portion;type:decimal(10,2)" json:"cost_per_portion,omitempty"`
-	TotalCost         *float64  `gorm:"column:total_cost;type:decimal(10,2)" json:"total_cost,omitempty"`
-	CreatedAt         time.Time `gorm:"column:created_at;not null;default:NOW()" json:"created_at"`
-	UpdatedAt         time.Time `gorm:"column:updated_at;not null;default:NOW()" json:"updated_at"`
+	Source            string     `gorm:"column:source;not null;default:'cook'" json:"source"` // 'cook' or 'manual'
+	CostPerPortion    *float64   `gorm:"column:cost_per_portion;type:decimal(10,2)" json:"cost_per_portion,omitempty"`
+	TotalCost         *float64   `gorm:"column:total_cost;type:decimal(10,2)" json:"total_cost,omitempty"`
+	CreatedAt         time.Time  `gorm:"column:created_at;not null;default:NOW()" json:"created_at"`
+	UpdatedAt         time.Time  `gorm:"column:updated_at;not null;default:NOW()" json:"updated_at"`
 
 	// Relation to Recipe (loaded via JOIN for category access)
 	Recipe *RecipeCatalog `gorm:"-" json:"recipe,omitempty"`
@@ -62,12 +62,12 @@ func (d *PreparedDish) GetStatus() DishStatus {
 	if d.IsExpired() {
 		return DishStatusExpired
 	}
-	
+
 	// Check if finished (no portions left)
 	if d.PortionsAvailable == 0 {
 		return DishStatusFinished
 	}
-	
+
 	// Otherwise available
 	return DishStatusAvailable
 }

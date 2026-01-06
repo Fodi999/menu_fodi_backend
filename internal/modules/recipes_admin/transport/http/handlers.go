@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
+	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes_admin/dto"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes_admin/service"
-	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/go-chi/chi/v5"
 )
@@ -117,8 +117,8 @@ func (h *RecipeAdminHandlers) Publish(w http.ResponseWriter, r *http.Request) {
 			utils.RespondWithError(w, http.StatusNotFound, "Recipe not found")
 			return
 		}
-		if err.Error() == "at least 1 ingredient required for publishing" || 
-		   err.Error() == "at least 1 step required for publishing" {
+		if err.Error() == "at least 1 ingredient required for publishing" ||
+			err.Error() == "at least 1 step required for publishing" {
 			utils.RespondWithError(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -127,13 +127,13 @@ func (h *RecipeAdminHandlers) Publish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := dto.PublishRecipeResponse{
-		ID:              recipe.ID,
-		Title:           recipe.Title,
-		Status:          recipe.Status,
-		PublishedAt:     recipe.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		ID:               recipe.ID,
+		Title:            recipe.Title,
+		Status:           recipe.Status,
+		PublishedAt:      recipe.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		IngredientsCount: len(req.Ingredients),
-		StepsCount:      len(req.Steps),
-		Warnings:        warnings,
+		StepsCount:       len(req.Steps),
+		Warnings:         warnings,
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{

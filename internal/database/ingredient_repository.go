@@ -17,7 +17,7 @@ type IngredientRepository struct{}
 func normalizeSearchQuery(s string) string {
 	// Step 1: Lowercase
 	s = strings.ToLower(s)
-	
+
 	// Step 2: Only remove diacritics from Latin characters (ą→a, ę→e)
 	// Preserve Cyrillic, Greek, and other non-Latin scripts
 	result := ""
@@ -35,7 +35,7 @@ func normalizeSearchQuery(s string) string {
 			}
 		}
 	}
-	
+
 	return result
 }
 

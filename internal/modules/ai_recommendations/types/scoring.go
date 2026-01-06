@@ -9,15 +9,15 @@ const (
 	// TYPE 1 - URGENT
 	TypePreparedExpiring RecommendationType = "prepared_expiring"
 	TypeFridgeExpiring   RecommendationType = "fridge_expiring"
-	
+
 	// TYPE 2 - BUDGET
 	TypeBudgetWarning  RecommendationType = "budget_warning"
 	TypeBudgetOK       RecommendationType = "budget_ok"
 	TypeBudgetExceeded RecommendationType = "budget_exceeded"
-	
+
 	// TYPE 3 - COOK SUGGESTION
 	TypeCookSuggestion RecommendationType = "cook_suggestion"
-	
+
 	// TYPE 4 - WASTE INSIGHTS
 	TypeWasteInsight    RecommendationType = "waste_insight"
 	TypePortionInsight  RecommendationType = "portion_insight"
@@ -30,17 +30,17 @@ const (
 	UrgencyWeightExpiresSoon    = 100.0 // < 24 hours
 	UrgencyWeightExpiresWarning = 70.0  // 24-48 hours
 	UrgencyWeightExpiresLater   = 40.0  // 48-72 hours
-	
+
 	// Budget weights (TYPE 2)
-	BudgetPressureHigh   = 90.0  // > 80% spent
-	BudgetPressureMedium = 60.0  // 50-80% spent
-	BudgetPressureLow    = 30.0  // < 50% spent
-	
+	BudgetPressureHigh   = 90.0 // > 80% spent
+	BudgetPressureMedium = 60.0 // 50-80% spent
+	BudgetPressureLow    = 30.0 // < 50% spent
+
 	// Cook suggestion weights (TYPE 3)
 	PreferenceWeightHigh   = 40.0 // Часто готовят
 	PreferenceWeightMedium = 25.0 // Иногда готовят
 	PreferenceWeightLow    = 10.0 // Редко готовят
-	
+
 	// Waste weights (TYPE 4)
 	WasteRiskHigh   = -30.0 // Часто выбрасывают (penalty)
 	WasteRiskMedium = -15.0 // Иногда выбрасывают
@@ -66,7 +66,7 @@ func CalculateScore(params ScoreParams) float64 {
 		params.IngredientMatch +
 		params.FreshnessUrgency -
 		params.WasteRisk
-	
+
 	// Clamp to 0-100
 	if score < 0 {
 		return 0
@@ -81,7 +81,7 @@ func CalculateScore(params ScoreParams) float64 {
 func CalculateUrgencyScore(expiresAt time.Time) float64 {
 	now := time.Now()
 	hoursLeft := expiresAt.Sub(now).Hours()
-	
+
 	if hoursLeft < 0 {
 		return 0 // Уже истёк
 	}

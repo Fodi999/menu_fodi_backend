@@ -25,10 +25,10 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	r.Route("/api/budget", func(r chi.Router) {
 		r.Use(authMiddleware)
 
-		r.Get("/current", m.handler.GetCurrentWeekBudget)  // GET /api/budget/current
-		r.Get("/weekly", m.handler.GetWeeklyBudgets)       // GET /api/budget/weekly?weeks=4
-		r.Get("/stats", m.handler.GetBudgetStats)          // GET /api/budget/stats
-		r.Get("/week", m.handler.GetBudgetForWeek)         // GET /api/budget/week?date=2025-12-22
-		r.Put("/plan", m.handler.SetPlannedBudget)         // PUT /api/budget/plan
+		r.Get("/current", m.handler.GetCurrentWeekBudget) // GET /api/budget/current
+		r.Get("/weekly", m.handler.GetWeeklyBudgets)      // GET /api/budget/weekly?weeks=4
+		r.Get("/stats", m.handler.GetBudgetStats)         // GET /api/budget/stats
+		r.Get("/week", m.handler.GetBudgetForWeek)        // GET /api/budget/week?date=2025-12-22
+		r.Put("/plan", m.handler.SetPlannedBudget)        // PUT /api/budget/plan
 	})
 }

@@ -31,7 +31,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		authHeader := r.Header.Get("Authorization")
 		log.Printf("📋 Auth header present: %v, length: %d", authHeader != "", len(authHeader))
-		
+
 		if authHeader == "" {
 			log.Printf("❌ No Authorization header for %s %s", r.Method, r.URL.Path)
 			utils.WriteError(w, http.StatusUnauthorized, "Authorization header required")
@@ -45,10 +45,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			utils.WriteError(w, http.StatusUnauthorized, "Invalid Authorization format")
 			return
 		}
-		
+
 		tokenString := strings.TrimSpace(parts[1])
 		log.Printf("🎫 Token extracted, length: %d", len(tokenString))
-		
+
 		claims, err := authservice.ValidateToken(tokenString)
 		if err != nil {
 			log.Printf("❌ JWT validation failed for %s %s: %v", r.Method, r.URL.Path, err)
@@ -109,7 +109,7 @@ func SuperAdminMiddleware(next http.Handler) http.Handler {
 func OptionalAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
-		
+
 		// No token? Continue without auth
 		if authHeader == "" {
 			next.ServeHTTP(w, r)
@@ -123,7 +123,7 @@ func OptionalAuthMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		
+
 		tokenString := strings.TrimSpace(parts[1])
 		if tokenString == "" {
 			next.ServeHTTP(w, r)
@@ -143,7 +143,7 @@ func OptionalAuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
 		ctx = context.WithValue(ctx, "userID", claims.UserID)
 		log.Printf("✅ OptionalAuth: User %s authenticated", claims.UserID)
-		
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

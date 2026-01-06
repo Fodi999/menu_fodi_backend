@@ -2,7 +2,7 @@ package models
 
 import (
 	"time"
-	
+
 	"gorm.io/datatypes"
 )
 
@@ -14,7 +14,7 @@ type Recipe struct {
 	Title         string  `json:"title" gorm:"column:title;type:varchar(255);not null"`
 	Description   string  `json:"description" gorm:"column:description;type:text"`
 	ImageUrl      string  `json:"imageUrl" gorm:"column:imageUrl;type:text"`
-	
+
 	// Recipe Metadata (shared with catalog recipes)
 	Country     string         `json:"country" gorm:"column:country;type:varchar(100);not null"`
 	Category    string         `json:"category" gorm:"column:category;type:varchar(50);not null"`
@@ -23,9 +23,9 @@ type Recipe struct {
 	Servings    int            `json:"servings" gorm:"column:servings;not null;default:1"`
 	Source      datatypes.JSON `json:"source" gorm:"column:source;type:jsonb;not null;default:'{\"type\":\"manual\"}'"`
 	Status      string         `json:"status" gorm:"column:status;type:varchar(20);not null;default:'draft'"` // draft, published, archived
-	
-	AuthorID      string  `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
-	Author        User    `json:"author" gorm:"foreignKey:AuthorID;references:ID"`
+
+	AuthorID string `json:"authorId" gorm:"column:author_id;type:varchar(255);not null;index"`
+	Author   User   `json:"author" gorm:"foreignKey:AuthorID;references:ID"`
 
 	// Nutrition & Metrics
 	GrossWeight *int     `json:"grossWeight,omitempty" gorm:"column:gross_weight"` // Брутто (г)

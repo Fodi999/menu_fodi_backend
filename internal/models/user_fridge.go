@@ -143,11 +143,11 @@ type IngredientShortInfo struct {
 //  7. Search works in any language, autocomplete uses same data structure
 type FridgeItemListResponse struct {
 	ID       string  `json:"id"`
-	Name     string  `json:"name"` // DEPRECATED: Use Ingredient.GetName(lang) instead
+	Name     string  `json:"name"`     // DEPRECATED: Use Ingredient.GetName(lang) instead
 	Category string  `json:"category"` // protein, vegetable, dairy, grain, condiment, other
 	Quantity float64 `json:"quantity"`
 	Unit     string  `json:"unit"`
-	
+
 	// 🌍 MULTILINGUAL INGREDIENT DATA - MUST HAVE for production
 	Ingredient *IngredientBasicInfo `json:"ingredient"` // Full ingredient with all translations
 

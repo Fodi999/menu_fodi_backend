@@ -81,7 +81,7 @@ func (s *RecommendationService) AnalyzeUrgent(userID string) ([]dto.UrgentRecomm
 		ExpiresAt     time.Time
 		PortionsAvail int
 	}
-	
+
 	var dishes []PreparedDishResult
 	err := s.db.Raw(`
 		SELECT pd.id, pd.recipe_id, 
@@ -95,7 +95,7 @@ func (s *RecommendationService) AnalyzeUrgent(userID string) ([]dto.UrgentRecomm
 		  AND pd.portions_available > 0
 		ORDER BY pd.expires_at ASC
 	`, userID, urgentThreshold).Scan(&dishes).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to query prepared dishes: %w", err)
 	}
@@ -132,7 +132,7 @@ func (s *RecommendationService) AnalyzeUrgent(userID string) ([]dto.UrgentRecomm
 		Quantity   float64
 		Unit       string
 	}
-	
+
 	var fridgeItems []FridgeItemResult
 	err = s.db.Raw(`
 		SELECT fi.id, ic.name, fi.expiry_date, fi.quantity, fi.unit
@@ -144,7 +144,7 @@ func (s *RecommendationService) AnalyzeUrgent(userID string) ([]dto.UrgentRecomm
 		  AND fi.quantity > 0
 		ORDER BY fi.expiry_date ASC
 	`, userID, urgentThreshold).Scan(&fridgeItems).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to query fridge items: %w", err)
 	}
@@ -197,10 +197,10 @@ func (s *RecommendationService) AnalyzeBudget(userID string) ([]dto.BudgetRecomm
 
 	// Получаем текущую неделю бюджета
 	type BudgetResult struct {
-		WeekStart      time.Time
-		PlannedBudget  float64
-		SpentBudget    float64
-		WasteCost      float64
+		WeekStart     time.Time
+		PlannedBudget float64
+		SpentBudget   float64
+		WasteCost     float64
 	}
 
 	var budget BudgetResult
@@ -254,10 +254,10 @@ func (s *RecommendationService) AnalyzeBudget(userID string) ([]dto.BudgetRecomm
 	// Формируем рекомендацию
 	var message string
 	var recType types.RecommendationType
-	
+
 	if budget.SpentBudget > budget.PlannedBudget {
 		recType = types.TypeBudgetExceeded
-		message = fmt.Sprintf("❌ Przekroczyłeś budżet o %.2f PLN", budget.SpentBudget - budget.PlannedBudget)
+		message = fmt.Sprintf("❌ Przekroczyłeś budżet o %.2f PLN", budget.SpentBudget-budget.PlannedBudget)
 	} else if spentPercentage >= 80 {
 		recType = types.TypeBudgetWarning
 		message = fmt.Sprintf("⚠️ Pozostało tylko %.2f PLN na ten tydzień (%d dni)", remaining, daysLeft)
@@ -314,7 +314,7 @@ func (s *RecommendationService) AnalyzeCookSuggestions(userID string) ([]dto.Coo
 	for _, recipe := range savedRecipes {
 		// TODO: Implement ingredient matching logic
 		// Для MVP можно упростить и просто показать топ-3 рецепта из saved
-		
+
 		// Получаем preference score из истории (сколько раз готовили)
 		var cookCount int
 		s.db.Raw(`
@@ -328,7 +328,7 @@ func (s *RecommendationService) AnalyzeCookSuggestions(userID string) ([]dto.Coo
 		preferenceScore := types.CalculatePreferenceScore(cookCount)
 
 		// Для MVP: простая эвристика
-		ingredientMatch := 80.0 // Заглушка (в полной версии — реальный расчёт)
+		ingredientMatch := 80.0  // Заглушка (в полной версии — реальный расчёт)
 		freshnessUrgency := 15.0 // Заглушка
 
 		scoreParams := types.ScoreParams{
@@ -336,7 +336,7 @@ func (s *RecommendationService) AnalyzeCookSuggestions(userID string) ([]dto.Coo
 			IngredientMatch:  ingredientMatch,
 			FreshnessUrgency: freshnessUrgency,
 		}
-		
+
 		totalScore := types.CalculateScore(scoreParams)
 
 		recipeName := recipe.LocalName
@@ -377,10 +377,10 @@ func (s *RecommendationService) AnalyzeWasteInsights(userID string) ([]dto.Waste
 
 	// 1. Общая статистика waste за последние 30 дней
 	type WasteStatsResult struct {
-		TotalWaste    float64
-		TotalCooked   int
-		TotalWasted   int
-		WasteRate     float64
+		TotalWaste  float64
+		TotalCooked int
+		TotalWasted int
+		WasteRate   float64
 	}
 
 	var stats WasteStatsResult
@@ -426,9 +426,9 @@ func (s *RecommendationService) AnalyzeWasteInsights(userID string) ([]dto.Waste
 
 	// Если есть значимый waste, добавляем инсайт
 	if stats.TotalWasted > 0 {
-		message := fmt.Sprintf("Zmarnowałeś %d dań (%.0f%%) w ostatnim miesiącu", 
+		message := fmt.Sprintf("Zmarnowałeś %d dań (%.0f%%) w ostatnim miesiącu",
 			stats.TotalWasted, stats.WasteRate)
-		
+
 		suggestion := "Gotuj mniejsze porcje lub częściej spożywaj resztki"
 		if stats.WasteRate >= 30 {
 			suggestion = "⚠️ Wysoki poziom marnotrawstwa — rozważ mniejsze porcje"
@@ -478,9 +478,9 @@ func (s *RecommendationService) AnalyzeWasteInsights(userID string) ([]dto.Waste
 
 	for _, cw := range categoryWaste {
 		if cw.WasteCount > 0 {
-			message := fmt.Sprintf("Najczęściej marnujesz dania z kategorii '%s' (%d razy)", 
+			message := fmt.Sprintf("Najczęściej marnujesz dania z kategorii '%s' (%d razy)",
 				cw.Category, cw.WasteCount)
-			
+
 			insights = append(insights, dto.WasteInsight{
 				Type:       string(types.TypeCategoryInsight),
 				Message:    message,

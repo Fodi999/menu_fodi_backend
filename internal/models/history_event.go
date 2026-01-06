@@ -17,7 +17,7 @@ const (
 	EventTypeFridgeAdd    HistoryEventType = "fridge_add"
 	EventTypeFridgeRemove HistoryEventType = "fridge_remove"
 	// EventTypeExpired is an alias for EventTypeWaste (automatic expiry cleanup)
-	EventTypeExpired      HistoryEventType = "waste" // Uses 'waste' enum value for expired items
+	EventTypeExpired HistoryEventType = "waste" // Uses 'waste' enum value for expired items
 )
 
 // HistorySourceType represents what triggered the event
@@ -29,7 +29,7 @@ const (
 	SourceTypeFridge       HistorySourceType = "fridge"
 	SourceTypeManual       HistorySourceType = "manual"
 	// SourceTypeAuto is an alias for SourceTypeFridge (automatic system actions)
-	SourceTypeAuto         HistorySourceType = "fridge" // Uses 'fridge' enum value for auto actions
+	SourceTypeAuto HistorySourceType = "fridge" // Uses 'fridge' enum value for auto actions
 )
 
 // HistoryEvent represents a user action in the system
@@ -81,12 +81,12 @@ type ExpiredItemMetadata struct {
 	IngredientName string  `json:"ingredient_name"`
 	Quantity       float64 `json:"quantity"`
 	Unit           string  `json:"unit"`
-	Cost           float64 `json:"cost"`            // Total cost (quantity * pricePerUnit)
-	PricePerUnit   float64 `json:"price_per_unit"`  // Price per unit at time of expiry
-	Currency       string  `json:"currency"`        // PLN, EUR, USD
-	ExpiryDate     string  `json:"expiry_date"`     // ISO 8601 date
-	ArrivedAt      string  `json:"arrived_at"`      // When item was added to fridge
-	DaysInFridge   int     `json:"days_in_fridge"`  // How long item was stored
-	Reason         string  `json:"reason"`          // "expiry_date_passed"
-	Context        string  `json:"context"`         // "fridge_cleanup"
+	Cost           float64 `json:"cost"`           // Total cost (quantity * pricePerUnit)
+	PricePerUnit   float64 `json:"price_per_unit"` // Price per unit at time of expiry
+	Currency       string  `json:"currency"`       // PLN, EUR, USD
+	ExpiryDate     string  `json:"expiry_date"`    // ISO 8601 date
+	ArrivedAt      string  `json:"arrived_at"`     // When item was added to fridge
+	DaysInFridge   int     `json:"days_in_fridge"` // How long item was stored
+	Reason         string  `json:"reason"`         // "expiry_date_passed"
+	Context        string  `json:"context"`        // "fridge_cleanup"
 }

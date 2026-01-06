@@ -287,7 +287,7 @@ func (s *FridgeService) cleanupExpiredItems(userID string) error {
 	err := s.db.Where("user_id = ? AND expires_at IS NOT NULL AND expires_at < NOW()", userID).
 		Preload("Ingredient").
 		Find(&expiredItems).Error
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to find expired items: %w", err)
 	}
@@ -306,7 +306,7 @@ func (s *FridgeService) cleanupExpiredItems(userID string) error {
 		cost := 0.0
 		pricePerUnit := 0.0
 		currency := item.CurrentPriceCurrency // Уже string, не pointer
-		
+
 		if item.CurrentPricePerUnit != nil {
 			cost = item.Quantity * (*item.CurrentPricePerUnit)
 			pricePerUnit = *item.CurrentPricePerUnit
@@ -616,12 +616,12 @@ func (s *FridgeService) UpdateItemQuantity(userID string, itemID string, newQuan
 		logger.Info("attempted to update expired item, removing instead",
 			zap.String("item_id", itemID),
 			zap.String("ingredient_name", item.Ingredient.Name))
-		
+
 		// Запускаем очистку просроченных продуктов для этого пользователя
 		if err := s.cleanupExpiredItems(userID); err != nil {
 			logger.Warn("cleanup failed during update", zap.Error(err))
 		}
-		
+
 		return ErrNotFound // Продукт больше не существует
 	}
 
@@ -702,7 +702,7 @@ func (s *FridgeService) AddMissingFromRecipe(userID string, recipeID string) (*d
 		} else {
 			// Missing or different unit → add full amount
 			addQty = requiredQty
-			
+
 			// Get ingredient details
 			ingredient, err := s.ingredientRepo.GetIngredientByID(recipeIng.IngredientID)
 			if err != nil {

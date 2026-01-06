@@ -306,10 +306,10 @@ func (s *RecipeCookService) CookRecipe(
 	err = tx.Exec(`
 		INSERT INTO prepared_dishes (user_id, recipe_id, portions_available, portions_initial, prepared_at, expires_at, source, cost_per_portion, total_cost)
 		VALUES (?, ?::uuid, ?, ?, ?, ?, ?, ?, ?)
-	`, preparedDish.UserID, preparedDish.RecipeID, preparedDish.PortionsAvailable, 
-	   preparedDish.PortionsInitial, preparedDish.PreparedAt, preparedDish.ExpiresAt, preparedDish.Source,
-	   preparedDish.CostPerPortion, preparedDish.TotalCost).Error
-	
+	`, preparedDish.UserID, preparedDish.RecipeID, preparedDish.PortionsAvailable,
+		preparedDish.PortionsInitial, preparedDish.PreparedAt, preparedDish.ExpiresAt, preparedDish.Source,
+		preparedDish.CostPerPortion, preparedDish.TotalCost).Error
+
 	if err != nil {
 		tx.Rollback()
 		return nil, fmt.Errorf("failed to create prepared dish: %w", err)
@@ -325,15 +325,15 @@ func (s *RecipeCookService) CookRecipe(
 	historyRepo := database.NewHistoryRepository(s.db)
 	portionsCooked := portionsInitial
 	metadata := map[string]interface{}{
-		"recipe_name":        recipe.LocalName,
+		"recipe_name":         recipe.LocalName,
 		"servings_multiplier": servingsMultiplier,
-		"portions_initial":   portionsInitial,
-		"recipe_id":          recipeID,
-		"total_cost":         cookLog.TotalRecipeCost,
-		"used_value":         cookLog.UsedValue,
-		"waste_risk_saved":   cookLog.WasteRiskSaved,
+		"portions_initial":    portionsInitial,
+		"recipe_id":           recipeID,
+		"total_cost":          cookLog.TotalRecipeCost,
+		"used_value":          cookLog.UsedValue,
+		"waste_risk_saved":    cookLog.WasteRiskSaved,
 	}
-	
+
 	_ = historyRepo.CreateWithMetadata(
 		userID,
 		models.EventTypeCook,

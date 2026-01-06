@@ -74,7 +74,7 @@ func (r *HistoryRepository) GetByUserID(userID string, limit int) ([]models.Hist
 	var events []models.HistoryEvent
 
 	query := r.db.Where("user_id = ?", userID).Order("created_at DESC")
-	
+
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
