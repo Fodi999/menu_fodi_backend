@@ -2,15 +2,29 @@ package models
 
 import "time"
 
-// Ingredient category constants - категории продуктов
+// Culinary categories - for UI display (какой это продукт визуально)
 const (
-	CategoryProtein   = "protein"   // Белки: мясо, рыба, яйца
+	CategoryFish      = "fish"      // Рыба и морепродукты
+	CategoryMeat      = "meat"      // Мясо и птица
+	CategoryEgg       = "egg"       // Яйца
 	CategoryVegetable = "vegetable" // Овощи
 	CategoryFruit     = "fruit"     // Фрукты и ягоды
 	CategoryDairy     = "dairy"     // Молочные продукты
 	CategoryGrain     = "grain"     // Крупы, макароны, хлеб
 	CategoryCondiment = "condiment" // Специи, соусы, масла
 	CategoryOther     = "other"     // Прочее
+)
+
+// Nutrition groups - for AI and analytics (какая роль в питании)
+const (
+	NutritionProtein      = "protein"      // Белковые продукты
+	NutritionCarbohydrate = "carbohydrate" // Углеводные продукты
+	NutritionFat          = "fat"          // Жиросодержащие продукты
+	NutritionVegetable    = "vegetable"    // Овощи (некрахмалистые)
+	NutritionFruit        = "fruit"        // Фрукты и ягоды
+	NutritionDairy        = "dairy"        // Молочные продукты
+	NutritionCondiment    = "condiment"    // Специи и приправы
+	NutritionOther        = "other"        // Прочее
 )
 
 // Ingredient модель ингредиента - ОБЩИЙ КАТАЛОГ для всех пользователей
@@ -24,7 +38,8 @@ type Ingredient struct {
 	NameRU               *string   `gorm:"column:name_ru" json:"nameRu,omitempty"`
 	NormalizedValue      *string   `gorm:"column:normalized_value" json:"-"` // For search only
 	Unit                 string    `gorm:"column:unit;not null" json:"unit"` // "g", "ml", "pcs"
-	Category             string    `gorm:"column:category;not null" json:"category"`
+	Category             string    `gorm:"column:category;not null" json:"category"` // Culinary category (UI)
+	NutritionGroup       string    `gorm:"column:nutrition_group;not null" json:"nutritionGroup"` // Nutritional grouping (AI, analytics)
 	DefaultShelfLifeDays *int      `gorm:"column:defaultShelfLifeDays" json:"defaultShelfLifeDays,omitempty"`
 	DefaultPricePerUnit  *float64  `gorm:"column:defaultPricePerUnit" json:"defaultPricePerUnit,omitempty"`
 	AutoTranslated       bool      `gorm:"column:auto_translated;default:false" json:"autoTranslated"`

@@ -21,7 +21,8 @@ type IngredientResponse struct {
 	NamePl          string `json:"namePl"`
 	NameEn          string `json:"nameEn"`
 	NameRu          string `json:"nameRu"`
-	Category        string `json:"category"`
+	Category        string `json:"category"`        // Culinary category (UI)
+	NutritionGroup  string `json:"nutritionGroup"`  // Nutritional grouping (analytics)
 	Unit            string `json:"unit"`
 	NormalizedValue string `json:"normalizedValue"`
 	AutoTranslated  bool   `json:"autoTranslated"`
@@ -32,6 +33,7 @@ func ToIngredientResponse(i *models.Ingredient) IngredientResponse {
 	resp := IngredientResponse{
 		ID:             i.ID,
 		Category:       i.Category,
+		NutritionGroup: i.NutritionGroup,
 		Unit:           i.Unit,
 		AutoTranslated: i.AutoTranslated,
 	}

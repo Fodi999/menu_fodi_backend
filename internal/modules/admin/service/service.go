@@ -671,7 +671,8 @@ type IngredientClassification struct {
 	NamePL           string `json:"name_pl"`
 	NameEN           string `json:"name_en"`
 	NameRU           string `json:"name_ru"`
-	Category         string `json:"category"`
+	Category         string `json:"category"`          // Culinary category (fish, meat, vegetable, etc.)
+	NutritionGroup   string `json:"nutrition_group"`   // Nutritional grouping (protein, carbohydrate, etc.)
 	Unit             string `json:"unit"`
 	NormalizedValue  string `json:"normalized_value"`
 }
@@ -727,18 +728,31 @@ func (s *adminService) ClassifyIngredient(inputName string) (*IngredientClassifi
 Given an ingredient name in ANY language (Polish, English, Russian, or other), you must:
 1. Detect the language
 2. Translate to all three languages (pl, en, ru)
-3. Determine the category
-4. Determine the unit of measurement
-5. Create a normalized value (lowercase, singular, ASCII)
+3. Determine the culinary category (what it looks like in the kitchen)
+4. Determine the nutrition group (nutritional role)
+5. Determine the unit of measurement
+6. Create a normalized value (lowercase, singular, ASCII)
 
-Categories (MUST be one of these):
-- vegetable
-- fruit  
-- protein
-- dairy
-- grain
-- condiment
-- other
+Culinary Categories (what type of food - for UI display):
+- fish (рыба и морепродукты)
+- meat (мясо и птица)
+- egg (яйца)
+- vegetable (овощи)
+- fruit (фрукты и ягоды)
+- dairy (молочные продукты)
+- grain (крупы, макароны, хлеб)
+- condiment (специи, соусы, масла)
+- other (прочее)
+
+Nutrition Groups (nutritional role - for AI and analytics):
+- protein (белковые продукты: мясо, рыба, яйца, бобовые)
+- carbohydrate (углеводы: крупы, макароны, хлеб, картофель)
+- fat (жиры: масла, орехи, семена)
+- vegetable (овощи некрахмалистые)
+- fruit (фрукты и ягоды)
+- dairy (молочные продукты)
+- condiment (специи и приправы)
+- other (прочее)
 
 Units (MUST be one of these):
 - g (for: spices, salt, flour, meat, fish, vegetables, fruits)
@@ -750,15 +764,17 @@ Respond ONLY with valid JSON in this exact format:
   "name_pl": "polish name",
   "name_en": "english name",
   "name_ru": "russian name",
-  "category": "category from list",
+  "category": "culinary category",
+  "nutrition_group": "nutritional role",
   "unit": "g or ml or pcs",
   "normalized_value": "normalized_english_singular"
 }
 
 Examples:
-"Соль каменная" → {"name_pl": "sól", "name_en": "salt", "name_ru": "соль", "category": "condiment", "unit": "g", "normalized_value": "salt"}
-"Eggs" → {"name_pl": "jajka", "name_en": "eggs", "name_ru": "яйца", "category": "protein", "unit": "pcs", "normalized_value": "egg"}
-"Mleko" → {"name_pl": "mleko", "name_en": "milk", "name_ru": "молоко", "category": "dairy", "unit": "ml", "normalized_value": "milk"}
+"Лосось" → {"name_pl": "łosoś", "name_en": "salmon", "name_ru": "лосось", "category": "fish", "nutrition_group": "protein", "unit": "g", "normalized_value": "salmon"}
+"Яйца" → {"name_pl": "jajka", "name_en": "eggs", "name_ru": "яйца", "category": "egg", "nutrition_group": "protein", "unit": "pcs", "normalized_value": "egg"}
+"Рис" → {"name_pl": "ryż", "name_en": "rice", "name_ru": "рис", "category": "grain", "nutrition_group": "carbohydrate", "unit": "g", "normalized_value": "rice"}
+"Оливковое масло" → {"name_pl": "oliwa z oliwek", "name_en": "olive oil", "name_ru": "оливковое масло", "category": "condiment", "nutrition_group": "fat", "unit": "ml", "normalized_value": "olive_oil"}
 
 Do not add explanations, markdown, or additional text. Just JSON.`
 
@@ -790,17 +806,28 @@ Do not add explanations, markdown, or additional text. Just JSON.`
 	if classification.NamePL == "" || classification.NameEN == "" || classification.NameRU == "" {
 		return nil, fmt.Errorf("AI returned incomplete translations")
 	}
-	if classification.Category == "" || classification.Unit == "" || classification.NormalizedValue == "" {
+	if classification.Category == "" || classification.NutritionGroup == "" || classification.Unit == "" || classification.NormalizedValue == "" {
 		return nil, fmt.Errorf("AI returned incomplete classification")
 	}
 
-	// Валидация category
+	// Валидация culinary category
 	validCategories := map[string]bool{
-		"vegetable": true, "fruit": true, "protein": true,
-		"dairy": true, "grain": true, "condiment": true, "other": true,
+		"fish": true, "meat": true, "egg": true,
+		"vegetable": true, "fruit": true, "dairy": true,
+		"grain": true, "condiment": true, "other": true,
 	}
 	if !validCategories[classification.Category] {
 		return nil, fmt.Errorf("invalid category from AI: %s", classification.Category)
+	}
+
+	// Валидация nutrition_group
+	validNutritionGroups := map[string]bool{
+		"protein": true, "carbohydrate": true, "fat": true,
+		"vegetable": true, "fruit": true, "dairy": true,
+		"condiment": true, "other": true,
+	}
+	if !validNutritionGroups[classification.NutritionGroup] {
+		return nil, fmt.Errorf("invalid nutrition_group from AI: %s", classification.NutritionGroup)
 	}
 
 	// Валидация unit
@@ -852,6 +879,7 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		NormalizedValue: &normalized,
 		Unit:            classification.Unit,
 		Category:        classification.Category,
+		NutritionGroup:  classification.NutritionGroup,
 		AutoTranslated:  true,
 	}
 
@@ -860,8 +888,8 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		return nil, fmt.Errorf("failed to save to database: %w", err)
 	}
 
-	fmt.Printf("💾 Ingredient created: %s [%s] category=%s unit=%s\n",
-		classification.NameEN, id, classification.Category, classification.Unit)
+	fmt.Printf("💾 Ingredient created: %s [%s] category=%s nutrition_group=%s unit=%s\n",
+		classification.NameEN, id, classification.Category, classification.NutritionGroup, classification.Unit)
 
 	return ingredient, nil
 }
