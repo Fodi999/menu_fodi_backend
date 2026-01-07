@@ -24,6 +24,14 @@ type GetUsersParams struct {
 	Search *string
 }
 
+// IngredientSuggestion - DTO для быстрых подсказок (без AI)
+type IngredientSuggestion struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+	Unit     string `json:"unit"`
+}
+
 // UserListResponse ответ со списком пользователей и метаданными
 type UserListResponse struct {
 	Users []models.User  `json:"users"`
@@ -90,6 +98,12 @@ type AdminService interface {
 	GetIngredientsStats() (map[string]interface{}, error)
 	CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error)
 	CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool)
+	
+	// Ingredient Suggestions (fast autocomplete, no AI)
+	SuggestIngredients(query string, limit int) ([]IngredientSuggestion, error)
+	
+	// AI Hint (smart conflict resolution)
+	GenerateIngredientHint(input string, existing []string) (*string, error)
 
 	// Ingredient Catalog Management
 	BulkImportIngredients(ingredients []struct {
@@ -850,4 +864,103 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		classification.NameEN, id, classification.Category, classification.Unit)
 
 	return ingredient, nil
+}
+
+// SuggestIngredients - быстрый поиск ингредиентов без AI (для autocomplete)
+// Поиск по всем полям: name, name_pl, name_en, name_ru, normalized_value
+func (s *adminService) SuggestIngredients(query string, limit int) ([]IngredientSuggestion, error) {
+	// Минимум 2 символа для поиска
+	query = strings.TrimSpace(query)
+	if len(query) < 2 {
+		return []IngredientSuggestion{}, nil
+	}
+
+	// Формируем паттерн для LIKE
+	pattern := "%" + strings.ToLower(query) + "%"
+
+	var ingredients []models.Ingredient
+	err := s.db.Where(`
+		LOWER(name) LIKE ? OR
+		LOWER(name_pl) LIKE ? OR
+		LOWER(name_en) LIKE ? OR
+		LOWER(name_ru) LIKE ? OR
+		LOWER(normalized_value) LIKE ?
+	`, pattern, pattern, pattern, pattern, pattern).
+		Limit(limit).
+		Order("name ASC").
+		Find(&ingredients).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("suggest query failed: %w", err)
+	}
+
+	// Преобразуем в DTO
+	suggestions := make([]IngredientSuggestion, 0, len(ingredients))
+	for _, ing := range ingredients {
+		// Выбираем лучшее имя для отображения
+		displayName := ing.Name
+		if ing.NameEN != nil && *ing.NameEN != "" {
+			displayName = *ing.NameEN
+		}
+
+		suggestions = append(suggestions, IngredientSuggestion{
+			ID:       ing.ID,
+			Name:     displayName,
+			Category: ing.Category,
+			Unit:     ing.Unit,
+		})
+	}
+
+	fmt.Printf("🔍 Suggest: query='%s' → found %d results\n", query, len(suggestions))
+	return suggestions, nil
+}
+
+// GenerateIngredientHint - AI подсказка при конфликте или неоднозначности
+// Используется только когда найдены похожие ингредиенты
+func (s *adminService) GenerateIngredientHint(input string, existing []string) (*string, error) {
+	// Если нет существующих - подсказка не нужна
+	if len(existing) == 0 {
+		return nil, nil
+	}
+
+	// Формируем промпт для AI
+	systemPrompt := `You are a culinary assistant helping to clarify ingredient names.
+User wants to add an ingredient, but similar ones already exist.
+Suggest a short clarification (2-4 words) to make the name unique and descriptive.
+If no clarification is needed, return "null".
+
+Examples:
+Input: "абрикос", Existing: ["абрикос"]
+Output: "абрикос свежий" or "абрикос консервированный"
+
+Input: "salt", Existing: ["rock salt", "sea salt"]
+Output: "table salt"
+
+Input: "apple", Existing: ["granny smith apple"]
+Output: "red apple"
+
+Respond with ONLY the suggested name, no explanation.`
+
+	userPrompt := fmt.Sprintf(`User wants to add: "%s"
+Existing ingredients: %v
+
+Suggest a clarification or return "null" if not needed.`, input, existing)
+
+	// Вызываем Groq AI
+	response, err := s.groqClient.SimpleChat(systemPrompt, userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("AI hint failed: %w", err)
+	}
+
+	// Очищаем ответ
+	cleaned := strings.TrimSpace(response)
+	cleaned = strings.Trim(cleaned, `"'`)
+
+	// Если AI сказал "null" или пусто - подсказки нет
+	if cleaned == "" || strings.ToLower(cleaned) == "null" {
+		return nil, nil
+	}
+
+	fmt.Printf("💡 AI Hint: '%s' + %v → '%s'\n", input, existing, cleaned)
+	return &cleaned, nil
 }

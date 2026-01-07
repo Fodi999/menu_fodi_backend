@@ -866,3 +866,66 @@ func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request)
 		"data":    ToIngredientResponse(ingredient),
 	})
 }
+
+// SuggestIngredients - быстрый поиск для autocomplete (без AI)
+// GET /api/admin/ingredients/suggest?q=абр&limit=5
+func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	limitStr := r.URL.Query().Get("limit")
+
+	// Default limit
+	limit := 5
+	if limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 20 {
+			limit = parsedLimit
+		}
+	}
+
+	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d\n", query, limit)
+
+	// Получаем подсказки из service
+	suggestions, err := h.service.SuggestIngredients(query, limit)
+	if err != nil {
+		fmt.Printf("❌ Suggest failed: %v\n", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch suggestions")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"data": suggestions,
+	})
+}
+
+// IngredientHint - AI подсказка при конфликте
+// POST /api/admin/ingredients/hint
+func (h *AdminHandlers) IngredientHint(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Input    string   `json:"input"`
+		Existing []string `json:"existing"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Валидация
+	if strings.TrimSpace(req.Input) == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "input is required")
+		return
+	}
+
+	fmt.Printf("💡 IngredientHint: input='%s', existing=%v\n", req.Input, req.Existing)
+
+	// Получаем AI подсказку
+	hint, err := h.service.GenerateIngredientHint(req.Input, req.Existing)
+	if err != nil {
+		fmt.Printf("❌ AI hint failed: %v\n", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "AI hint generation failed")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"suggestion": hint,
+	})
+}
