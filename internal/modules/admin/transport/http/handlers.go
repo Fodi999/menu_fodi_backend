@@ -869,8 +869,9 @@ func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-// SuggestIngredients - быстрый поиск для autocomplete (без AI)
+// SuggestIngredients - быстрый поиск для autocomplete (без AI, с локализацией)
 // GET /api/admin/ingredients/suggest?q=абр&limit=5
+// Поддерживает заголовок Accept-Language: pl/en/ru
 func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Request) {
 	// 🛡️ Защита от panic
 	defer func() {
@@ -883,7 +884,12 @@ func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Reques
 	query := r.URL.Query().Get("q")
 	limitStr := r.URL.Query().Get("limit")
 
-	fmt.Printf("📥 Request: GET /suggest?q=%s&limit=%s\n", query, limitStr)
+	// Получаем язык из Accept-Language заголовка
+	acceptLang := r.Header.Get("Accept-Language")
+	lang := normalizeLang(acceptLang)
+
+	fmt.Printf("📥 Request: GET /suggest?q=%s&limit=%s (Accept-Language: %s → %s)\n", 
+		query, limitStr, acceptLang, lang)
 
 	// Default limit
 	limit := 5
@@ -900,20 +906,44 @@ func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Reques
 		query = query[:100]
 	}
 
-	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d\n", query, limit)
+	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d, lang='%s'\n", query, limit, lang)
 
-	// Получаем подсказки из service
-	suggestions, err := h.service.SuggestIngredients(query, limit)
+	// Получаем подсказки из service с указанием языка
+	suggestions, err := h.service.SuggestIngredients(query, limit, lang)
 	if err != nil {
 		fmt.Printf("❌ Suggest failed: %v\n", err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch suggestions")
 		return
 	}
 
-	fmt.Printf("✅ Returning %d suggestions\n", len(suggestions))
+	fmt.Printf("✅ Returning %d suggestions (lang=%s)\n", len(suggestions), lang)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"data": suggestions,
 	})
+}
+
+// normalizeLang нормализует Accept-Language заголовок в один из трех языков
+// Примеры: "pl-PL" → "pl", "en-US" → "en", "ru-RU" → "ru"
+func normalizeLang(acceptLang string) string {
+	acceptLang = strings.ToLower(strings.TrimSpace(acceptLang))
+	
+	// Парсим первый язык из списка (например: "pl-PL,en;q=0.9" → "pl")
+	if idx := strings.Index(acceptLang, ","); idx > 0 {
+		acceptLang = acceptLang[:idx]
+	}
+	
+	// Проверяем префикс языка
+	switch {
+	case strings.HasPrefix(acceptLang, "pl"):
+		return "pl"
+	case strings.HasPrefix(acceptLang, "ru"):
+		return "ru"
+	case strings.HasPrefix(acceptLang, "en"):
+		return "en"
+	default:
+		// По умолчанию английский
+		return "en"
+	}
 }
 
 // IngredientHint - AI подсказка при конфликте

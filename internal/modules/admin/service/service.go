@@ -24,12 +24,13 @@ type GetUsersParams struct {
 	Search *string
 }
 
-// IngredientSuggestion - DTO для быстрых подсказок (без AI)
+// IngredientSuggestion - DTO для быстрых подсказок (с локализацией)
 type IngredientSuggestion struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Category string `json:"category"`
-	Unit     string `json:"unit"`
+	ID             string `json:"id"`
+	Name           string `json:"name"`           // Локализованное имя (выбирается на бэкенде)
+	Category       string `json:"category"`
+	NutritionGroup string `json:"nutritionGroup"`
+	Unit           string `json:"unit"`
 }
 
 // UserListResponse ответ со списком пользователей и метаданными
@@ -99,8 +100,8 @@ type AdminService interface {
 	CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error)
 	CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool)
 	
-	// Ingredient Suggestions (fast autocomplete, no AI)
-	SuggestIngredients(query string, limit int) ([]IngredientSuggestion, error)
+	// Ingredient Suggestions (fast autocomplete, no AI, с локализацией)
+	SuggestIngredients(query string, limit int, lang string) ([]IngredientSuggestion, error)
 	
 	// AI Hint (smart conflict resolution)
 	GenerateIngredientHint(input string, existing []string) (*string, error)
@@ -900,8 +901,8 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 
 // SuggestIngredients - быстрый поиск ингредиентов без AI (для autocomplete)
 // Поиск по всем языкам: name, name_pl, name_en, name_ru, normalized_value
-// С защитой от panic и полным логированием
-func (s *adminService) SuggestIngredients(query string, limit int) ([]IngredientSuggestion, error) {
+// С поддержкой локализации через параметр lang
+func (s *adminService) SuggestIngredients(query string, limit int, lang string) ([]IngredientSuggestion, error) {
 	// 🛡️ Защита от panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -911,7 +912,7 @@ func (s *adminService) SuggestIngredients(query string, limit int) ([]Ingredient
 
 	// Валидация входных данных
 	query = strings.TrimSpace(query)
-	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d\n", query, limit)
+	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d, lang='%s'\n", query, limit, lang)
 
 	if len(query) < 2 {
 		fmt.Printf("⚠️ Query too short (min 2 chars), returning empty\n")
@@ -922,7 +923,8 @@ func (s *adminService) SuggestIngredients(query string, limit int) ([]Ingredient
 	pattern := "%" + strings.ToLower(query) + "%"
 	fmt.Printf("🔎 SQL pattern: '%s'\n", pattern)
 
-	// Полный поиск по всем языковым полям + normalized_value
+	// ВАЖНО: Всегда выбираем ВСЕ языковые поля + метаданные
+	// Никогда не выбираем только одну колонку
 	sqlQuery := `
 		LOWER(name) LIKE ? OR
 		LOWER(COALESCE(name_pl, '')) LIKE ? OR
@@ -931,7 +933,7 @@ func (s *adminService) SuggestIngredients(query string, limit int) ([]Ingredient
 		LOWER(COALESCE(normalized_value, '')) LIKE ?
 	`
 	
-	fmt.Printf("📋 SQL Query:\nSELECT * FROM Ingredient WHERE %s\nORDER BY name ASC LIMIT %d\n", 
+	fmt.Printf("📋 SQL Query:\nSELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE %s\nORDER BY name ASC LIMIT %d\n", 
 		sqlQuery, limit)
 
 	var ingredients []models.Ingredient
@@ -947,35 +949,60 @@ func (s *adminService) SuggestIngredients(query string, limit int) ([]Ingredient
 
 	fmt.Printf("✅ Found %d rows from DB\n", len(ingredients))
 
-	// Преобразуем в DTO с защитой от nil
+	// Преобразуем в DTO с локализацией
 	suggestions := make([]IngredientSuggestion, 0, len(ingredients))
 	for i, ing := range ingredients {
-		// Безопасное извлечение имени
-		displayName := ing.Name
-		if ing.NameEN != nil && *ing.NameEN != "" {
-			displayName = *ing.NameEN
-		} else if ing.NamePL != nil && *ing.NamePL != "" {
-			displayName = *ing.NamePL
-		} else if ing.NameRU != nil && *ing.NameRU != "" {
-			displayName = *ing.NameRU
-		}
+		// Выбираем имя на основе языка (как в GetAllIngredients)
+		displayName := s.getLocalizedName(ing, lang)
 
 		// Защита от пустых значений
 		if displayName == "" {
-			fmt.Printf("⚠️ Row %d: empty name, skipping (ID: %s)\n", i, ing.ID)
+			fmt.Printf("⚠️ Row %d: empty name for lang '%s', skipping (ID: %s)\n", i, lang, ing.ID)
 			continue
 		}
 
 		suggestions = append(suggestions, IngredientSuggestion{
-			ID:       ing.ID,
-			Name:     displayName,
-			Category: ing.Category,
-			Unit:     ing.Unit,
+			ID:             ing.ID,
+			Name:           displayName,
+			Category:       ing.Category,
+			NutritionGroup: ing.NutritionGroup,
+			Unit:           ing.Unit,
 		})
 	}
 
-	fmt.Printf("🔍 Suggest: query='%s' → %d results (after filtering)\n", query, len(suggestions))
+	fmt.Printf("🔍 Suggest: query='%s', lang='%s' → %d results (after filtering)\n", query, lang, len(suggestions))
 	return suggestions, nil
+}
+
+// getLocalizedName возвращает название ингредиента на нужном языке
+// Используется как в GetAllIngredients, так и в SuggestIngredients
+func (s *adminService) getLocalizedName(ing models.Ingredient, lang string) string {
+	switch lang {
+	case "pl":
+		if ing.NamePL != nil && *ing.NamePL != "" {
+			return *ing.NamePL
+		}
+	case "ru":
+		if ing.NameRU != nil && *ing.NameRU != "" {
+			return *ing.NameRU
+		}
+	case "en":
+		if ing.NameEN != nil && *ing.NameEN != "" {
+			return *ing.NameEN
+		}
+	}
+	
+	// Fallback chain: EN → PL → RU → name
+	if ing.NameEN != nil && *ing.NameEN != "" {
+		return *ing.NameEN
+	}
+	if ing.NamePL != nil && *ing.NamePL != "" {
+		return *ing.NamePL
+	}
+	if ing.NameRU != nil && *ing.NameRU != "" {
+		return *ing.NameRU
+	}
+	return ing.Name
 }
 
 // GenerateIngredientHint - AI подсказка при конфликте или неоднозначности
