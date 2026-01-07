@@ -85,10 +85,9 @@ type AdminService interface {
 	GetTransactionsByType(txType string, limit, offset int) ([]models.TokenTransaction, error)
 	GetTransactionStats() (map[string]interface{}, error)
 
-	// Ingredients Catalog
+	// Ingredients Catalog (AI-powered)
 	GetAllIngredients() ([]models.Ingredient, error)
 	GetIngredientsStats() (map[string]interface{}, error)
-	CreateIngredientSimple(inputName, inputLang, category, unit, userID string) (*models.Ingredient, error)
 	CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error)
 	CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool)
 
@@ -802,70 +801,6 @@ Do not add explanations, markdown, or additional text. Just JSON.`
 	return &classification, nil
 }
 
-// IngredientTranslations структура для результата перевода
-type IngredientTranslations struct {
-	NamePL string `json:"name_pl"`
-	NameEN string `json:"name_en"`
-	NameRU string `json:"name_ru"`
-}
-
-// TranslateIngredient переводит название ингредиента на все три языка через Groq AI
-func (s *adminService) TranslateIngredient(inputName, inputLang string) (*IngredientTranslations, error) {
-	// Определяем названия языков для промпта
-	langNames := map[string]string{
-		"pl": "Polish",
-		"en": "English",
-		"ru": "Russian",
-	}
-
-	sourceLangName := langNames[inputLang]
-	if sourceLangName == "" {
-		sourceLangName = "Polish" // fallback
-	}
-
-	// Создаём промпт для перевода
-	systemPrompt := `You are a professional translator specializing in culinary terminology. 
-Translate ingredient names accurately, keeping in mind that they should be suitable for recipe ingredients.
-Respond ONLY with valid JSON in this exact format:
-{
-  "name_pl": "Polish translation",
-  "name_en": "English translation",
-  "name_ru": "Russian translation"
-}
-Do not add any explanations, markdown formatting, or additional text. Just the JSON object.`
-
-	userPrompt := fmt.Sprintf(`Translate this ingredient name from %s to Polish, English, and Russian:
-"%s"
-
-Return JSON with fields: name_pl, name_en, name_ru`, sourceLangName, inputName)
-
-	// Вызываем Groq AI
-	response, err := s.groqClient.SimpleChat(systemPrompt, userPrompt)
-	if err != nil {
-		return nil, fmt.Errorf("groq translation failed: %w", err)
-	}
-
-	// Очищаем ответ от возможных markdown форматирований
-	response = strings.TrimSpace(response)
-	response = strings.TrimPrefix(response, "```json")
-	response = strings.TrimPrefix(response, "```")
-	response = strings.TrimSuffix(response, "```")
-	response = strings.TrimSpace(response)
-
-	// Парсим JSON
-	var translations IngredientTranslations
-	if err := json.Unmarshal([]byte(response), &translations); err != nil {
-		return nil, fmt.Errorf("failed to parse AI response: %w (response: %s)", err, response)
-	}
-
-	// Валидируем что все переводы не пустые
-	if translations.NamePL == "" || translations.NameEN == "" || translations.NameRU == "" {
-		return nil, fmt.Errorf("AI returned incomplete translations: %+v", translations)
-	}
-
-	return &translations, nil
-}
-
 // CheckIngredientExists проверяет существует ли ингредиент по normalized_value
 func (s *adminService) CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool) {
 	var ingredient models.Ingredient
@@ -915,56 +850,4 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		classification.NameEN, id, classification.Category, classification.Unit)
 
 	return ingredient, nil
-}
-
-// CreateIngredientSimple создает ингредиент с автоматическим переводом через AI
-// Теперь использует Groq для перевода на все три языка
-func (s *adminService) CreateIngredientSimple(inputName, inputLang, category, unit, userID string) (*models.Ingredient, error) {
-	// Генерируем UUID
-	id := uuid.New().String()
-
-	// 🧠 ИСПОЛЬЗУЕМ AI для перевода на все три языка
-	fmt.Printf("🤖 Translating '%s' from %s to all languages via Groq...\n", inputName, inputLang)
-	translations, err := s.TranslateIngredient(inputName, inputLang)
-	if err != nil {
-		return nil, fmt.Errorf("failed to translate ingredient: %w", err)
-	}
-
-	fmt.Printf("✅ Translations: PL='%s', EN='%s', RU='%s'\n", 
-		translations.NamePL, translations.NameEN, translations.NameRU)
-
-	// Нормализуем значение для поиска (используем английский вариант)
-	normalized := normalizeValue(translations.NameEN)
-
-	// Создаём указатели для всех переводов
-	namePL := &translations.NamePL
-	nameEN := &translations.NameEN
-	nameRU := &translations.NameRU
-
-	ingredient := &models.Ingredient{
-		ID:              id,
-		Name:            translations.NameEN, // Legacy поле - используем английский перевод
-		NamePL:          namePL,
-		NameEN:          nameEN,
-		NameRU:          nameRU,
-		NormalizedValue: &normalized,
-		Unit:            unit,
-		Category:        category,
-		AutoTranslated:  true, // 🎯 Проставляем auto_translated = true
-	}
-
-	// Сохраняем в БД
-	if err := s.db.Create(ingredient).Error; err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("💾 Ingredient saved to DB with ID: %s (auto_translated=true)\n", id)
-	return ingredient, nil
-}
-
-// normalizeValue убирает диакритику и приводит к lowercase для поиска
-func normalizeValue(s string) string {
-	// TODO: Implement proper normalization
-	// For now, just lowercase
-	return s
 }
