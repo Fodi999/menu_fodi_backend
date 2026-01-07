@@ -1,40 +1,153 @@
-2026-01-06T11:24:00.367+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-06T11:24:00.655+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2026-01-06T11:24:00.655+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2026/01/06 11:24:00 ✅ EventBus initialized
-2026/01/06 11:24:00 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: token_earn (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: token_spend (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: task_completed (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: user_registered (total: 1)
-2026/01/06 11:24:00 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/06 11:24:00 📡 Hub subscribed to 10 event types
-2026/01/06 11:24:00 📡 WebSocket module initialized
-2026/01/06 11:24:00 🚀 WebSocket Hub started
-2026/01/06 11:24:00 🔧 Registering history module routes...
-2026/01/06 11:24:00 ✅ History module routes registered:
-2026/01/06 11:24:00    GET /api/history - Event history
-2026/01/06 11:24:00    GET /api/history/stats - Statistics
-2026/01/06 11:24:00    GET /api/history/recent - Recent activity
-2026/01/06 11:24:00    GET /api/history/losses - Expired items analytics
-2026/01/06 11:24:00 🔌 Registering WebSocket routes...
-2026/01/06 11:24:00 ✅ WebSocket routes registered:
-2026/01/06 11:24:00    GET /ws - General WebSocket connection
-2026/01/06 11:24:00    GET /ws/treasury - Treasury updates (admin)
-2026/01/06 11:24:00    GET /ws/tokens/{userID} - User token updates
-2026/01/06 11:24:00    GET /ws/stats - WebSocket statistics
-2026-01-06T11:24:00.657+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
-2026/01/06 11:24:16 🔐 AuthMiddleware: GET /api/admin/ingredients
-2026/01/06 11:24:16 📋 Auth header present: true, length: 264
-2026/01/06 11:24:16 🎫 Token extracted, length: 257
-2026/01/06 11:24:16 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/06 11:24:16 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/06 11:24:16 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
+2026-01-07T23:13:58.365+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-07T23:13:58.626+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
+2026-01-07T23:13:58.626+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
+2026/01/07 23:13:58 ✅ EventBus initialized
+2026/01/07 23:13:58 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: token_earn (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: token_spend (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: task_completed (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: user_registered (total: 1)
+2026/01/07 23:13:58 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/07 23:13:58 📡 Hub subscribed to 10 event types
+2026/01/07 23:13:58 📡 WebSocket module initialized
+2026/01/07 23:13:58 🚀 WebSocket Hub started
+2026/01/07 23:13:58 🔧 Registering history module routes...
+2026/01/07 23:13:58 ✅ History module routes registered:
+2026/01/07 23:13:58    GET /api/history - Event history
+2026/01/07 23:13:58    GET /api/history/stats - Statistics
+2026/01/07 23:13:58    GET /api/history/recent - Recent activity
+2026/01/07 23:13:58    GET /api/history/losses - Expired items analytics
+2026/01/07 23:13:58 🔌 Registering WebSocket routes...
+2026/01/07 23:13:58 ✅ WebSocket routes registered:
+2026/01/07 23:13:58    GET /ws - General WebSocket connection
+2026/01/07 23:13:58    GET /ws/treasury - Treasury updates (admin)
+2026/01/07 23:13:58    GET /ws/tokens/{userID} - User token updates
+2026/01/07 23:13:58    GET /ws/stats - WebSocket statistics
+2026-01-07T23:13:58.628+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2026/01/07 23:14:14 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/07 23:14:14 📋 Auth header present: true, length: 264
+2026/01/07 23:14:14 🎫 Token extracted, length: 257
+2026/01/07 23:14:14 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:14:14 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:14:14 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=salmon&limit=1
+🔍 SuggestIngredients: query='salmon', limit=1
+🔍 SuggestIngredients: query='salmon', limit=1
+🔎 SQL pattern: '%salmon%'
+📋 SQL Query:
+SELECT * FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 1
 
-2026/01/06 11:24:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:545
-[0m[33m[165.024ms] [34;1m[rows:214][0m SELECT * FROM "Ingredient" ORDER BY category ASC, name ASC
-2026/01/06 11:24:16 [MacBook-Air-Dmitrij.local/HItPUAbpkE-000001] "GET http://localhost:8080/api/admin/ingredients?search=соль HTTP/1.1" from [::1]:55287 - 200 1070B in 166.23625ms
+2026/01/07 23:14:14 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:941
+[0m[33m[171.817ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%salmon%'
+	 ORDER BY name ASC LIMIT 1
+✅ Found 1 rows from DB
+🔍 Suggest: query='salmon' → 1 results (after filtering)
+✅ Returning 1 suggestions
+2026/01/07 23:14:14 [MacBook-Air-Dmitrij.local/jGAzXJdoyb-000001] "GET http://localhost:8080/api/admin/ingredients/suggest?q=salmon&limit=1 HTTP/1.1" from [::1]:60142 - 200 101B in 172.992166ms
+2026/01/07 23:14:14 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/07 23:14:14 📋 Auth header present: true, length: 264
+2026/01/07 23:14:14 🎫 Token extracted, length: 257
+2026/01/07 23:14:14 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:14:14 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:14:14 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=rice&limit=1
+🔍 SuggestIngredients: query='rice', limit=1
+🔍 SuggestIngredients: query='rice', limit=1
+🔎 SQL pattern: '%rice%'
+📋 SQL Query:
+SELECT * FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 1
+
+2026/01/07 23:14:14 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:941
+[0m[33m[115.581ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%rice%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%rice%'
+	 ORDER BY name ASC LIMIT 1
+✅ Found 1 rows from DB
+🔍 Suggest: query='rice' → 1 results (after filtering)
+✅ Returning 1 suggestions
+2026/01/07 23:14:14 [MacBook-Air-Dmitrij.local/jGAzXJdoyb-000002] "GET http://localhost:8080/api/admin/ingredients/suggest?q=rice&limit=1 HTTP/1.1" from [::1]:60147 - 200 100B in 116.090417ms
+2026/01/07 23:14:14 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
+2026/01/07 23:14:14 📋 Auth header present: true, length: 264
+2026/01/07 23:14:14 🎫 Token extracted, length: 257
+2026/01/07 23:14:14 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:14:14 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:14:14 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
+🔍 PreviewRecipeWithAI: title='Salmon with Rice and Teriyaki Sauce', ingredients=2
+
+2026/01/07 23:14:14 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[109.514ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/07 23:14:14 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[32.621ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '10be8c97-a130-41c5-b4bc-836bd4194ff1' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Salmon with Rice and Teriyaki Sauce
+📋 Ingredients count: 2
+📥 AI Response length: 490 chars
+✅ AI generated recipe: 3 steps, 27 min, easy difficulty
+🔍 Recipe preview generated: Salmon with Rice and Teriyaki Sauce (3 steps)
+✅ Preview generated: 3 steps, 27 min
+2026/01/07 23:14:15 [MacBook-Air-Dmitrij.local/jGAzXJdoyb-000003] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:60148 - 200 462B in 690.75875ms
+2026/01/07 23:14:15 🔐 AuthMiddleware: POST /api/admin/recipes/create-ai
+2026/01/07 23:14:15 📋 Auth header present: true, length: 264
+2026/01/07 23:14:15 🎫 Token extracted, length: 257
+2026/01/07 23:14:15 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:14:15 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:14:15 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/create-ai
+✅ UserID from context: 7ec8aba4-8195-4be1-a9a8-067c30aae306
+🎯 CreateRecipeWithAI: title='Grilled Salmon with Jasmine Rice', ingredients=2, user=7ec8aba4-8195-4be1-a9a8-067c30aae306
+
+2026/01/07 23:14:15 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[76.580ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/07 23:14:15 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[110.863ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '10be8c97-a130-41c5-b4bc-836bd4194ff1' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Grilled Salmon with Jasmine Rice
+📋 Ingredients count: 2
+📥 AI Response length: 565 chars
+✅ AI generated recipe: 3 steps, 18 min, easy difficulty
+
+2026/01/07 23:14:15 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:299 [35;1mrecord not found
+[0m[33m[139.129ms] [34;1m[rows:0][0m SELECT * FROM "Recipe" WHERE "canonicalName" = 'grilled_salmon_with_jasmine_rice' ORDER BY "Recipe"."id" LIMIT 1
+
+2026/01/07 23:14:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:337 [33mSLOW SQL >= 200ms
+[0m[31;1m[206.111ms] [33m[rows:1][35m INSERT INTO "Recipe" ("canonicalName","localName","title","name_pl","name_en","name_ru","description_pl","description_en","description_ru","country","region","category","difficulty","timeMinutes","servings","portionWeightGrams","steps_pl","steps_en","steps_ru","source","id") VALUES ('grilled_salmon_with_jasmine_rice','','Grilled Salmon with Jasmine Rice',NULL,NULL,NULL,'Grilled Salmon with Jasmine Rice, a flavorful and healthy dish combining the richness of salmon with the fragrance of jasmine rice',NULL,NULL,'pl',NULL,'main','easy',18,1,NULL,NULL,NULL,NULL,'{"authorId":"7ec8aba4-8195-4be1-a9a8-067c30aae306","generator":"groq-llama-3.3-70b","timestamp":1767824055,"type":"ai"}','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce') RETURNING "id","steps","nutritionProfile","createdAt","updatedAt"[0m
+
+2026/01/07 23:14:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:352 [33mSLOW SQL >= 200ms
+[0m[31;1m[311.357ms] [33m[rows:1][35m INSERT INTO "RecipeIngredient" ("recipeId","ingredientId","ingredientKey","quantity","unit","optional","sortOrder","id") VALUES ('eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','fe1c7431-b1b7-4d36-94bf-74276481983e','',200,'g',false,1,'4dc50894-7225-41a1-b46c-0cea299fb50d') RETURNING "id","createdAt"[0m
+
+2026/01/07 23:14:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:352
+[0m[33m[152.496ms] [34;1m[rows:1][0m INSERT INTO "RecipeIngredient" ("recipeId","ingredientId","ingredientKey","quantity","unit","optional","sortOrder","id") VALUES ('eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','10be8c97-a130-41c5-b4bc-836bd4194ff1','',150,'g',false,2,'952674c9-147c-4064-b0cf-7a7c1396ee5f') RETURNING "id","createdAt"
+
+2026/01/07 23:14:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:372 [33mSLOW SQL >= 200ms
+[0m[31;1m[230.231ms] [33m[rows:1][35m UPDATE "Recipe" SET "canonicalName"='grilled_salmon_with_jasmine_rice',"localName"='',"title"='Grilled Salmon with Jasmine Rice',"name_pl"=NULL,"name_en"=NULL,"name_ru"=NULL,"description_pl"='Grilled Salmon with Jasmine Rice, a flavorful and healthy dish combining the richness of salmon with the fragrance of jasmine rice',"description_en"=NULL,"description_ru"=NULL,"country"='pl',"region"=NULL,"category"='main',"difficulty"='easy',"timeMinutes"=18,"servings"=1,"portionWeightGrams"=NULL,"steps"='[]',"steps_pl"='[{"order":1,"text":"Season salmon with salt and pepper","time":2},{"order":2,"text":"Grill the salmon for 8 minutes","time":8},{"order":3,"text":"Cook rice according to package instructions","time":8}]',"steps_en"=NULL,"steps_ru"=NULL,"nutritionProfile"='{"calories":380,"carbohydrate":45,"fat":10,"protein":40}',"source"='{"authorId":"7ec8aba4-8195-4be1-a9a8-067c30aae306","generator":"groq-llama-3.3-70b","timestamp":1767824055,"type":"ai"}',"createdAt"='2026-01-07 22:14:15.972',"updatedAt"='2026-01-07 23:14:16.686' WHERE "id" = 'eada0eb7-c00a-4a93-8cf3-98e9b27c62ce'[0m
+💾 Recipe saved: Grilled Salmon with Jasmine Rice [eada0eb7-c00a-4a93-8cf3-98e9b27c62ce] with 2 ingredients, 3 steps
+✅ Recipe created via AI: Grilled Salmon with Jasmine Rice [eada0eb7-c00a-4a93-8cf3-98e9b27c62ce]
+✅ Recipe created via AI: Grilled Salmon with Jasmine Rice [eada0eb7-c00a-4a93-8cf3-98e9b27c62ce]
+2026/01/07 23:14:16 [MacBook-Air-Dmitrij.local/jGAzXJdoyb-000004] "POST http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:60151 - 201 961B in 1.836744333s

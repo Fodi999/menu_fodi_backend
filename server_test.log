@@ -1,52 +1,216 @@
-2026-01-04T22:47:38.575+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-04T22:47:38.836+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2026-01-04T22:47:38.836+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2026/01/04 22:47:38 ✅ EventBus initialized
-2026/01/04 22:47:38 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: token_earn (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: token_spend (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: task_completed (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: user_registered (total: 1)
-2026/01/04 22:47:38 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/04 22:47:38 📡 Hub subscribed to 10 event types
-2026/01/04 22:47:38 📡 WebSocket module initialized
-2026/01/04 22:47:38 🚀 WebSocket Hub started
-2026/01/04 22:47:38 🔧 Registering history module routes...
-2026/01/04 22:47:38 ✅ History module routes registered:
-2026/01/04 22:47:38    GET /api/history - Event history
-2026/01/04 22:47:38    GET /api/history/stats - Statistics
-2026/01/04 22:47:38    GET /api/history/recent - Recent activity
-2026/01/04 22:47:38    GET /api/history/losses - Expired items analytics
-2026/01/04 22:47:38 🔌 Registering WebSocket routes...
-2026/01/04 22:47:38 ✅ WebSocket routes registered:
-2026/01/04 22:47:38    GET /ws - General WebSocket connection
-2026/01/04 22:47:38    GET /ws/treasury - Treasury updates (admin)
-2026/01/04 22:47:38    GET /ws/tokens/{userID} - User token updates
-2026/01/04 22:47:38    GET /ws/stats - WebSocket statistics
-2026-01-04T22:47:38.838+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2026-01-07T23:02:56.271+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-07T23:02:58.117+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
+2026-01-07T23:02:58.117+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
+2026/01/07 23:02:58 ✅ EventBus initialized
+2026/01/07 23:02:58 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: token_earn (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: token_spend (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: task_completed (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: user_registered (total: 1)
+2026/01/07 23:02:58 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/07 23:02:58 📡 Hub subscribed to 10 event types
+2026/01/07 23:02:58 📡 WebSocket module initialized
+2026/01/07 23:02:58 🚀 WebSocket Hub started
+2026/01/07 23:02:58 🔧 Registering history module routes...
+2026/01/07 23:02:58 ✅ History module routes registered:
+2026/01/07 23:02:58    GET /api/history - Event history
+2026/01/07 23:02:58    GET /api/history/stats - Statistics
+2026/01/07 23:02:58    GET /api/history/recent - Recent activity
+2026/01/07 23:02:58    GET /api/history/losses - Expired items analytics
+2026/01/07 23:02:58 🔌 Registering WebSocket routes...
+2026/01/07 23:02:58 ✅ WebSocket routes registered:
+2026/01/07 23:02:58    GET /ws - General WebSocket connection
+2026/01/07 23:02:58    GET /ws/treasury - Treasury updates (admin)
+2026/01/07 23:02:58    GET /ws/tokens/{userID} - User token updates
+2026/01/07 23:02:58    GET /ws/stats - WebSocket statistics
+2026-01-07T23:02:58.119+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
+2026/01/07 23:02:59 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/07 23:02:59 📋 Auth header present: true, length: 264
+2026/01/07 23:02:59 🎫 Token extracted, length: 257
+2026/01/07 23:02:59 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:02:59 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:02:59 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=salmon&limit=1
+🔍 SuggestIngredients: query='salmon', limit=1
+🔍 SuggestIngredients: query='salmon', limit=1
+🔎 SQL pattern: '%salmon%'
+📋 SQL Query:
+SELECT * FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 1
 
-2026/01/04 22:47:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
-[0m[31;1m[271.753ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
+2026/01/07 23:02:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:941 [33mSLOW SQL >= 200ms
+[0m[31;1m[368.557ms] [33m[rows:1][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%salmon%'
+	 ORDER BY name ASC LIMIT 1[0m
+✅ Found 1 rows from DB
+🔍 Suggest: query='salmon' → 1 results (after filtering)
+✅ Returning 1 suggestions
+2026/01/07 23:02:59 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000001] "GET http://localhost:8080/api/admin/ingredients/suggest?q=salmon&limit=1 HTTP/1.1" from [::1]:57240 - 200 101B in 370.122417ms
+2026/01/07 23:02:59 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/07 23:02:59 📋 Auth header present: true, length: 264
+2026/01/07 23:02:59 🎫 Token extracted, length: 257
+2026/01/07 23:02:59 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:02:59 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:02:59 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=rice&limit=1
+🔍 SuggestIngredients: query='rice', limit=1
+🔍 SuggestIngredients: query='rice', limit=1
+🔎 SQL pattern: '%rice%'
+📋 SQL Query:
+SELECT * FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 1
 
-2026/01/04 22:47:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[336.940ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-04 22:47:57.743' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/04 22:47:58 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/04 22:47:58 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-04T22:47:58.080+0100	[34mINFO[0m	logger/logger.go:57	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/04 22:47:58 [MacBook-Air-Dmitrij.local/eT0YmcuS5w-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:53880 - 200 509B in 685.637167ms
-2026/01/04 22:47:58 🔐 AuthMiddleware: GET /api/admin/recipes
-2026/01/04 22:47:58 📋 Auth header present: true, length: 264
-2026/01/04 22:47:58 🎫 Token extracted, length: 257
-2026/01/04 22:47:58 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/04 22:47:58 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/04 22:47:58 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+2026/01/07 23:02:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:941
+[0m[33m[119.102ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%rice%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%rice%'
+	 ORDER BY name ASC LIMIT 1
+✅ Found 1 rows from DB
+🔍 Suggest: query='rice' → 1 results (after filtering)
+✅ Returning 1 suggestions
+2026/01/07 23:02:59 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000002] "GET http://localhost:8080/api/admin/ingredients/suggest?q=rice&limit=1 HTTP/1.1" from [::1]:57245 - 200 100B in 119.531917ms
+2026/01/07 23:02:59 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
+2026/01/07 23:02:59 📋 Auth header present: true, length: 264
+2026/01/07 23:02:59 🎫 Token extracted, length: 257
+2026/01/07 23:02:59 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:02:59 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:02:59 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
+🔍 PreviewRecipeWithAI: title='Salmon with Rice and Teriyaki Sauce', ingredients=2
 
-2026/01/04 22:47:58 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:575 [35;1mERROR: column "canonical_name" does not exist (SQLSTATE 42703)
-[0m[33m[80.027ms] [34;1m[rows:0][0m SELECT * FROM "Recipe" ORDER BY category ASC, canonical_name ASC
-2026/01/04 22:47:58 [MacBook-Air-Dmitrij.local/eT0YmcuS5w-000002] "GET http://localhost:8080/api/admin/recipes HTTP/1.1" from [::1]:53881 - 500 35B in 80.334ms
-2026-01-04T22:49:07.789+0100	[34mINFO[0m	logger/logger.go:57	🛑 Shutting down server...
-2026-01-04T22:49:07.789+0100	[34mINFO[0m	logger/logger.go:57	✅ Server stopped gracefully
+2026/01/07 23:02:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:141
+[0m[33m[137.459ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/07 23:02:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:141
+[0m[33m[52.550ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '10be8c97-a130-41c5-b4bc-836bd4194ff1' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Salmon with Rice and Teriyaki Sauce
+📋 Ingredients count: 2
+📥 AI Response length: 492 chars
+✅ AI generated recipe: 3 steps, 27 min, easy difficulty
+🔍 Recipe preview generated: Salmon with Rice and Teriyaki Sauce (3 steps)
+✅ Preview generated: 3 steps, 27 min
+2026/01/07 23:03:02 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000003] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:57246 - 200 464B in 3.178097125s
+2026/01/07 23:03:02 🔐 AuthMiddleware: POST /api/admin/recipes/create-ai
+2026/01/07 23:03:02 📋 Auth header present: true, length: 264
+2026/01/07 23:03:02 🎫 Token extracted, length: 257
+2026/01/07 23:03:02 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:03:02 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:03:02 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/create-ai
+2026/01/07 23:03:02 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000004] "POST http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:57260 - 401 34B in 244.375µs
+2026/01/07 23:03:17 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/07 23:03:17 📋 Auth header present: true, length: 264
+2026/01/07 23:03:17 🎫 Token extracted, length: 257
+2026/01/07 23:03:17 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:03:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:03:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=salmon&limit=1
+🔍 SuggestIngredients: query='salmon', limit=1
+🔍 SuggestIngredients: query='salmon', limit=1
+🔎 SQL pattern: '%salmon%'
+📋 SQL Query:
+SELECT * FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 1
+
+2026/01/07 23:03:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:941
+[0m[33m[81.042ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%salmon%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%salmon%'
+	 ORDER BY name ASC LIMIT 1
+✅ Found 1 rows from DB
+🔍 Suggest: query='salmon' → 1 results (after filtering)
+✅ Returning 1 suggestions
+2026/01/07 23:03:17 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000005] "GET http://localhost:8080/api/admin/ingredients/suggest?q=salmon&limit=1 HTTP/1.1" from [::1]:57326 - 200 101B in 81.514042ms
+2026/01/07 23:03:17 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/07 23:03:17 📋 Auth header present: true, length: 264
+2026/01/07 23:03:17 🎫 Token extracted, length: 257
+2026/01/07 23:03:17 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:03:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:03:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=rice&limit=1
+🔍 SuggestIngredients: query='rice', limit=1
+🔍 SuggestIngredients: query='rice', limit=1
+🔎 SQL pattern: '%rice%'
+📋 SQL Query:
+SELECT * FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 1
+
+2026/01/07 23:03:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:941
+[0m[33m[30.866ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%rice%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%rice%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%rice%'
+	 ORDER BY name ASC LIMIT 1
+✅ Found 1 rows from DB
+🔍 Suggest: query='rice' → 1 results (after filtering)
+✅ Returning 1 suggestions
+2026/01/07 23:03:17 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000006] "GET http://localhost:8080/api/admin/ingredients/suggest?q=rice&limit=1 HTTP/1.1" from [::1]:57327 - 200 100B in 31.263625ms
+2026/01/07 23:03:17 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
+2026/01/07 23:03:17 📋 Auth header present: true, length: 264
+2026/01/07 23:03:17 🎫 Token extracted, length: 257
+2026/01/07 23:03:17 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:03:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:03:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
+🔍 PreviewRecipeWithAI: title='Salmon with Rice and Teriyaki Sauce', ingredients=2
+
+2026/01/07 23:03:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:141
+[0m[33m[30.281ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/07 23:03:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:141
+[0m[33m[56.375ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '10be8c97-a130-41c5-b4bc-836bd4194ff1' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Salmon with Rice and Teriyaki Sauce
+📋 Ingredients count: 2
+📥 AI Response length: 513 chars
+✅ AI generated recipe: 3 steps, 27 min, easy difficulty
+🔍 Recipe preview generated: Salmon with Rice and Teriyaki Sauce (3 steps)
+✅ Preview generated: 3 steps, 27 min
+2026/01/07 23:03:18 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000007] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:57328 - 200 485B in 583.549208ms
+2026/01/07 23:03:18 🔐 AuthMiddleware: POST /api/admin/recipes/create-ai
+2026/01/07 23:03:18 📋 Auth header present: true, length: 264
+2026/01/07 23:03:18 🎫 Token extracted, length: 257
+2026/01/07 23:03:18 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/07 23:03:18 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/07 23:03:18 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/create-ai
+2026/01/07 23:03:18 [MacBook-Air-Dmitrij.local/ySBoK0XUQY-000008] "POST http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:57338 - 401 34B in 211.042µs
+2026-01-07T23:11:11.550+0100	[34mINFO[0m	logger/logger.go:57	🛑 Shutting down server...
+2026-01-07T23:11:11.551+0100	[34mINFO[0m	logger/logger.go:57	✅ Server stopped gracefully

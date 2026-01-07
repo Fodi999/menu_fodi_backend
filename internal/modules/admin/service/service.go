@@ -117,6 +117,10 @@ type AdminService interface {
 	// Recipes Catalog
 	GetAllRecipes() ([]models.RecipeCatalog, error)
 	GetRecipesStats() (map[string]interface{}, error)
+	
+	// AI Recipe Creation (НОВОЕ)
+	CreateRecipeWithAI(req CreateRecipeAIRequest, authorID string) (*models.RecipeCatalog, error)
+	PreviewRecipeWithAI(req CreateRecipeAIRequest) (*AIRecipeResponse, error)
 }
 
 // adminService реализация интерфейса AdminService
