@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
@@ -662,8 +663,51 @@ type IngredientClassification struct {
 	NormalizedValue  string `json:"normalized_value"`
 }
 
+// sanitizeIngredientName очищает input от мусора перед отправкой в AI
+func sanitizeIngredientName(input string) string {
+	// Убираем лишние пробелы
+	input = strings.TrimSpace(input)
+	
+	// Разбиваем на слова
+	words := strings.Fields(input)
+	
+	// Фильтруем мусорные слова
+	bannedWords := map[string]bool{
+		"test": true, "testing": true, "prod": true, "production": true,
+		"demo": true, "sample": true, "example": true, "debug": true,
+	}
+	
+	cleanWords := []string{}
+	for _, word := range words {
+		// Пропускаем числа
+		if _, err := strconv.Atoi(word); err == nil {
+			continue
+		}
+		// Пропускаем banned words (case-insensitive)
+		if bannedWords[strings.ToLower(word)] {
+			continue
+		}
+		cleanWords = append(cleanWords, word)
+		
+		// Максимум 3 слова (чтобы не перегружать AI)
+		if len(cleanWords) >= 3 {
+			break
+		}
+	}
+	
+	// Возвращаем очищенную строку
+	if len(cleanWords) == 0 {
+		return input // Если всё отфильтровалось, вернём оригинал
+	}
+	
+	return strings.Join(cleanWords, " ")
+}
+
 // ClassifyIngredient полная AI-классификация ингредиента из сырого названия
 func (s *adminService) ClassifyIngredient(inputName string) (*IngredientClassification, error) {
+	// 🧹 Sanitize input перед отправкой в AI
+	cleanInput := sanitizeIngredientName(inputName)
+	fmt.Printf("📝 Input sanitized: '%s' → '%s'\n", inputName, cleanInput)
 	// 🧠 GROQ AI PROMPT - определяет ВСЁ автоматически
 	systemPrompt := `You are a culinary expert system for ingredient classification.
 
@@ -705,10 +749,10 @@ Examples:
 
 Do not add explanations, markdown, or additional text. Just JSON.`
 
-	userPrompt := fmt.Sprintf(`Classify this ingredient: "%s"`, inputName)
+	userPrompt := fmt.Sprintf(`Classify this ingredient: "%s"`, cleanInput)
 
 	// Вызываем Groq AI
-	fmt.Printf("🤖 Classifying ingredient '%s' via Groq AI...\n", inputName)
+	fmt.Printf("🤖 Classifying ingredient '%s' via Groq AI...\n", cleanInput)
 	response, err := s.groqClient.SimpleChat(systemPrompt, userPrompt)
 	if err != nil {
 		return nil, fmt.Errorf("groq classification failed: %w", err)
