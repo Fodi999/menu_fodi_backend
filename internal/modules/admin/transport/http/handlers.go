@@ -15,6 +15,44 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// IngredientResponse - DTO для ответа API (camelCase для frontend)
+type IngredientResponse struct {
+	ID              string `json:"id"`
+	NamePl          string `json:"namePl"`
+	NameEn          string `json:"nameEn"`
+	NameRu          string `json:"nameRu"`
+	Category        string `json:"category"`
+	Unit            string `json:"unit"`
+	NormalizedValue string `json:"normalizedValue"`
+	AutoTranslated  bool   `json:"autoTranslated"`
+}
+
+// ToIngredientResponse - mapper из модели в DTO
+func ToIngredientResponse(i *models.Ingredient) IngredientResponse {
+	resp := IngredientResponse{
+		ID:             i.ID,
+		Category:       i.Category,
+		Unit:           i.Unit,
+		AutoTranslated: i.AutoTranslated,
+	}
+
+	// Безопасное разыменование указателей
+	if i.NamePL != nil {
+		resp.NamePl = *i.NamePL
+	}
+	if i.NameEN != nil {
+		resp.NameEn = *i.NameEN
+	}
+	if i.NameRU != nil {
+		resp.NameRu = *i.NameRU
+	}
+	if i.NormalizedValue != nil {
+		resp.NormalizedValue = *i.NormalizedValue
+	}
+
+	return resp
+}
+
 type AdminHandlers struct {
 	service service.AdminService
 	policy  service.AdminPolicy
@@ -779,15 +817,12 @@ func (h *AdminHandlers) GetRecipesStats(w http.ResponseWriter, r *http.Request) 
 
 // CreateIngredient создает новый ингредиент в каталоге
 // POST /api/admin/ingredients
-// Создаёт новый ингредиент с автоматическим переводом через Groq AI
+// 🧠 ПОЛНАЯ AI-КЛАССИФИКАЦИЯ - принимает только inputName
 func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("🎯 CreateIngredient handler called\n")
+	fmt.Printf("🎯 CreateIngredient handler called (AI Classification Mode)\n")
 	
 	var req struct {
 		InputName string `json:"inputName"`
-		InputLang string `json:"inputLang"`
-		Category  string `json:"category"`
-		Unit      string `json:"unit"`
 	}
 
 	// Декодируем запрос
@@ -797,62 +832,37 @@ func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Логируем полученные данные
-	fmt.Printf("📦 Received: inputName='%s', inputLang='%s', category='%s', unit='%s'\n", 
-		req.InputName, req.InputLang, req.Category, req.Unit)
-
 	// Валидация
-	if req.InputName == "" {
-		fmt.Printf("❌ inputName is empty\n")
+	if strings.TrimSpace(req.InputName) == "" {
 		utils.RespondWithError(w, http.StatusBadRequest, "inputName is required")
 		return
 	}
-	
-	// 🔧 FALLBACK: Если inputLang не указан, используем польский по умолчанию
-	if req.InputLang == "" {
-		req.InputLang = "pl"
-		fmt.Printf("⚠️ inputLang not provided, using default: 'pl'\n")
-	}
-	
-	if req.InputLang != "pl" && req.InputLang != "en" && req.InputLang != "ru" {
-		utils.RespondWithError(w, http.StatusBadRequest, "inputLang must be pl, en, or ru")
-		return
-	}
-	if req.Category == "" {
-		utils.RespondWithError(w, http.StatusBadRequest, "category is required")
-		return
-	}
-	if req.Unit == "" {
-		utils.RespondWithError(w, http.StatusBadRequest, "unit is required")
-		return
-	}
 
-	// Получаем userID из контекста (опционально, для логирования)
+	// Получаем userID из контекста
 	userID := middleware.GetUserID(r)
 	var userIDStr string
 	if userID != nil {
 		userIDStr = userID.String()
 	}
 
-	// 🤖 Вызываем сервис для создания ингредиента С ПЕРЕВОДОМ ЧЕРЕЗ AI
-	ingredient, err := h.service.CreateIngredientSimple(req.InputName, req.InputLang, req.Category, req.Unit, userIDStr)
+	fmt.Printf("📦 Creating ingredient from: '%s'\n", req.InputName)
+
+	// � ПОЛНАЯ AI-КЛАССИФИКАЦИЯ - AI определяет всё: язык, переводы, категорию, единицы
+	ingredient, err := h.service.CreateIngredientWithAI(req.InputName, userIDStr)
 	if err != nil {
+		// Проверка на дубликат
+		if strings.Contains(err.Error(), "INGREDIENT_ALREADY_EXISTS") {
+			utils.RespondWithError(w, http.StatusConflict, fmt.Sprintf("Ingredient already exists: %v", err))
+			return
+		}
 		utils.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to create ingredient: %v", err))
 		return
 	}
 
-	// Формируем ответ
+	// ✅ Формируем ответ через mapper (безопасное разыменование указателей)
 	utils.RespondWithJSON(w, http.StatusCreated, map[string]interface{}{
 		"success": true,
-		"message": "Ingredient created and translated successfully",
-		"data": map[string]interface{}{
-			"id":             ingredient.ID,
-			"namePl":         ingredient.NamePL,
-			"nameEn":         ingredient.NameEN,
-			"nameRu":         ingredient.NameRU,
-			"category":       ingredient.Category,
-			"unit":           ingredient.Unit,
-			"autoTranslated": ingredient.AutoTranslated,
-		},
+		"message": "Ingredient created via AI classification",
+		"data":    ToIngredientResponse(ingredient),
 	})
 }

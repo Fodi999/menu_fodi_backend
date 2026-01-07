@@ -5,7 +5,8 @@ import "time"
 // Ingredient category constants - категории продуктов
 const (
 	CategoryProtein   = "protein"   // Белки: мясо, рыба, яйца
-	CategoryVegetable = "vegetable" // Овощи и фрукты
+	CategoryVegetable = "vegetable" // Овощи
+	CategoryFruit     = "fruit"     // Фрукты и ягоды
 	CategoryDairy     = "dairy"     // Молочные продукты
 	CategoryGrain     = "grain"     // Крупы, макароны, хлеб
 	CategoryCondiment = "condiment" // Специи, соусы, масла

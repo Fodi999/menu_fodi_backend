@@ -88,6 +88,8 @@ type AdminService interface {
 	GetAllIngredients() ([]models.Ingredient, error)
 	GetIngredientsStats() (map[string]interface{}, error)
 	CreateIngredientSimple(inputName, inputLang, category, unit, userID string) (*models.Ingredient, error)
+	CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error)
+	CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool)
 
 	// Ingredient Catalog Management
 	BulkImportIngredients(ingredients []struct {
@@ -650,6 +652,112 @@ func (s *adminService) GetRecipesStats() (map[string]interface{}, error) {
 	}, nil
 }
 
+// IngredientClassification полная классификация ингредиента через AI
+type IngredientClassification struct {
+	NamePL           string `json:"name_pl"`
+	NameEN           string `json:"name_en"`
+	NameRU           string `json:"name_ru"`
+	Category         string `json:"category"`
+	Unit             string `json:"unit"`
+	NormalizedValue  string `json:"normalized_value"`
+}
+
+// ClassifyIngredient полная AI-классификация ингредиента из сырого названия
+func (s *adminService) ClassifyIngredient(inputName string) (*IngredientClassification, error) {
+	// 🧠 GROQ AI PROMPT - определяет ВСЁ автоматически
+	systemPrompt := `You are a culinary expert system for ingredient classification.
+
+Given an ingredient name in ANY language (Polish, English, Russian, or other), you must:
+1. Detect the language
+2. Translate to all three languages (pl, en, ru)
+3. Determine the category
+4. Determine the unit of measurement
+5. Create a normalized value (lowercase, singular, ASCII)
+
+Categories (MUST be one of these):
+- vegetable
+- fruit  
+- protein
+- dairy
+- grain
+- condiment
+- other
+
+Units (MUST be one of these):
+- g (for: spices, salt, flour, meat, fish, vegetables, fruits)
+- ml (for: liquids, oils, sauces, milk, water)
+- pcs (for: eggs, bread, whole fruits like avocado)
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "name_pl": "polish name",
+  "name_en": "english name",
+  "name_ru": "russian name",
+  "category": "category from list",
+  "unit": "g or ml or pcs",
+  "normalized_value": "normalized_english_singular"
+}
+
+Examples:
+"Соль каменная" → {"name_pl": "sól", "name_en": "salt", "name_ru": "соль", "category": "condiment", "unit": "g", "normalized_value": "salt"}
+"Eggs" → {"name_pl": "jajka", "name_en": "eggs", "name_ru": "яйца", "category": "protein", "unit": "pcs", "normalized_value": "egg"}
+"Mleko" → {"name_pl": "mleko", "name_en": "milk", "name_ru": "молоко", "category": "dairy", "unit": "ml", "normalized_value": "milk"}
+
+Do not add explanations, markdown, or additional text. Just JSON.`
+
+	userPrompt := fmt.Sprintf(`Classify this ingredient: "%s"`, inputName)
+
+	// Вызываем Groq AI
+	fmt.Printf("🤖 Classifying ingredient '%s' via Groq AI...\n", inputName)
+	response, err := s.groqClient.SimpleChat(systemPrompt, userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("groq classification failed: %w", err)
+	}
+
+	// Очищаем ответ от markdown
+	response = strings.TrimSpace(response)
+	response = strings.TrimPrefix(response, "```json")
+	response = strings.TrimPrefix(response, "```")
+	response = strings.TrimSuffix(response, "```")
+	response = strings.TrimSpace(response)
+
+	fmt.Printf("🔍 AI Response: %s\n", response)
+
+	// Парсим JSON
+	var classification IngredientClassification
+	if err := json.Unmarshal([]byte(response), &classification); err != nil {
+		return nil, fmt.Errorf("failed to parse AI response: %w (response: %s)", err, response)
+	}
+
+	// Валидация результата
+	if classification.NamePL == "" || classification.NameEN == "" || classification.NameRU == "" {
+		return nil, fmt.Errorf("AI returned incomplete translations")
+	}
+	if classification.Category == "" || classification.Unit == "" || classification.NormalizedValue == "" {
+		return nil, fmt.Errorf("AI returned incomplete classification")
+	}
+
+	// Валидация category
+	validCategories := map[string]bool{
+		"vegetable": true, "fruit": true, "protein": true,
+		"dairy": true, "grain": true, "condiment": true, "other": true,
+	}
+	if !validCategories[classification.Category] {
+		return nil, fmt.Errorf("invalid category from AI: %s", classification.Category)
+	}
+
+	// Валидация unit
+	validUnits := map[string]bool{"g": true, "ml": true, "pcs": true}
+	if !validUnits[classification.Unit] {
+		return nil, fmt.Errorf("invalid unit from AI: %s", classification.Unit)
+	}
+
+	fmt.Printf("✅ Classification successful: category=%s, unit=%s, normalized=%s\n",
+		classification.Category, classification.Unit, classification.NormalizedValue)
+
+	return &classification, nil
+}
+
 // IngredientTranslations структура для результата перевода
 type IngredientTranslations struct {
 	NamePL string `json:"name_pl"`
@@ -712,6 +820,57 @@ Return JSON with fields: name_pl, name_en, name_ru`, sourceLangName, inputName)
 	}
 
 	return &translations, nil
+}
+
+// CheckIngredientExists проверяет существует ли ингредиент по normalized_value
+func (s *adminService) CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool) {
+	var ingredient models.Ingredient
+	err := s.db.Where("normalized_value = ?", strings.ToLower(normalizedValue)).First(&ingredient).Error
+	if err != nil {
+		return nil, false
+	}
+	return &ingredient, true
+}
+
+// CreateIngredientWithAI создает ингредиент используя ПОЛНУЮ AI-классификацию
+// Принимает только inputName, остальное определяет AI
+func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error) {
+	// 1️⃣ Полная AI-классификация
+	classification, err := s.ClassifyIngredient(inputName)
+	if err != nil {
+		return nil, fmt.Errorf("AI classification failed: %w", err)
+	}
+
+	// 2️⃣ Проверка на дубликаты по normalized_value
+	if existing, exists := s.CheckIngredientExists(classification.NormalizedValue); exists {
+		return nil, fmt.Errorf("INGREDIENT_ALREADY_EXISTS: %s (id: %s)", classification.NormalizedValue, existing.ID)
+	}
+
+	// 3️⃣ Создание ингредиента
+	id := uuid.New().String()
+	normalized := strings.ToLower(classification.NormalizedValue)
+
+	ingredient := &models.Ingredient{
+		ID:              id,
+		Name:            classification.NameEN, // Legacy - английское название
+		NamePL:          &classification.NamePL,
+		NameEN:          &classification.NameEN,
+		NameRU:          &classification.NameRU,
+		NormalizedValue: &normalized,
+		Unit:            classification.Unit,
+		Category:        classification.Category,
+		AutoTranslated:  true,
+	}
+
+	// 4️⃣ Сохранение в БД
+	if err := s.db.Create(ingredient).Error; err != nil {
+		return nil, fmt.Errorf("failed to save to database: %w", err)
+	}
+
+	fmt.Printf("💾 Ingredient created: %s [%s] category=%s unit=%s\n",
+		classification.NameEN, id, classification.Category, classification.Unit)
+
+	return ingredient, nil
 }
 
 // CreateIngredientSimple создает ингредиент с автоматическим переводом через AI
