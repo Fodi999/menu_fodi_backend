@@ -872,8 +872,18 @@ func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request)
 // SuggestIngredients - быстрый поиск для autocomplete (без AI)
 // GET /api/admin/ingredients/suggest?q=абр&limit=5
 func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Request) {
+	// 🛡️ Защита от panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("🚨 PANIC in SuggestIngredients handler: %v\n", r)
+			utils.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		}
+	}()
+
 	query := r.URL.Query().Get("q")
 	limitStr := r.URL.Query().Get("limit")
+
+	fmt.Printf("📥 Request: GET /suggest?q=%s&limit=%s\n", query, limitStr)
 
 	// Default limit
 	limit := 5
@@ -881,6 +891,13 @@ func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Reques
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 20 {
 			limit = parsedLimit
 		}
+	}
+
+	// Дополнительная валидация query
+	query = strings.TrimSpace(query)
+	if len(query) > 100 {
+		fmt.Printf("⚠️ Query too long (%d chars), truncating to 100\n", len(query))
+		query = query[:100]
 	}
 
 	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d\n", query, limit)
@@ -893,6 +910,7 @@ func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	fmt.Printf("✅ Returning %d suggestions\n", len(suggestions))
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"data": suggestions,
 	})

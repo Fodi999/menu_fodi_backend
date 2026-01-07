@@ -895,40 +895,71 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 }
 
 // SuggestIngredients - быстрый поиск ингредиентов без AI (для autocomplete)
-// Поиск по всем полям: name, name_pl, name_en, name_ru, normalized_value
+// Поиск по всем языкам: name, name_pl, name_en, name_ru, normalized_value
+// С защитой от panic и полным логированием
 func (s *adminService) SuggestIngredients(query string, limit int) ([]IngredientSuggestion, error) {
-	// Минимум 2 символа для поиска
+	// 🛡️ Защита от panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("🚨 PANIC in SuggestIngredients: %v\n", r)
+		}
+	}()
+
+	// Валидация входных данных
 	query = strings.TrimSpace(query)
+	fmt.Printf("🔍 SuggestIngredients: query='%s', limit=%d\n", query, limit)
+
 	if len(query) < 2 {
+		fmt.Printf("⚠️ Query too short (min 2 chars), returning empty\n")
 		return []IngredientSuggestion{}, nil
 	}
 
-	// Формируем паттерн для LIKE
+	// SQL injection защита через параметризованный запрос
 	pattern := "%" + strings.ToLower(query) + "%"
+	fmt.Printf("🔎 SQL pattern: '%s'\n", pattern)
+
+	// Полный поиск по всем языковым полям + normalized_value
+	sqlQuery := `
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	`
+	
+	fmt.Printf("📋 SQL Query:\nSELECT * FROM Ingredient WHERE %s\nORDER BY name ASC LIMIT %d\n", 
+		sqlQuery, limit)
 
 	var ingredients []models.Ingredient
-	err := s.db.Where(`
-		LOWER(name) LIKE ? OR
-		LOWER(name_pl) LIKE ? OR
-		LOWER(name_en) LIKE ? OR
-		LOWER(name_ru) LIKE ? OR
-		LOWER(normalized_value) LIKE ?
-	`, pattern, pattern, pattern, pattern, pattern).
+	err := s.db.Where(sqlQuery, pattern, pattern, pattern, pattern, pattern).
 		Limit(limit).
 		Order("name ASC").
 		Find(&ingredients).Error
 
 	if err != nil {
+		fmt.Printf("❌ SQL Error: %v\n", err)
 		return nil, fmt.Errorf("suggest query failed: %w", err)
 	}
 
-	// Преобразуем в DTO
+	fmt.Printf("✅ Found %d rows from DB\n", len(ingredients))
+
+	// Преобразуем в DTO с защитой от nil
 	suggestions := make([]IngredientSuggestion, 0, len(ingredients))
-	for _, ing := range ingredients {
-		// Выбираем лучшее имя для отображения
+	for i, ing := range ingredients {
+		// Безопасное извлечение имени
 		displayName := ing.Name
 		if ing.NameEN != nil && *ing.NameEN != "" {
 			displayName = *ing.NameEN
+		} else if ing.NamePL != nil && *ing.NamePL != "" {
+			displayName = *ing.NamePL
+		} else if ing.NameRU != nil && *ing.NameRU != "" {
+			displayName = *ing.NameRU
+		}
+
+		// Защита от пустых значений
+		if displayName == "" {
+			fmt.Printf("⚠️ Row %d: empty name, skipping (ID: %s)\n", i, ing.ID)
+			continue
 		}
 
 		suggestions = append(suggestions, IngredientSuggestion{
@@ -939,7 +970,7 @@ func (s *adminService) SuggestIngredients(query string, limit int) ([]Ingredient
 		})
 	}
 
-	fmt.Printf("🔍 Suggest: query='%s' → found %d results\n", query, len(suggestions))
+	fmt.Printf("🔍 Suggest: query='%s' → %d results (after filtering)\n", query, len(suggestions))
 	return suggestions, nil
 }
 
