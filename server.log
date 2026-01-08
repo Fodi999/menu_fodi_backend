@@ -188,3 +188,2333 @@ ORDER BY name ASC LIMIT 1
 🔍 Suggest: query='rice', lang='pl' → 1 results (after filtering)
 ✅ Returning 1 suggestions (lang=pl)
 2026/01/08 00:23:58 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000005] "GET http://localhost:8080/api/admin/ingredients/suggest?q=rice&limit=1 HTTP/1.1" from [::1]:61697 - 200 143B in 32.810958ms
+2026/01/08 00:27:07 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000006] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:62526 - 200 0B in 36.75µs
+2026/01/08 00:27:07 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 00:27:07 📋 Auth header present: true, length: 264
+2026/01/08 00:27:07 🎫 Token extracted, length: 257
+2026/01/08 00:27:07 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 00:27:07 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 00:27:07 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T00:27:07.876+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T00:27:07.876+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 00:27:08 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[132.506ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T00:27:08.009+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 00:27:08 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000007] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:62527 - 200 97B in 133.299917ms
+2026/01/08 00:27:08 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000008] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:62526 - 200 0B in 9.167µs
+2026/01/08 00:27:08 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 00:27:08 📋 Auth header present: true, length: 264
+2026/01/08 00:27:08 🎫 Token extracted, length: 257
+2026/01/08 00:27:08 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 00:27:08 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 00:27:08 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T00:27:08.348+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T00:27:08.348+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 00:27:08 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[30.749ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T00:27:08.379+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 00:27:08 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000009] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:62527 - 200 97B in 31.100041ms
+2026/01/08 00:27:15 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000010] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:62526 - 200 0B in 30.417µs
+2026/01/08 00:27:15 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 00:27:15 📋 Auth header present: true, length: 264
+2026/01/08 00:27:15 🎫 Token extracted, length: 257
+2026/01/08 00:27:15 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 00:27:15 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 00:27:15 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔎 SQL pattern: '%ло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 00:27:15 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[71.676ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='ло', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 00:27:15 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000011] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:62527 - 200 1326B in 72.30675ms
+2026/01/08 00:27:17 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000012] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:62526 - 200 0B in 76.875µs
+2026/01/08 00:27:17 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 00:27:17 📋 Auth header present: true, length: 264
+2026/01/08 00:27:17 🎫 Token extracted, length: 257
+2026/01/08 00:27:17 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 00:27:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 00:27:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лос&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лос', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лос', limit=10, lang='ru'
+🔎 SQL pattern: '%лос%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 00:27:18 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[82.268ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лос%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лос%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лос%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лос%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лос%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лос', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 00:27:18 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000013] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:62527 - 200 1130B in 82.944583ms
+2026/01/08 00:29:06 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000014] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8&limit=10 HTTP/1.1" from [::1]:63075 - 200 0B in 85.083µs
+2026/01/08 00:29:06 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 00:29:06 📋 Auth header present: true, length: 264
+2026/01/08 00:29:06 🎫 Token extracted, length: 257
+2026/01/08 00:29:06 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 00:29:06 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 00:29:06 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ри&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ри', limit=10, lang='ru'
+🔍 SuggestIngredients: query='ри', limit=10, lang='ru'
+🔎 SQL pattern: '%ри%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 00:29:06 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[72.642ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ри%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ри%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ри%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ри%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ри%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='ри', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 00:29:06 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000015] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8&limit=10 HTTP/1.1" from [::1]:63076 - 200 1343B in 73.64575ms
+2026/01/08 00:29:09 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000016] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8%D1%81&limit=10 HTTP/1.1" from [::1]:63075 - 200 0B in 28.5µs
+2026/01/08 00:29:09 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 00:29:09 📋 Auth header present: true, length: 264
+2026/01/08 00:29:09 🎫 Token extracted, length: 257
+2026/01/08 00:29:09 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 00:29:09 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 00:29:09 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=рис&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='рис', limit=10, lang='ru'
+🔍 SuggestIngredients: query='рис', limit=10, lang='ru'
+🔎 SQL pattern: '%рис%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 00:29:09 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[185.604ms] [34;1m[rows:6][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%рис%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%рис%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%рис%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%рис%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%рис%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 6 rows from DB
+🔍 Suggest: query='рис', lang='ru' → 6 results (after filtering)
+✅ Returning 6 suggestions (lang=ru)
+2026/01/08 00:29:09 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000017] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8%D1%81&limit=10 HTTP/1.1" from [::1]:63076 - 200 769B in 186.353875ms
+2026/01/08 09:06:30 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000018] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:55873 - 200 0B in 97.625µs
+2026/01/08 09:06:30 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:06:30 📋 Auth header present: true, length: 264
+2026/01/08 09:06:30 🎫 Token extracted, length: 257
+2026/01/08 09:06:30 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:30 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:30 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:06:30.861+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:06:30.861+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:06:31 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
+[0m[31;1m[767.717ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
+2026-01-08T09:06:31.629+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:06:31 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000019] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:55874 - 200 97B in 768.333333ms
+2026/01/08 09:06:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000020] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:55873 - 200 0B in 19.75µs
+2026/01/08 09:06:35 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:06:35 📋 Auth header present: true, length: 264
+2026/01/08 09:06:35 🎫 Token extracted, length: 257
+2026/01/08 09:06:35 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:35 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:35 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:06:35.891+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:06:35.891+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:06:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[67.450ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:06:35.959+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:06:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000021] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:55874 - 200 97B in 68.087ms
+2026/01/08 09:06:39 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000022] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=kj&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 31.375µs
+2026/01/08 09:06:39 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:06:39 📋 Auth header present: true, length: 264
+2026/01/08 09:06:39 🎫 Token extracted, length: 257
+2026/01/08 09:06:39 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:39 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:39 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=kj&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='kj', limit=10, lang='ru'
+🔍 SuggestIngredients: query='kj', limit=10, lang='ru'
+🔎 SQL pattern: '%kj%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:06:39 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[177.198ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%kj%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%kj%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%kj%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%kj%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%kj%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='kj', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:06:39 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000023] "GET http://localhost:8080/api/admin/ingredients/suggest?q=kj&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 177.9145ms
+2026/01/08 09:06:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000024] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=kjcj&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 25.042µs
+2026/01/08 09:06:40 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:06:40 📋 Auth header present: true, length: 264
+2026/01/08 09:06:40 🎫 Token extracted, length: 257
+2026/01/08 09:06:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:40 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=kjcj&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='kjcj', limit=10, lang='ru'
+🔍 SuggestIngredients: query='kjcj', limit=10, lang='ru'
+🔎 SQL pattern: '%kjcj%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:06:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[112.958ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%kjcj%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%kjcj%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%kjcj%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%kjcj%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%kjcj%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='kjcj', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:06:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000025] "GET http://localhost:8080/api/admin/ingredients/suggest?q=kjcj&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 113.53325ms
+2026/01/08 09:06:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000026] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=kjcjc&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 28.375µs
+2026/01/08 09:06:40 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:06:40 📋 Auth header present: true, length: 264
+2026/01/08 09:06:40 🎫 Token extracted, length: 257
+2026/01/08 09:06:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:40 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=kjcjc&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='kjcjc', limit=10, lang='ru'
+🔍 SuggestIngredients: query='kjcjc', limit=10, lang='ru'
+🔎 SQL pattern: '%kjcjc%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:06:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[39.013ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%kjcjc%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%kjcjc%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%kjcjc%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%kjcjc%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%kjcjc%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='kjcjc', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:06:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000027] "GET http://localhost:8080/api/admin/ingredients/suggest?q=kjcjc&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 39.491166ms
+2026/01/08 09:06:41 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000028] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=kjcjcm&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 30.5µs
+2026/01/08 09:06:41 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:06:41 📋 Auth header present: true, length: 264
+2026/01/08 09:06:41 🎫 Token extracted, length: 257
+2026/01/08 09:06:41 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:41 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:41 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=kjcjcm&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='kjcjcm', limit=10, lang='ru'
+🔍 SuggestIngredients: query='kjcjcm', limit=10, lang='ru'
+🔎 SQL pattern: '%kjcjcm%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:06:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[34.208ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%kjcjcm%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%kjcjcm%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%kjcjcm%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%kjcjcm%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%kjcjcm%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='kjcjcm', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:06:41 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000029] "GET http://localhost:8080/api/admin/ingredients/suggest?q=kjcjcm&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 34.74ms
+2026/01/08 09:06:46 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000030] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 27.584µs
+2026/01/08 09:06:46 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:06:46 📋 Auth header present: true, length: 264
+2026/01/08 09:06:46 🎫 Token extracted, length: 257
+2026/01/08 09:06:46 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:06:46 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:06:46 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосо&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
+🔎 SQL pattern: '%лосо%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:06:46 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943 [33mSLOW SQL >= 200ms
+[0m[31;1m[333.179ms] [33m[rows:8][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосо%'
+	 ORDER BY name ASC LIMIT 10[0m
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосо', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:06:46 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000031] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:55874 - 200 1130B in 333.696458ms
+2026/01/08 09:07:30 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000032] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vf&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 37.875µs
+2026/01/08 09:07:30 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:30 📋 Auth header present: true, length: 264
+2026/01/08 09:07:30 🎫 Token extracted, length: 257
+2026/01/08 09:07:30 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:30 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:30 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vf&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vf', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vf', limit=10, lang='ru'
+🔎 SQL pattern: '%vf%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:30 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[71.000ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vf%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vf%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vf%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vf%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vf%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vf', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:07:30 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000033] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vf&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 71.789125ms
+2026/01/08 09:07:30 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000034] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vfc&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 29.375µs
+2026/01/08 09:07:30 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:30 📋 Auth header present: true, length: 264
+2026/01/08 09:07:30 🎫 Token extracted, length: 257
+2026/01/08 09:07:30 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:30 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:30 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vfc&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vfc', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vfc', limit=10, lang='ru'
+🔎 SQL pattern: '%vfc%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:30 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[34.750ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfc%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vfc', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:07:30 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000035] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vfc&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 35.332125ms
+2026/01/08 09:07:31 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000036] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vfckj&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 36.75µs
+2026/01/08 09:07:31 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:31 📋 Auth header present: true, length: 264
+2026/01/08 09:07:31 🎫 Token extracted, length: 257
+2026/01/08 09:07:31 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:31 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:31 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vfckj&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vfckj', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vfckj', limit=10, lang='ru'
+🔎 SQL pattern: '%vfckj%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:31 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[34.503ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfckj%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vfckj', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:07:31 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000037] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vfckj&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 35.15475ms
+2026/01/08 09:07:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000038] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vfc&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 28.5µs
+2026/01/08 09:07:35 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:35 📋 Auth header present: true, length: 264
+2026/01/08 09:07:35 🎫 Token extracted, length: 257
+2026/01/08 09:07:35 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:35 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:35 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vfc&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vfc', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vfc', limit=10, lang='ru'
+🔎 SQL pattern: '%vfc%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:36 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[71.753ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfc%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vfc', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:07:36 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000039] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vfc&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 72.242583ms
+2026/01/08 09:07:36 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000040] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vfckj+&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 38.417µs
+2026/01/08 09:07:36 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:36 📋 Auth header present: true, length: 264
+2026/01/08 09:07:36 🎫 Token extracted, length: 257
+2026/01/08 09:07:36 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:36 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:36 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vfckj &limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vfckj', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vfckj', limit=10, lang='ru'
+🔎 SQL pattern: '%vfckj%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:36 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[36.125ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfckj%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vfckj', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:07:36 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000041] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vfckj+&limit=10 HTTP/1.1" from [::1]:55874 - 200 11B in 36.771083ms
+2026/01/08 09:07:43 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000042] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 67.667µs
+2026/01/08 09:07:43 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:43 📋 Auth header present: true, length: 264
+2026/01/08 09:07:43 🎫 Token extracted, length: 257
+2026/01/08 09:07:43 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:43 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:43 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ма&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ма', limit=10, lang='ru'
+🔍 SuggestIngredients: query='ма', limit=10, lang='ru'
+🔎 SQL pattern: '%ма%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:43 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[101.173ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ма%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ма%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ма%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ма%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ма%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='ма', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:07:43 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000043] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0&limit=10 HTTP/1.1" from [::1]:55874 - 200 1358B in 101.986292ms
+2026/01/08 09:07:44 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000044] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:55873 - 200 0B in 31.792µs
+2026/01/08 09:07:44 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:44 📋 Auth header present: true, length: 264
+2026/01/08 09:07:44 🎫 Token extracted, length: 257
+2026/01/08 09:07:44 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:44 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:44 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[106.932ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:07:44 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000045] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:55874 - 200 1175B in 107.569875ms
+2026/01/08 09:07:45 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000046] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:56179 - 200 0B in 64.875µs
+2026/01/08 09:07:45 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:07:45 📋 Auth header present: true, length: 264
+2026/01/08 09:07:45 🎫 Token extracted, length: 257
+2026/01/08 09:07:45 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:07:45 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:07:45 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=масло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:07:45 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[61.655ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:07:45 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000047] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:56180 - 200 1044B in 62.850833ms
+2026/01/08 09:11:29 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000048] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:57106 - 200 0B in 28.25µs
+2026/01/08 09:11:29 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:11:29 📋 Auth header present: true, length: 264
+2026/01/08 09:11:29 🎫 Token extracted, length: 257
+2026/01/08 09:11:29 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:11:29 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:11:29 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=рас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='рас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='рас', limit=10, lang='ru'
+🔎 SQL pattern: '%рас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:11:29 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[67.900ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%рас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%рас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%рас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%рас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%рас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 5 rows from DB
+🔍 Suggest: query='рас', lang='ru' → 5 results (after filtering)
+✅ Returning 5 suggestions (lang=ru)
+2026/01/08 09:11:29 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000049] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:57107 - 200 759B in 68.73525ms
+2026/01/08 09:12:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000050] "OPTIONS http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:57395 - 200 0B in 61.583µs
+2026/01/08 09:12:40 🔐 AuthMiddleware: POST /api/admin/recipes/create-ai
+2026/01/08 09:12:40 📋 Auth header present: true, length: 264
+2026/01/08 09:12:40 🎫 Token extracted, length: 257
+2026/01/08 09:12:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:12:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:12:40 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/create-ai
+✅ UserID from context: 7ec8aba4-8195-4be1-a9a8-067c30aae306
+2026/01/08 09:12:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000051] "POST http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:57396 - 400 38B in 574.667µs
+2026/01/08 09:21:21 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000052] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 78.125µs
+2026/01/08 09:21:21 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:21 📋 Auth header present: true, length: 264
+2026/01/08 09:21:21 🎫 Token extracted, length: 257
+2026/01/08 09:21:21 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:21 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:21 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Ло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Ло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Ло', limit=10, lang='ru'
+🔎 SQL pattern: '%ло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+2026/01/08 09:21:23 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000054] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 27.25µs
+2026/01/08 09:21:23 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:23 📋 Auth header present: true, length: 264
+2026/01/08 09:21:23 🎫 Token extracted, length: 257
+2026/01/08 09:21:23 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:23 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:23 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Лосо&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Лосо', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Лосо', limit=10, lang='ru'
+🔎 SQL pattern: '%лосо%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+2026/01/08 09:21:24 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000056] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 29.416µs
+2026/01/08 09:21:24 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:24 📋 Auth header present: true, length: 264
+2026/01/08 09:21:24 🎫 Token extracted, length: 257
+2026/01/08 09:21:24 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:24 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:24 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Лосось&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Лосось', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Лосось', limit=10, lang='ru'
+🔎 SQL pattern: '%лосось%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:21:24 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943 [33mSLOW SQL >= 200ms
+[0m[31;1m[2380.403ms] [33m[rows:10][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
+	 ORDER BY name ASC LIMIT 10[0m
+✅ Found 10 rows from DB
+🔍 Suggest: query='Ло', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:21:24 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000053] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE&limit=10 HTTP/1.1" from [::1]:59643 - 200 1326B in 2.381682625s
+
+2026/01/08 09:21:24 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943 [33mSLOW SQL >= 200ms
+[0m[31;1m[266.314ms] [33m[rows:8][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосось%'
+	 ORDER BY name ASC LIMIT 10[0m
+✅ Found 8 rows from DB
+🔍 Suggest: query='Лосось', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:21:24 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000057] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:59660 - 200 1130B in 267.063833ms
+
+2026/01/08 09:21:24 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943 [33mSLOW SQL >= 200ms
+[0m[31;1m[1395.457ms] [33m[rows:8][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосо%'
+	 ORDER BY name ASC LIMIT 10[0m
+✅ Found 8 rows from DB
+🔍 Suggest: query='Лосо', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:21:24 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000055] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:59653 - 200 1130B in 1.396258375s
+2026/01/08 09:21:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000058] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=Vfc&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 36µs
+2026/01/08 09:21:42 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:42 📋 Auth header present: true, length: 264
+2026/01/08 09:21:42 🎫 Token extracted, length: 257
+2026/01/08 09:21:42 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Vfc&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Vfc', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Vfc', limit=10, lang='ru'
+🔎 SQL pattern: '%vfc%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:21:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943 [33mSLOW SQL >= 200ms
+[0m[31;1m[236.167ms] [33m[rows:0][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfc%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfc%'
+	 ORDER BY name ASC LIMIT 10[0m
+✅ Found 0 rows from DB
+🔍 Suggest: query='Vfc', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:21:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000059] "GET http://localhost:8080/api/admin/ingredients/suggest?q=Vfc&limit=10 HTTP/1.1" from [::1]:59653 - 200 11B in 236.745875ms
+2026/01/08 09:21:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000060] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=Vfckj&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 27.542µs
+2026/01/08 09:21:42 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:42 📋 Auth header present: true, length: 264
+2026/01/08 09:21:42 🎫 Token extracted, length: 257
+2026/01/08 09:21:42 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Vfckj&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Vfckj', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Vfckj', limit=10, lang='ru'
+🔎 SQL pattern: '%vfckj%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:21:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[37.145ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfckj%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='Vfckj', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:21:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000061] "GET http://localhost:8080/api/admin/ingredients/suggest?q=Vfckj&limit=10 HTTP/1.1" from [::1]:59653 - 200 11B in 37.752292ms
+2026/01/08 09:21:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000062] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 51.5µs
+2026/01/08 09:21:47 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:47 📋 Auth header present: true, length: 264
+2026/01/08 09:21:47 🎫 Token extracted, length: 257
+2026/01/08 09:21:47 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:47 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:47 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:21:47 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[73.124ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:21:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000063] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:59653 - 200 1175B in 73.886042ms
+2026/01/08 09:21:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000064] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:59642 - 200 0B in 23.209µs
+2026/01/08 09:21:48 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:21:48 📋 Auth header present: true, length: 264
+2026/01/08 09:21:48 🎫 Token extracted, length: 257
+2026/01/08 09:21:48 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:21:48 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:21:48 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:21:48 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[35.352ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='Масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:21:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000065] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:59653 - 200 1044B in 35.935417ms
+2026/01/08 09:23:00 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000066] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:60057 - 200 0B in 28.75µs
+2026/01/08 09:23:00 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:23:00 📋 Auth header present: true, length: 264
+2026/01/08 09:23:00 🎫 Token extracted, length: 257
+2026/01/08 09:23:00 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:23:00 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:23:00 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:23:00.511+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:23:00.511+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:23:00 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[104.827ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:23:00.616+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:23:00 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000067] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:60059 - 200 97B in 105.464ms
+2026/01/08 09:23:02 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000068] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:60057 - 200 0B in 19.75µs
+2026/01/08 09:23:02 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:23:02 📋 Auth header present: true, length: 264
+2026/01/08 09:23:02 🎫 Token extracted, length: 257
+2026/01/08 09:23:02 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:23:02 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:23:02 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:23:02.533+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:23:02.533+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:23:02 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[60.680ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:23:02.594+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:23:02 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000069] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:60059 - 200 97B in 61.206042ms
+2026/01/08 09:25:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000070] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 71.917µs
+2026/01/08 09:25:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:33 📋 Auth header present: true, length: 264
+2026/01/08 09:25:33 🎫 Token extracted, length: 257
+2026/01/08 09:25:33 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔎 SQL pattern: '%ло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:33 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[77.934ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='ло', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:25:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000071] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:60686 - 200 1326B in 78.726458ms
+2026/01/08 09:25:34 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000072] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 16.292µs
+2026/01/08 09:25:34 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:34 📋 Auth header present: true, length: 264
+2026/01/08 09:25:34 🎫 Token extracted, length: 257
+2026/01/08 09:25:34 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:34 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:34 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосо&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
+🔎 SQL pattern: '%лосо%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[31.968ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосо%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосо', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:25:34 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000073] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:60686 - 200 1130B in 32.415542ms
+2026/01/08 09:25:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000074] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9E%D0%BB&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 25.041µs
+2026/01/08 09:25:42 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:42 📋 Auth header present: true, length: 264
+2026/01/08 09:25:42 🎫 Token extracted, length: 257
+2026/01/08 09:25:42 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Ол&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Ол', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Ол', limit=10, lang='ru'
+🔎 SQL pattern: '%ол%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[65.564ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ол%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ол%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ол%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ол%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ол%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='Ол', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:25:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000075] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9E%D0%BB&limit=10 HTTP/1.1" from [::1]:60686 - 200 1308B in 66.019ms
+2026/01/08 09:25:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000076] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9E%D0%BB%D0%B8&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 29.25µs
+2026/01/08 09:25:42 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:42 📋 Auth header present: true, length: 264
+2026/01/08 09:25:42 🎫 Token extracted, length: 257
+2026/01/08 09:25:42 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Оли&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Оли', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Оли', limit=10, lang='ru'
+🔎 SQL pattern: '%оли%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[32.336ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%оли%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%оли%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%оли%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%оли%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%оли%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 5 rows from DB
+🔍 Suggest: query='Оли', lang='ru' → 5 results (after filtering)
+✅ Returning 5 suggestions (lang=ru)
+2026/01/08 09:25:42 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000077] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9E%D0%BB%D0%B8&limit=10 HTTP/1.1" from [::1]:60686 - 200 733B in 32.930792ms
+2026/01/08 09:25:44 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000078] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9E%D0%BB&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 28.292µs
+2026/01/08 09:25:44 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:44 📋 Auth header present: true, length: 264
+2026/01/08 09:25:44 🎫 Token extracted, length: 257
+2026/01/08 09:25:44 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:44 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:44 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Ол&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Ол', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Ол', limit=10, lang='ru'
+🔎 SQL pattern: '%ол%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[71.245ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ол%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ол%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ол%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ол%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ол%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='Ол', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:25:44 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000079] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9E%D0%BB&limit=10 HTTP/1.1" from [::1]:60686 - 200 1308B in 71.868458ms
+2026/01/08 09:25:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000080] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 29.875µs
+2026/01/08 09:25:47 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:47 📋 Auth header present: true, length: 264
+2026/01/08 09:25:47 🎫 Token extracted, length: 257
+2026/01/08 09:25:47 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:47 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:47 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:47 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[66.828ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:25:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000081] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:60686 - 200 1175B in 67.446833ms
+2026/01/08 09:25:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000082] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 27.333µs
+2026/01/08 09:25:47 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:47 📋 Auth header present: true, length: 264
+2026/01/08 09:25:47 🎫 Token extracted, length: 257
+2026/01/08 09:25:47 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:47 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:47 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масо&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масо', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масо', limit=10, lang='ru'
+🔎 SQL pattern: '%масо%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:47 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[35.417ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масо%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масо%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масо%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масо%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масо%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='Масо', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:25:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000083] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:60686 - 200 11B in 36.06ms
+2026/01/08 09:25:49 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000084] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 40µs
+2026/01/08 09:25:49 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:49 📋 Auth header present: true, length: 264
+2026/01/08 09:25:49 🎫 Token extracted, length: 257
+2026/01/08 09:25:49 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:49 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:49 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[68.163ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:25:49 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000085] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:60686 - 200 1175B in 68.721292ms
+2026/01/08 09:25:49 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000086] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:60685 - 200 0B in 29.916µs
+2026/01/08 09:25:49 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:25:49 📋 Auth header present: true, length: 264
+2026/01/08 09:25:49 🎫 Token extracted, length: 257
+2026/01/08 09:25:49 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:25:49 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:25:49 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:25:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[39.140ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='Масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:25:49 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000087] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:60686 - 200 1044B in 39.797084ms
+2026/01/08 09:26:19 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000088] "OPTIONS http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:60685 - 200 0B in 33.875µs
+2026/01/08 09:26:19 🔐 AuthMiddleware: POST /api/admin/recipes/create-ai
+2026/01/08 09:26:19 📋 Auth header present: true, length: 264
+2026/01/08 09:26:19 🎫 Token extracted, length: 257
+2026/01/08 09:26:19 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:26:19 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:26:19 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/create-ai
+✅ UserID from context: 7ec8aba4-8195-4be1-a9a8-067c30aae306
+🎯 CreateRecipeWithAI: title='Жареный Лосось', ingredients=2, user=7ec8aba4-8195-4be1-a9a8-067c30aae306
+
+2026/01/08 09:26:19 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143 [33mSLOW SQL >= 200ms
+[0m[31;1m[206.094ms] [33m[rows:1][35m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1[0m
+
+2026/01/08 09:26:19 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[100.615ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '1b7cea8e-b026-4329-9d2e-c94952e3fa6c' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Жареный Лосось
+📋 Ingredients count: 2
+📥 AI Response length: 1093 chars
+✅ AI generated recipe: 7 steps, 11 min, easy difficulty
+
+2026/01/08 09:26:21 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:299 [35;1mrecord not found
+[0m[33m[227.158ms] [34;1m[rows:0][0m SELECT * FROM "Recipe" WHERE "canonicalName" = 'жареный_лосось' ORDER BY "Recipe"."id" LIMIT 1
+
+2026/01/08 09:26:21 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:337
+[0m[33m[103.177ms] [34;1m[rows:1][0m INSERT INTO "Recipe" ("canonicalName","localName","title","name_pl","name_en","name_ru","description_pl","description_en","description_ru","country","region","category","difficulty","timeMinutes","servings","portionWeightGrams","steps_pl","steps_en","steps_ru","source","id") VALUES ('жареный_лосось','','Жареный Лосось',NULL,NULL,NULL,'Pan-seared salmon with a crispy crust and a tender interior, served with a hint of garlic and a touch of creaminess',NULL,NULL,'pl',NULL,'main','easy',11,1,NULL,NULL,NULL,NULL,'{"authorId":"7ec8aba4-8195-4be1-a9a8-067c30aae306","generator":"groq-llama-3.3-70b","timestamp":1767860781,"type":"ai"}','6b8628ef-ef1e-42eb-a166-924566bb9b7b') RETURNING "id","steps","nutritionProfile","createdAt","updatedAt"
+
+2026/01/08 09:26:21 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:352
+[0m[33m[67.736ms] [34;1m[rows:1][0m INSERT INTO "RecipeIngredient" ("recipeId","ingredientId","ingredientKey","quantity","unit","optional","sortOrder","id") VALUES ('6b8628ef-ef1e-42eb-a166-924566bb9b7b','fe1c7431-b1b7-4d36-94bf-74276481983e','',0,'g',false,1,'86d38964-60ea-4085-87d8-1dd1cb831640') RETURNING "id","createdAt"
+
+2026/01/08 09:26:21 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:352
+[0m[33m[60.379ms] [34;1m[rows:1][0m INSERT INTO "RecipeIngredient" ("recipeId","ingredientId","ingredientKey","quantity","unit","optional","sortOrder","id") VALUES ('6b8628ef-ef1e-42eb-a166-924566bb9b7b','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','',0,'ml',false,2,'caf5983d-b9d5-4be1-96a6-c5b8735f758f') RETURNING "id","createdAt"
+
+2026/01/08 09:26:21 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:372
+[0m[33m[66.611ms] [34;1m[rows:1][0m UPDATE "Recipe" SET "canonicalName"='жареный_лосось',"localName"='',"title"='Жареный Лосось',"name_pl"=NULL,"name_en"=NULL,"name_ru"=NULL,"description_pl"='Pan-seared salmon with a crispy crust and a tender interior, served with a hint of garlic and a touch of creaminess',"description_en"=NULL,"description_ru"=NULL,"country"='pl',"region"=NULL,"category"='main',"difficulty"='easy',"timeMinutes"=11,"servings"=1,"portionWeightGrams"=NULL,"steps"='[]',"steps_pl"='[{"order":1,"text":"Heat a skillet over medium heat","time":2},{"order":2,"text":"Add vegetable oil and let it heat up for a bit","time":1},{"order":3,"text":"Season the salmon fillet with salt and pepper, and place it skin-side down in the skillet","time":1},{"order":4,"text":"Sear the salmon for 3-4 minutes until a golden-brown crust forms, then carefully flip it over","time":4},{"order":5,"text":"Add butter and garlic, and baste the fish with the butter while cooking","time":2},{"order":6,"text":"Cook for an additional 2-3 minutes until the fish is cooked through and flakes easily","time":2},{"order":7,"text":"Remove from heat and let the fish rest for about 1 minute before serving","time":1}]',"steps_en"=NULL,"steps_ru"=NULL,"nutritionProfile"='{"calories":240,"carbohydrate":0,"fat":12,"protein":35}',"source"='{"authorId":"7ec8aba4-8195-4be1-a9a8-067c30aae306","generator":"groq-llama-3.3-70b","timestamp":1767860781,"type":"ai"}',"createdAt"='2026-01-08 08:26:21.304',"updatedAt"='2026-01-08 09:26:21.551' WHERE "id" = '6b8628ef-ef1e-42eb-a166-924566bb9b7b'
+💾 Recipe saved: Жареный Лосось [6b8628ef-ef1e-42eb-a166-924566bb9b7b] with 2 ingredients, 7 steps
+✅ Recipe created via AI: Жареный Лосось [6b8628ef-ef1e-42eb-a166-924566bb9b7b]
+✅ Recipe created via AI: Жареный Лосось [6b8628ef-ef1e-42eb-a166-924566bb9b7b]
+2026/01/08 09:26:21 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000089] "POST http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:60686 - 201 1439B in 2.180342458s
+2026/01/08 09:26:22 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000090] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:60685 - 200 0B in 14.792µs
+2026/01/08 09:26:22 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:26:22 📋 Auth header present: true, length: 264
+2026/01/08 09:26:22 🎫 Token extracted, length: 257
+2026/01/08 09:26:22 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:26:22 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:26:22 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:26:22.115+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:26:22.115+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:26:22 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[34.300ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:26:22.150+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:26:22 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000091] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:60686 - 200 97B in 36.106834ms
+2026/01/08 09:26:22 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000092] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:60685 - 200 0B in 27.5µs
+2026/01/08 09:26:22 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:26:22 📋 Auth header present: true, length: 264
+2026/01/08 09:26:22 🎫 Token extracted, length: 257
+2026/01/08 09:26:22 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:26:22 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:26:22 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:26:22.743+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:26:22.743+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:26:22 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[30.687ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:26:22.774+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:26:22 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000093] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:60686 - 200 97B in 31.205667ms
+2026/01/08 09:34:57 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000094] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:63091 - 200 0B in 102.75µs
+2026/01/08 09:34:57 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:34:57 📋 Auth header present: true, length: 264
+2026/01/08 09:34:57 🎫 Token extracted, length: 257
+2026/01/08 09:34:57 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:34:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:34:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:34:57.851+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:34:57.851+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:34:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
+[0m[31;1m[752.551ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
+2026-01-08T09:34:58.604+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:34:58 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000095] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:63093 - 200 97B in 753.265291ms
+2026/01/08 09:34:58 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000096] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:63091 - 200 0B in 23.959µs
+2026/01/08 09:34:58 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:34:58 📋 Auth header present: true, length: 264
+2026/01/08 09:34:58 🎫 Token extracted, length: 257
+2026/01/08 09:34:58 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:34:58 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:34:58 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:34:58.815+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:34:58.815+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:34:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[61.980ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:34:58.877+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:34:58 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000097] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:63093 - 200 97B in 62.575125ms
+2026/01/08 09:35:01 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000098] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:63091 - 200 0B in 9.125µs
+2026/01/08 09:35:01 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:35:01 📋 Auth header present: true, length: 264
+2026/01/08 09:35:01 🎫 Token extracted, length: 257
+2026/01/08 09:35:01 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:01 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:01 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:35:01.995+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:35:01.995+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:35:02 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000100] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:63091 - 200 0B in 7.958µs
+2026/01/08 09:35:02 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:35:02 📋 Auth header present: true, length: 264
+2026/01/08 09:35:02 🎫 Token extracted, length: 257
+2026/01/08 09:35:02 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:02 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:02 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:35:02.365+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:35:02.365+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:35:02 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
+[0m[31;1m[372.435ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
+2026-01-08T09:35:02.368+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:35:02 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000099] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:63093 - 200 97B in 372.79075ms
+
+2026/01/08 09:35:03 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
+[0m[31;1m[809.630ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
+2026-01-08T09:35:03.175+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:35:03 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000101] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:63115 - 200 97B in 810.175417ms
+2026/01/08 09:35:16 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000102] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 26.208µs
+2026/01/08 09:35:16 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:16 📋 Auth header present: true, length: 264
+2026/01/08 09:35:16 🎫 Token extracted, length: 257
+2026/01/08 09:35:16 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:16 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:16 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔎 SQL pattern: '%ло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943 [33mSLOW SQL >= 200ms
+[0m[31;1m[229.495ms] [33m[rows:10][35m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
+	 ORDER BY name ASC LIMIT 10[0m
+✅ Found 10 rows from DB
+🔍 Suggest: query='ло', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:35:16 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000103] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:63115 - 200 1326B in 230.195084ms
+2026/01/08 09:35:16 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000104] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 24.833µs
+2026/01/08 09:35:16 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:16 📋 Auth header present: true, length: 264
+2026/01/08 09:35:16 🎫 Token extracted, length: 257
+2026/01/08 09:35:16 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:16 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:16 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосос&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосос', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосос', limit=10, lang='ru'
+🔎 SQL pattern: '%лосос%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:16 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[54.195ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосос%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосос', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:35:16 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000105] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:63115 - 200 1130B in 54.890708ms
+2026/01/08 09:35:17 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000106] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 33.959µs
+2026/01/08 09:35:17 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:17 📋 Auth header present: true, length: 264
+2026/01/08 09:35:17 🎫 Token extracted, length: 257
+2026/01/08 09:35:17 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосось&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосось', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосось', limit=10, lang='ru'
+🔎 SQL pattern: '%лосось%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[35.022ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосось%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосось', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:35:17 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000107] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:63115 - 200 1130B in 35.513708ms
+2026/01/08 09:35:34 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000108] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 29.167µs
+2026/01/08 09:35:34 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:34 📋 Auth header present: true, length: 264
+2026/01/08 09:35:34 🎫 Token extracted, length: 257
+2026/01/08 09:35:34 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:34 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:34 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Ло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Ло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Ло', limit=10, lang='ru'
+🔎 SQL pattern: '%ло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[103.078ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='Ло', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:35:34 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000109] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE&limit=10 HTTP/1.1" from [::1]:63115 - 200 1326B in 103.708667ms
+2026/01/08 09:35:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000110] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 48.5µs
+2026/01/08 09:35:35 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:35 📋 Auth header present: true, length: 264
+2026/01/08 09:35:35 🎫 Token extracted, length: 257
+2026/01/08 09:35:35 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:35 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:35 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Лосос&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Лосос', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Лосос', limit=10, lang='ru'
+🔎 SQL pattern: '%лосос%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[69.937ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосос%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Лосос', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:35:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000111] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:63115 - 200 1130B in 70.668458ms
+2026/01/08 09:35:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000112] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 43.916µs
+2026/01/08 09:35:35 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:35 📋 Auth header present: true, length: 264
+2026/01/08 09:35:35 🎫 Token extracted, length: 257
+2026/01/08 09:35:35 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:35 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:35 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Лосось&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Лосось', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Лосось', limit=10, lang='ru'
+🔎 SQL pattern: '%лосось%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[41.801ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосось%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Лосось', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:35:35 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000113] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9B%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:63115 - 200 1130B in 42.4395ms
+2026/01/08 09:35:39 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000114] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 31.25µs
+2026/01/08 09:35:39 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:39 📋 Auth header present: true, length: 264
+2026/01/08 09:35:39 🎫 Token extracted, length: 257
+2026/01/08 09:35:39 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:39 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:39 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Ма&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Ма', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Ма', limit=10, lang='ru'
+🔎 SQL pattern: '%ма%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:39 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[91.366ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ма%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ма%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ма%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ма%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ма%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='Ма', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:35:39 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000115] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0&limit=10 HTTP/1.1" from [::1]:63115 - 200 1358B in 92.02675ms
+2026/01/08 09:35:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000116] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 27.584µs
+2026/01/08 09:35:40 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:40 📋 Auth header present: true, length: 264
+2026/01/08 09:35:40 🎫 Token extracted, length: 257
+2026/01/08 09:35:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:40 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[36.981ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:35:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000117] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:63115 - 200 1175B in 37.653583ms
+2026/01/08 09:35:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000118] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:63091 - 200 0B in 40.958µs
+2026/01/08 09:35:40 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:35:40 📋 Auth header present: true, length: 264
+2026/01/08 09:35:40 🎫 Token extracted, length: 257
+2026/01/08 09:35:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:35:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:35:40 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:35:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[41.622ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='Масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:35:40 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000119] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:63115 - 200 1044B in 42.118541ms
+2026/01/08 09:36:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000120] "OPTIONS http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:63541 - 200 0B in 86.375µs
+2026/01/08 09:36:47 🔐 AuthMiddleware: POST /api/admin/recipes/create-ai
+2026/01/08 09:36:47 📋 Auth header present: true, length: 264
+2026/01/08 09:36:47 🎫 Token extracted, length: 257
+2026/01/08 09:36:47 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:36:47 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:36:47 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/create-ai
+✅ UserID from context: 7ec8aba4-8195-4be1-a9a8-067c30aae306
+🎯 CreateRecipeWithAI: title='Лосось Жареный', ingredients=2, user=7ec8aba4-8195-4be1-a9a8-067c30aae306
+
+2026/01/08 09:36:47 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[119.308ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/08 09:36:47 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[33.717ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '9ff773d2-a3ee-4f4b-bc45-4cfe0d7f680b' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Лосось Жареный
+📋 Ingredients count: 2
+📥 AI Response length: 1023 chars
+✅ AI generated recipe: 7 steps, 11 min, easy difficulty
+
+2026/01/08 09:36:49 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:299 [35;1mrecord not found
+[0m[33m[126.305ms] [34;1m[rows:0][0m SELECT * FROM "Recipe" WHERE "canonicalName" = 'лосось_жареный' ORDER BY "Recipe"."id" LIMIT 1
+
+2026/01/08 09:36:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:337
+[0m[33m[98.247ms] [34;1m[rows:1][0m INSERT INTO "Recipe" ("canonicalName","localName","title","name_pl","name_en","name_ru","description_pl","description_en","description_ru","country","region","category","difficulty","timeMinutes","servings","portionWeightGrams","steps_pl","steps_en","steps_ru","source","id") VALUES ('лосось_жареный','','Лосось Жареный',NULL,NULL,NULL,'Pan-seared salmon fillet with a crispy crust, served with a rich and flavorful sauce',NULL,NULL,'pl',NULL,'main','easy',11,1,NULL,NULL,NULL,NULL,'{"authorId":"7ec8aba4-8195-4be1-a9a8-067c30aae306","generator":"groq-llama-3.3-70b","timestamp":1767861409,"type":"ai"}','f393ee18-10a7-4a00-8e24-6263a464b592') RETURNING "id","steps","nutritionProfile","createdAt","updatedAt"
+
+2026/01/08 09:36:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:352
+[0m[33m[72.393ms] [34;1m[rows:1][0m INSERT INTO "RecipeIngredient" ("recipeId","ingredientId","ingredientKey","quantity","unit","optional","sortOrder","id") VALUES ('f393ee18-10a7-4a00-8e24-6263a464b592','fe1c7431-b1b7-4d36-94bf-74276481983e','',0,'g',false,1,'170a2e41-0717-495c-9f0d-39c48142b9b8') RETURNING "id","createdAt"
+
+2026/01/08 09:36:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:352
+[0m[33m[32.324ms] [34;1m[rows:1][0m INSERT INTO "RecipeIngredient" ("recipeId","ingredientId","ingredientKey","quantity","unit","optional","sortOrder","id") VALUES ('f393ee18-10a7-4a00-8e24-6263a464b592','9ff773d2-a3ee-4f4b-bc45-4cfe0d7f680b','',0,'ml',false,2,'66f40e83-1024-4122-a69f-1996491c55ff') RETURNING "id","createdAt"
+
+2026/01/08 09:36:49 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:372
+[0m[33m[65.531ms] [34;1m[rows:1][0m UPDATE "Recipe" SET "canonicalName"='лосось_жареный',"localName"='',"title"='Лосось Жареный',"name_pl"=NULL,"name_en"=NULL,"name_ru"=NULL,"description_pl"='Pan-seared salmon fillet with a crispy crust, served with a rich and flavorful sauce',"description_en"=NULL,"description_ru"=NULL,"country"='pl',"region"=NULL,"category"='main',"difficulty"='easy',"timeMinutes"=11,"servings"=1,"portionWeightGrams"=NULL,"steps"='[]',"steps_pl"='[{"order":1,"text":"Heat a skillet over medium heat","time":2},{"order":2,"text":"Add vegetable oil and let it heat up for a bit","time":1},{"order":3,"text":"Season the salmon fillet with salt and pepper, and place it skin-side down","time":1},{"order":4,"text":"Sear the salmon for 3-4 minutes until a golden crust forms, then carefully flip it over","time":4},{"order":5,"text":"Add butter and garlic, and baste the fish with the butter while cooking","time":2},{"order":6,"text":"Cook for an additional 2-3 minutes until the fish is cooked through","time":2},{"order":7,"text":"Remove from heat and let the fish rest for about a minute before serving","time":1}]',"steps_en"=NULL,"steps_ru"=NULL,"nutritionProfile"='{"calories":240,"carbohydrate":0,"fat":12,"protein":35}',"source"='{"authorId":"7ec8aba4-8195-4be1-a9a8-067c30aae306","generator":"groq-llama-3.3-70b","timestamp":1767861409,"type":"ai"}',"createdAt"='2026-01-08 08:36:49.185',"updatedAt"='2026-01-08 09:36:49.371' WHERE "id" = 'f393ee18-10a7-4a00-8e24-6263a464b592'
+💾 Recipe saved: Лосось Жареный [f393ee18-10a7-4a00-8e24-6263a464b592] with 2 ingredients, 7 steps
+✅ Recipe created via AI: Лосось Жареный [f393ee18-10a7-4a00-8e24-6263a464b592]
+✅ Recipe created via AI: Лосось Жареный [f393ee18-10a7-4a00-8e24-6263a464b592]
+2026/01/08 09:36:49 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000121] "POST http://localhost:8080/api/admin/recipes/create-ai HTTP/1.1" from [::1]:63542 - 201 1369B in 1.802887875s
+2026/01/08 09:43:52 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000122] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:65349 - 200 0B in 136.625µs
+2026/01/08 09:43:52 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:43:52 📋 Auth header present: true, length: 264
+2026/01/08 09:43:52 🎫 Token extracted, length: 257
+2026/01/08 09:43:52 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:43:52 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:43:52 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:43:52.095+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:43:52.095+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:43:52 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
+[0m[31;1m[825.810ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
+2026-01-08T09:43:52.921+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:43:52 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000123] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:65350 - 200 97B in 826.677625ms
+2026/01/08 09:43:53 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000124] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:65349 - 200 0B in 16.75µs
+2026/01/08 09:43:53 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:43:53 📋 Auth header present: true, length: 264
+2026/01/08 09:43:53 🎫 Token extracted, length: 257
+2026/01/08 09:43:53 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:43:53 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:43:53 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:43:53.381+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:43:53.381+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:43:53 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[60.421ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:43:53.442+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:43:53 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000125] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:65350 - 200 97B in 61.432875ms
+2026/01/08 09:44:11 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000126] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 26.917µs
+2026/01/08 09:44:11 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:11 📋 Auth header present: true, length: 264
+2026/01/08 09:44:11 🎫 Token extracted, length: 257
+2026/01/08 09:44:11 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:11 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:11 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосос&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосос', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосос', limit=10, lang='ru'
+🔎 SQL pattern: '%лосос%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:11 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[107.130ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосос%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосос%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосос', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:44:11 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000127] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:65350 - 200 1130B in 107.862292ms
+2026/01/08 09:44:11 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000128] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 29.291µs
+2026/01/08 09:44:11 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:11 📋 Auth header present: true, length: 264
+2026/01/08 09:44:11 🎫 Token extracted, length: 257
+2026/01/08 09:44:11 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:11 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:11 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосось&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосось', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосось', limit=10, lang='ru'
+🔎 SQL pattern: '%лосось%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:11 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[84.468ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосось%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосось%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосось', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:44:11 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000129] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:65350 - 200 1130B in 85.007541ms
+2026/01/08 09:44:23 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000130] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vf&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 26.042µs
+2026/01/08 09:44:23 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:23 📋 Auth header present: true, length: 264
+2026/01/08 09:44:23 🎫 Token extracted, length: 257
+2026/01/08 09:44:23 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:23 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:23 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vf&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vf', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vf', limit=10, lang='ru'
+🔎 SQL pattern: '%vf%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:23 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[107.607ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vf%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vf%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vf%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vf%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vf%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vf', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:44:23 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000131] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vf&limit=10 HTTP/1.1" from [::1]:65350 - 200 11B in 107.997667ms
+2026/01/08 09:44:24 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000132] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=vfckj&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 28.958µs
+2026/01/08 09:44:24 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:24 📋 Auth header present: true, length: 264
+2026/01/08 09:44:24 🎫 Token extracted, length: 257
+2026/01/08 09:44:24 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:24 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:24 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=vfckj&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='vfckj', limit=10, lang='ru'
+🔍 SuggestIngredients: query='vfckj', limit=10, lang='ru'
+🔎 SQL pattern: '%vfckj%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:24 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[60.180ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%vfckj%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%vfckj%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='vfckj', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:44:24 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000133] "GET http://localhost:8080/api/admin/ingredients/suggest?q=vfckj&limit=10 HTTP/1.1" from [::1]:65350 - 200 11B in 60.99275ms
+2026/01/08 09:44:29 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000134] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 65.5µs
+2026/01/08 09:44:29 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:29 📋 Auth header present: true, length: 264
+2026/01/08 09:44:29 🎫 Token extracted, length: 257
+2026/01/08 09:44:29 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:29 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:29 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:29 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[155.380ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='Мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:44:29 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000135] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:65350 - 200 1175B in 156.012083ms
+2026/01/08 09:44:29 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000136] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 27.125µs
+2026/01/08 09:44:29 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:29 📋 Auth header present: true, length: 264
+2026/01/08 09:44:29 🎫 Token extracted, length: 257
+2026/01/08 09:44:29 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:29 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:29 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:29 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[69.053ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='Масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:44:29 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000137] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:65350 - 200 1044B in 69.694125ms
+2026/01/08 09:44:32 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000138] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 77.833µs
+2026/01/08 09:44:32 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:32 📋 Auth header present: true, length: 264
+2026/01/08 09:44:32 🎫 Token extracted, length: 257
+2026/01/08 09:44:32 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:32 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:32 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло &limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:32 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[72.099ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='Масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:44:32 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000139] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+&limit=10 HTTP/1.1" from [::1]:65350 - 200 1044B in 72.697875ms
+2026/01/08 09:44:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000140] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 20.875µs
+2026/01/08 09:44:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:33 📋 Auth header present: true, length: 264
+2026/01/08 09:44:33 🎫 Token extracted, length: 257
+2026/01/08 09:44:33 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло ро&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло ро', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло ро', limit=10, lang='ru'
+🔎 SQL pattern: '%масло ро%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:33 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[85.952ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло ро%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло ро%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло ро%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло ро%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло ро%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='Масло ро', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:44:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000141] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE&limit=10 HTTP/1.1" from [::1]:65350 - 200 11B in 86.651792ms
+2026/01/08 09:44:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000142] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 30µs
+2026/01/08 09:44:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:33 📋 Auth header present: true, length: 264
+2026/01/08 09:44:33 🎫 Token extracted, length: 257
+2026/01/08 09:44:33 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло рос&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло рос', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло рос', limit=10, lang='ru'
+🔎 SQL pattern: '%масло рос%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[49.240ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло рос%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло рос%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло рос%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло рос%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло рос%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='Масло рос', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:44:34 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000143] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:65350 - 200 11B in 49.791167ms
+2026/01/08 09:44:36 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000144] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE%D1%81%D1%82%D0%B8&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 47.042µs
+2026/01/08 09:44:36 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:36 📋 Auth header present: true, length: 264
+2026/01/08 09:44:36 🎫 Token extracted, length: 257
+2026/01/08 09:44:36 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:36 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:36 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло рости&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло рости', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло рости', limit=10, lang='ru'
+🔎 SQL pattern: '%масло рости%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:36 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[91.752ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло рости%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло рости%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло рости%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло рости%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло рости%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='Масло рости', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:44:36 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000145] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE%D1%81%D1%82%D0%B8&limit=10 HTTP/1.1" from [::1]:65350 - 200 11B in 92.315042ms
+2026/01/08 09:44:37 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000146] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE%D1%81%D1%82&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 63.834µs
+2026/01/08 09:44:37 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:37 📋 Auth header present: true, length: 264
+2026/01/08 09:44:37 🎫 Token extracted, length: 257
+2026/01/08 09:44:37 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:37 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:37 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло рост&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло рост', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло рост', limit=10, lang='ru'
+🔎 SQL pattern: '%масло рост%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:37 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[144.188ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло рост%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло рост%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло рост%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло рост%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло рост%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 0 rows from DB
+🔍 Suggest: query='Масло рост', lang='ru' → 0 results (after filtering)
+✅ Returning 0 suggestions (lang=ru)
+2026/01/08 09:44:37 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000147] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+%D1%80%D0%BE%D1%81%D1%82&limit=10 HTTP/1.1" from [::1]:65350 - 200 11B in 144.79925ms
+2026/01/08 09:44:38 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000148] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+&limit=10 HTTP/1.1" from [::1]:65349 - 200 0B in 14µs
+2026/01/08 09:44:38 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:44:38 📋 Auth header present: true, length: 264
+2026/01/08 09:44:38 🎫 Token extracted, length: 257
+2026/01/08 09:44:38 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:44:38 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:44:38 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=Масло &limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='Масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:44:38 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[95.793ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='Масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:44:38 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000149] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%9C%D0%B0%D1%81%D0%BB%D0%BE+&limit=10 HTTP/1.1" from [::1]:65350 - 200 1044B in 96.696875ms
+2026/01/08 09:49:44 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000150] "OPTIONS http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:50446 - 200 0B in 35µs
+2026/01/08 09:49:44 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
+2026/01/08 09:49:44 📋 Auth header present: true, length: 264
+2026/01/08 09:49:44 🎫 Token extracted, length: 257
+2026/01/08 09:49:44 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:49:44 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:49:44 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
+🔍 PreviewRecipeWithAI: title='Лосось Жареный', ingredients=2
+
+2026/01/08 09:49:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[136.178ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/08 09:49:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[33.734ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '1b7cea8e-b026-4329-9d2e-c94952e3fa6c' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Лосось Жареный
+📋 Ingredients count: 2
+📥 AI Response length: 1069 chars
+✅ AI generated recipe: 7 steps, 11 min, easy difficulty
+🔍 Recipe preview generated: Лосось Жареный (7 steps)
+✅ Preview generated: 7 steps, 11 min
+2026/01/08 09:49:45 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000151] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:50447 - 200 999B in 1.280614875s
+2026/01/08 09:50:25 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000152] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:50446 - 200 0B in 22.791µs
+2026/01/08 09:50:25 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:50:25 📋 Auth header present: true, length: 264
+2026/01/08 09:50:25 🎫 Token extracted, length: 257
+2026/01/08 09:50:25 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:50:25 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:50:25 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:50:25.912+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:50:25.912+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:50:25 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[67.418ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:50:25.979+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:50:25 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000153] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:50447 - 200 97B in 67.664833ms
+2026/01/08 09:50:28 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000154] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:50446 - 200 0B in 15.708µs
+2026/01/08 09:50:28 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:50:28 📋 Auth header present: true, length: 264
+2026/01/08 09:50:28 🎫 Token extracted, length: 257
+2026/01/08 09:50:28 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:50:28 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:50:28 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:50:28.635+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:50:28.635+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:50:28 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[151.149ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:50:28.786+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:50:28 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000155] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:50447 - 200 97B in 151.631625ms
+2026/01/08 09:53:00 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000156] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:51341 - 200 0B in 911.792µs
+2026/01/08 09:53:00 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:53:00 📋 Auth header present: true, length: 264
+2026/01/08 09:53:00 🎫 Token extracted, length: 257
+2026/01/08 09:53:00 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:53:00 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:53:00 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:53:00.719+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:53:00.719+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:53:00 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[62.344ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:53:00.781+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:53:00 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000157] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:51342 - 200 97B in 62.75825ms
+2026/01/08 09:53:00 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000158] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:51341 - 200 0B in 16.5µs
+2026/01/08 09:53:00 🔐 AuthMiddleware: GET /api/settings
+2026/01/08 09:53:00 📋 Auth header present: true, length: 264
+2026/01/08 09:53:00 🎫 Token extracted, length: 257
+2026/01/08 09:53:00 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:53:00 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:53:00 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
+2026-01-08T09:53:00.971+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
+2026-01-08T09:53:00.971+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+
+2026/01/08 09:53:01 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
+[0m[33m[29.649ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
+2026-01-08T09:53:01.001+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/08 09:53:01 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000159] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:51342 - 200 97B in 30.036958ms
+2026/01/08 09:53:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000160] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:51341 - 200 0B in 33.208µs
+2026/01/08 09:53:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:53:33 📋 Auth header present: true, length: 264
+2026/01/08 09:53:33 🎫 Token extracted, length: 257
+2026/01/08 09:53:33 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:53:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:53:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
+🔎 SQL pattern: '%ло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:53:33 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[66.618ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%ло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 10 rows from DB
+🔍 Suggest: query='ло', lang='ru' → 10 results (after filtering)
+✅ Returning 10 suggestions (lang=ru)
+2026/01/08 09:53:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000161] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:51342 - 200 1326B in 67.388041ms
+2026/01/08 09:53:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000162] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:51341 - 200 0B in 13.75µs
+2026/01/08 09:53:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:53:33 📋 Auth header present: true, length: 264
+2026/01/08 09:53:33 🎫 Token extracted, length: 257
+2026/01/08 09:53:33 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:53:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:53:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=лосо&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
+🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
+🔎 SQL pattern: '%лосо%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:53:33 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[39.822ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%лосо%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%лосо%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='лосо', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:53:33 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000163] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:51342 - 200 1130B in 40.442041ms
+2026/01/08 09:53:46 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000164] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:51341 - 200 0B in 30.708µs
+2026/01/08 09:53:46 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:53:46 📋 Auth header present: true, length: 264
+2026/01/08 09:53:46 🎫 Token extracted, length: 257
+2026/01/08 09:53:46 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:53:46 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:53:46 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=мас&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='мас', limit=10, lang='ru'
+🔍 SuggestIngredients: query='мас', limit=10, lang='ru'
+🔎 SQL pattern: '%мас%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:53:46 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[68.289ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%мас%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%мас%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%мас%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 8 rows from DB
+🔍 Suggest: query='мас', lang='ru' → 8 results (after filtering)
+✅ Returning 8 suggestions (lang=ru)
+2026/01/08 09:53:46 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000165] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81&limit=10 HTTP/1.1" from [::1]:51342 - 200 1175B in 69.044542ms
+2026/01/08 09:53:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000166] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:51341 - 200 0B in 30.125µs
+2026/01/08 09:53:47 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/08 09:53:47 📋 Auth header present: true, length: 264
+2026/01/08 09:53:47 🎫 Token extracted, length: 257
+2026/01/08 09:53:47 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:53:47 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:53:47 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=масло&limit=10 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='масло', limit=10, lang='ru'
+🔍 SuggestIngredients: query='масло', limit=10, lang='ru'
+🔎 SQL pattern: '%масло%'
+📋 SQL Query:
+SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
+		LOWER(name) LIKE ? OR
+		LOWER(COALESCE(name_pl, '')) LIKE ? OR
+		LOWER(COALESCE(name_en, '')) LIKE ? OR
+		LOWER(COALESCE(name_ru, '')) LIKE ? OR
+		LOWER(COALESCE(normalized_value, '')) LIKE ?
+	
+ORDER BY name ASC LIMIT 10
+
+2026/01/08 09:53:47 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
+[0m[33m[67.056ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
+		LOWER(name) LIKE '%масло%' OR
+		LOWER(COALESCE(name_pl, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_en, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(name_ru, '')) LIKE '%масло%' OR
+		LOWER(COALESCE(normalized_value, '')) LIKE '%масло%'
+	 ORDER BY name ASC LIMIT 10
+✅ Found 7 rows from DB
+🔍 Suggest: query='масло', lang='ru' → 7 results (after filtering)
+✅ Returning 7 suggestions (lang=ru)
+2026/01/08 09:53:47 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000167] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BC%D0%B0%D1%81%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:51342 - 200 1044B in 67.708708ms
+2026/01/08 09:54:55 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000168] "OPTIONS http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:51809 - 200 0B in 18.541µs
+2026/01/08 09:54:55 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
+2026/01/08 09:54:55 📋 Auth header present: true, length: 264
+2026/01/08 09:54:55 🎫 Token extracted, length: 257
+2026/01/08 09:54:55 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 09:54:55 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 09:54:55 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
+🔍 PreviewRecipeWithAI: title='Жареный Лосось', ingredients=2
+
+2026/01/08 09:54:55 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[86.874ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
+
+2026/01/08 09:54:55 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:143
+[0m[33m[30.909ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '1b7cea8e-b026-4329-9d2e-c94952e3fa6c' ORDER BY "Ingredient"."id" LIMIT 1
+🔧 Enriched 2 ingredients for AI
+🤖 Calling AI for recipe: Жареный Лосось
+📋 Ingredients count: 2
+📥 AI Response length: 1119 chars
+✅ AI generated recipe: 7 steps, 11 min, easy difficulty
+🔍 Recipe preview generated: Жареный Лосось (7 steps)
+✅ Preview generated: 7 steps, 11 min
+2026/01/08 09:54:56 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000169] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:51810 - 200 1049B in 1.270590958s

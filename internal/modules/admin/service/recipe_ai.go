@@ -18,6 +18,7 @@ import (
 // CreateRecipeAIRequest - минимальный человеко-ориентированный запрос
 type CreateRecipeAIRequest struct {
 	Title          string                    `json:"title"`          // "Лосось с рисом и соусом терияки"
+	Language       string                    `json:"language"`       // "pl", "en", "ru" (опционально, default "en")
 	Ingredients    []RecipeIngredientInput   `json:"ingredients"`    // [{ingredientId, quantity, unit}]
 	RawCookingText string                    `json:"rawCookingText"` // "Рыбу замариновать в соусе, обжарить. Рис отварить."
 }
@@ -29,9 +30,10 @@ type RecipeIngredientInput struct {
 	Unit         string  `json:"unit"`         // "g"
 }
 
-// EnrichedIngredient - обогащенный ингредиент для AI
+// EnrichedIngredient - обогащенный ингредиент для AI (с сохранением ID)
 type EnrichedIngredient struct {
-	Name           string  `json:"ingredient"`      // "salmon"
+	IngredientID   string  `json:"ingredientId"`    // UUID из запроса (для возврата)
+	Name           string  `json:"ingredient"`      // "salmon" или "Łosoś" (локализовано)
 	Quantity       float64 `json:"quantity"`        // 150
 	Unit           string  `json:"unit"`            // "g"
 	NutritionGroup string  `json:"nutrition_group"` // "protein"
@@ -40,19 +42,32 @@ type EnrichedIngredient struct {
 
 // AIRecipePromptContext - контекст для AI
 type AIRecipePromptContext struct {
-	Title           string               `json:"title"`
-	Ingredients     []EnrichedIngredient `json:"ingredients"`
-	RawCookingText  string               `json:"cooking_instructions"`
+	Title              string                  `json:"title"`
+	Language           string                  `json:"language"`        // "pl", "en", "ru"
+	Ingredients        []EnrichedIngredient    `json:"ingredients"`
+	OriginalIngredients []RecipeIngredientInput `json:"-"` // Для валидации (не передаем в AI)
+	RawCookingText     string                  `json:"cooking_instructions"`
 }
 
-// AIRecipeResponse - строгий контракт ответа от AI
+// AIRecipeResponse - строгий контракт ответа от AI (ПОЛНЫЙ)
 type AIRecipeResponse struct {
-	Summary     string          `json:"summary"`      // "Нежный лосось с ароматным соусом..."
-	Servings    int             `json:"servings"`     // 1
-	TimeMinutes int             `json:"time_minutes"` // 25
-	Difficulty  string          `json:"difficulty"`   // "easy"
-	Steps       []RecipeStepAI  `json:"steps"`        // [{order, text, time}]
-	Nutrition   RecipeNutrition `json:"nutrition"`    // {calories, protein, fat, carbohydrate}
+	Title       string                   `json:"title"`        // Оригинальное название (НЕ МЕНЯТЬ)
+	Language    string                   `json:"language"`     // Язык рецепта
+	Description string                   `json:"description"`  // Краткое описание (summary)
+	Servings    int                      `json:"servings"`     // Порций
+	TimeMinutes int                      `json:"time_minutes"` // Общее время
+	Difficulty  string                   `json:"difficulty"`   // easy/medium/hard
+	Calories    int                      `json:"calories"`     // Калории на порцию
+	Ingredients []AIRecipeIngredient     `json:"ingredients"`  // Ингредиенты с ID
+	Steps       []RecipeStepAI           `json:"steps"`        // Шаги приготовления
+}
+
+// AIRecipeIngredient - ингредиент в ответе AI (с сохранением ID)
+type AIRecipeIngredient struct {
+	IngredientID string  `json:"ingredientId"` // UUID из запроса (НЕ МЕНЯТЬ)
+	Name         string  `json:"name"`         // Локализованное название
+	Amount       float64 `json:"amount"`       // Количество (НЕ МЕНЯТЬ)
+	Unit         string  `json:"unit"`         // Единица измерения (НЕ МЕНЯТЬ)
 }
 
 // RecipeStepAI - шаг приготовления от AI
@@ -76,17 +91,25 @@ type RecipeNutrition struct {
 
 // CreateRecipeWithAI создает рецепт через AI (ЭТАП 1-5)
 func (s *adminService) CreateRecipeWithAI(req CreateRecipeAIRequest, authorID string) (*models.RecipeCatalog, error) {
+	// Используем язык из запроса, по умолчанию "en"
+	lang := req.Language
+	if lang == "" {
+		lang = "en"
+	}
+
 	// ЭТАП 2: Обогащаем данные об ингредиентах из БД
-	enrichedIngredients, err := s.enrichIngredientsForAI(req.Ingredients)
+	enrichedIngredients, err := s.enrichIngredientsForAI(req.Ingredients, lang)
 	if err != nil {
 		return nil, fmt.Errorf("failed to enrich ingredients: %w", err)
 	}
 
 	// ЭТАП 3: Формируем контекст для AI
 	promptContext := AIRecipePromptContext{
-		Title:          req.Title,
-		Ingredients:    enrichedIngredients,
-		RawCookingText: req.RawCookingText,
+		Title:               req.Title,
+		Language:            lang,
+		Ingredients:         enrichedIngredients,
+		OriginalIngredients: req.Ingredients,
+		RawCookingText:      req.RawCookingText,
 	}
 
 	// ЭТАП 3: Вызываем AI для структурирования рецепта
@@ -107,17 +130,25 @@ func (s *adminService) CreateRecipeWithAI(req CreateRecipeAIRequest, authorID st
 
 // PreviewRecipeWithAI возвращает AI-рецепт БЕЗ сохранения (ЭТАП 6)
 func (s *adminService) PreviewRecipeWithAI(req CreateRecipeAIRequest) (*AIRecipeResponse, error) {
+	// Используем язык из запроса, по умолчанию "en"
+	lang := req.Language
+	if lang == "" {
+		lang = "en"
+	}
+
 	// ЭТАП 2: Обогащаем данные об ингредиентах
-	enrichedIngredients, err := s.enrichIngredientsForAI(req.Ingredients)
+	enrichedIngredients, err := s.enrichIngredientsForAI(req.Ingredients, lang)
 	if err != nil {
 		return nil, fmt.Errorf("failed to enrich ingredients: %w", err)
 	}
 
 	// ЭТАП 3: Формируем контекст и вызываем AI
 	promptContext := AIRecipePromptContext{
-		Title:          req.Title,
-		Ingredients:    enrichedIngredients,
-		RawCookingText: req.RawCookingText,
+		Title:               req.Title,
+		Language:            lang,
+		Ingredients:         enrichedIngredients,
+		OriginalIngredients: req.Ingredients,
+		RawCookingText:      req.RawCookingText,
 	}
 
 	aiResponse, err := s.generateRecipeViaAI(promptContext)
@@ -134,7 +165,8 @@ func (s *adminService) PreviewRecipeWithAI(req CreateRecipeAIRequest) (*AIRecipe
 // ===========================
 
 // enrichIngredientsForAI загружает ингредиенты из БД и обогащает данными
-func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput) ([]EnrichedIngredient, error) {
+// Теперь с поддержкой локализации и сохранением ID
+func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput, lang string) ([]EnrichedIngredient, error) {
 	enriched := make([]EnrichedIngredient, 0, len(inputs))
 
 	for _, input := range inputs {
@@ -144,13 +176,11 @@ func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput) ([
 			return nil, fmt.Errorf("ingredient %s not found: %w", input.IngredientID, err)
 		}
 
-		// Выбираем английское название (приоритет для AI)
-		name := ingredient.Name
-		if ingredient.NameEN != nil && *ingredient.NameEN != "" {
-			name = *ingredient.NameEN
-		}
+		// Выбираем локализованное название на основе языка
+		name := s.getLocalizedName(ingredient, lang)
 
 		enriched = append(enriched, EnrichedIngredient{
+			IngredientID:   input.IngredientID, // Сохраняем ID!
 			Name:           name,
 			Quantity:       input.Quantity,
 			Unit:           input.Unit,
@@ -159,72 +189,84 @@ func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput) ([
 		})
 	}
 
-	fmt.Printf("🔧 Enriched %d ingredients for AI\n", len(enriched))
+	fmt.Printf("🔧 Enriched %d ingredients for AI (lang=%s)\n", len(enriched), lang)
 	return enriched, nil
 }
 
 // ===========================
 // ЭТАП 3: AI Generation
 // ===========================
+// ===========================
 
 // generateRecipeViaAI вызывает Groq AI для структурирования рецепта
 func (s *adminService) generateRecipeViaAI(context AIRecipePromptContext) (*AIRecipeResponse, error) {
-	systemPrompt := `You are a professional culinary AI assistant.
+	// SYSTEM PROMPT: Строгие правила для сохранения данных пользователя
+	systemPrompt := fmt.Sprintf(`You are a professional chef and food technologist.
 
-Given a recipe title, ingredients with nutritional data, and raw cooking instructions, you must:
-1. Create a professional summary (1-2 sentences)
-2. Break cooking text into clear, numbered steps
-3. Estimate time for each step
-4. Calculate total cooking time
-5. Determine difficulty (easy/medium/hard)
-6. Calculate nutrition (calories, protein, fat, carbs) based on ingredients
-7. Determine servings (default 1 unless specified)
+CRITICAL RULES - MUST FOLLOW STRICTLY:
+1. DO NOT change the recipe title provided by the user
+2. DO NOT invent, add, or remove any ingredients
+3. Use ONLY the ingredients provided with their EXACT amounts and units
+4. Return the recipe in the language specified: %s
+5. Output ONLY valid JSON (no markdown, no explanations, no code blocks)
 
-CRITICAL RULES:
-- Respond ONLY with valid JSON (no markdown, no explanations)
-- Steps must be actionable and specific
-- Time estimates must be realistic
-- Nutrition must be calculated from ingredient quantities
-- Difficulty: easy (≤30min), medium (30-60min), hard (>60min)
+YOUR TASK:
+- Create a 1-2 sentence description explaining what makes this dish special
+- Break down the raw cooking text into clear, actionable steps with time estimates
+- Calculate total cooking time based on step durations
+- Determine difficulty: easy (≤30min), medium (30-60min), hard (>60min)
+- Estimate calories per serving based on ingredient nutrition groups
+- Determine servings (analyze ingredient quantities, default to 1 if unclear)
 
-JSON Format:
+IMPORTANT:
+- Each ingredient has a nutrition_group (protein/carbohydrate/vegetable/fat/other)
+- Use this to estimate calories:
+  * Protein (fish/meat): ~150-200 kcal/100g
+  * Carbohydrate (grains/pasta): ~130-150 kcal/100g
+  * Vegetables: ~25-50 kcal/100g
+  * Fats/oils: ~800-900 kcal/100ml
+- Steps must have realistic time estimates (in minutes)
+- Description must be in %s language
+
+STRICT JSON SCHEMA (return ONLY this structure):
 {
-  "summary": "Brief appetizing description",
-  "servings": 1,
-  "time_minutes": 25,
-  "difficulty": "easy",
+  "title": "string - EXACT title from user input",
+  "language": "string - %s",
+  "description": "string - 1-2 sentence description in %s",
+  "servings": number,
+  "time_minutes": number,
+  "difficulty": "easy|medium|hard",
+  "calories": number,
   "steps": [
-    {"order": 1, "text": "Step description", "time": 5}
+    {"order": number, "text": "string in %s", "time": number}
   ],
-  "nutrition": {
-    "calories": 520,
-    "protein": 38.0,
-    "fat": 22.0,
-    "carbohydrate": 42.0
-  }
+  "ingredients": [
+    {
+      "ingredientId": "uuid from input",
+      "name": "string - ingredient name in %s",
+      "amount": number - EXACT from input,
+      "unit": "string - EXACT from input"
+    }
+  ]
 }
 
-Nutrition calculation guidelines:
-- Fish (protein group): ~150 kcal/100g, 20g protein, 5g fat
-- Rice (carbohydrate group): ~130 kcal/100g, 3g protein, 30g carbs
-- Vegetables: ~25 kcal/100g, 1g protein, 5g carbs
-- Oils/sauces: ~900 kcal/100ml, 100g fat
+Remember: You are structuring existing data, NOT creating a new recipe. Preserve all user input.`,
+		context.Language, context.Language, context.Language, context.Language, context.Language, context.Language)
 
-Do not add explanations. Just JSON.`
-
-	// Формируем user prompt с контекстом
+	// USER PROMPT: Передаем данные для структурирования
 	ingredientsJSON, _ := json.Marshal(context.Ingredients)
-	userPrompt := fmt.Sprintf(`Create a structured recipe:
+	userPrompt := fmt.Sprintf(`Structure this recipe data:
 
 Title: %s
+Language: %s
 
-Ingredients:
+Ingredients (preserve IDs and amounts exactly):
 %s
 
-Cooking Instructions:
+Raw Cooking Instructions:
 %s
 
-Return JSON only.`, context.Title, string(ingredientsJSON), context.RawCookingText)
+Return ONLY JSON. No markdown, no explanations.`, context.Title, context.Language, string(ingredientsJSON), context.RawCookingText)
 
 	fmt.Printf("🤖 Calling AI for recipe: %s\n", context.Title)
 	fmt.Printf("📋 Ingredients count: %d\n", len(context.Ingredients))
@@ -251,7 +293,7 @@ Return JSON only.`, context.Title, string(ingredientsJSON), context.RawCookingTe
 	}
 
 	// ЭТАП 4: Валидация ответа
-	if err := validateAIResponse(&aiResponse); err != nil {
+	if err := validateAIResponse(&aiResponse, context.Title, context.OriginalIngredients); err != nil {
 		return nil, fmt.Errorf("AI response validation failed: %w", err)
 	}
 
@@ -262,10 +304,18 @@ Return JSON only.`, context.Title, string(ingredientsJSON), context.RawCookingTe
 }
 
 // validateAIResponse проверяет корректность ответа AI
-func validateAIResponse(response *AIRecipeResponse) error {
-	if response.Summary == "" {
-		return fmt.Errorf("summary is empty")
+func validateAIResponse(response *AIRecipeResponse, originalTitle string, originalIngredients []RecipeIngredientInput) error {
+	// 1. Title должен совпадать с оригиналом
+	if response.Title != originalTitle {
+		return fmt.Errorf("AI changed the title: expected '%s', got '%s'", originalTitle, response.Title)
 	}
+
+	// 2. Description не пустой
+	if response.Description == "" {
+		return fmt.Errorf("description is empty")
+	}
+
+	// 3. Базовые проверки
 	if response.Servings <= 0 {
 		return fmt.Errorf("servings must be > 0")
 	}
@@ -275,13 +325,38 @@ func validateAIResponse(response *AIRecipeResponse) error {
 	if len(response.Steps) == 0 {
 		return fmt.Errorf("steps array is empty")
 	}
+
+	// 4. Difficulty валидация
 	validDifficulty := map[string]bool{"easy": true, "medium": true, "hard": true}
 	if !validDifficulty[response.Difficulty] {
 		return fmt.Errorf("difficulty must be easy/medium/hard")
 	}
-	if response.Nutrition.Calories <= 0 {
+
+	// 5. Calories проверка
+	if response.Calories <= 0 {
 		return fmt.Errorf("calories must be > 0")
 	}
+
+	// 6. Ingredients должны быть все с ID и совпадать с оригинальными
+	if len(response.Ingredients) != len(originalIngredients) {
+		return fmt.Errorf("ingredient count mismatch: expected %d, got %d", len(originalIngredients), len(response.Ingredients))
+	}
+
+	// Создаем map для проверки наличия всех ID
+	originalIDs := make(map[string]bool)
+	for _, ing := range originalIngredients {
+		originalIDs[ing.IngredientID] = true
+	}
+
+	for i, ing := range response.Ingredients {
+		if ing.IngredientID == "" {
+			return fmt.Errorf("ingredient #%d has empty ingredientId", i+1)
+		}
+		if !originalIDs[ing.IngredientID] {
+			return fmt.Errorf("ingredient #%d has unknown ID: %s", i+1, ing.IngredientID)
+		}
+	}
+
 	return nil
 }
 
@@ -312,7 +387,7 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 	recipe := &models.RecipeCatalog{
 		ID:            uuid.New(),
 		CanonicalName: canonicalName,
-		Title:         req.Title,
+		Title:         aiResponse.Title, // Используем title из AI (должен совпадать с req.Title)
 		Country:       "pl", // Default, можно добавить в запрос
 		Category:      "main", // Default, можно добавить в запрос
 		Difficulty:    aiResponse.Difficulty,
@@ -321,9 +396,15 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 		Source:        datatypes.JSON(sourceJSON),
 	}
 
-	// Сохраняем summary как description
-	descPl := aiResponse.Summary
-	recipe.DescriptionPl = &descPl
+	// Сохраняем description (в зависимости от языка)
+	switch aiResponse.Language {
+	case "pl":
+		recipe.DescriptionPl = &aiResponse.Description
+	case "ru":
+		recipe.DescriptionRu = &aiResponse.Description
+	default: // "en"
+		recipe.DescriptionEn = &aiResponse.Description
+	}
 
 	// Начинаем транзакцию
 	tx := s.db.Begin()
@@ -357,14 +438,22 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 
 	// 3. Сохраняем шаги (в JSONB пока, позже можно в отдельную таблицу)
 	stepsJSON, _ := json.Marshal(aiResponse.Steps)
-	recipe.StepsPl = stepsJSON
+	switch aiResponse.Language {
+	case "pl":
+		recipe.StepsPl = stepsJSON
+	case "ru":
+		recipe.StepsRu = stepsJSON
+	default: // "en"
+		recipe.StepsEn = stepsJSON
+	}
 
 	// 4. Сохраняем nutrition (в NutritionProfile JSONB)
+	// TODO: В будущем AI будет возвращать полный nutrition (protein, fat, carbs)
 	nutritionJSON, _ := json.Marshal(map[string]interface{}{
-		"calories":     aiResponse.Nutrition.Calories,
-		"protein":      aiResponse.Nutrition.Protein,
-		"fat":          aiResponse.Nutrition.Fat,
-		"carbohydrate": aiResponse.Nutrition.Carbohydrate,
+		"calories":     aiResponse.Calories,
+		"protein":      0, // Пока AI возвращает только калории
+		"fat":          0,
+		"carbohydrate": 0,
 	})
 	recipe.NutritionProfile = nutritionJSON
 
