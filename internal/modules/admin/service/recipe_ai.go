@@ -26,8 +26,17 @@ type CreateRecipeAIRequest struct {
 // RecipeIngredientInput - ингредиент из запроса
 type RecipeIngredientInput struct {
 	IngredientID string  `json:"ingredientId"` // UUID ингредиента
-	Quantity     float64 `json:"quantity"`     // 150
+	Quantity     float64 `json:"quantity"`     // 150 (приоритетное поле)
+	Amount       float64 `json:"amount"`       // 150 (альтернативное поле для совместимости с frontend)
 	Unit         string  `json:"unit"`         // "g"
+}
+
+// GetQuantity возвращает количество (quantity или amount, что заполнено)
+func (r *RecipeIngredientInput) GetQuantity() float64 {
+	if r.Quantity > 0 {
+		return r.Quantity
+	}
+	return r.Amount
 }
 
 // EnrichedIngredient - обогащенный ингредиент для AI (с сохранением ID)
@@ -182,7 +191,7 @@ func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput, la
 		enriched = append(enriched, EnrichedIngredient{
 			IngredientID:   input.IngredientID, // Сохраняем ID!
 			Name:           name,
-			Quantity:       input.Quantity,
+			Quantity:       input.GetQuantity(), // Используем quantity или amount
 			Unit:           input.Unit,
 			NutritionGroup: ingredient.NutritionGroup,
 			Category:       ingredient.Category,
@@ -426,7 +435,7 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 			ID:           uuid.New(),
 			RecipeID:     recipe.ID,
 			IngredientID: ingInput.IngredientID,
-			Quantity:     ingInput.Quantity,
+			Quantity:     ingInput.GetQuantity(), // Используем quantity или amount
 			Unit:         ingInput.Unit,
 			SortOrder:    i + 1,
 		}
