@@ -2518,3 +2518,69 @@ ORDER BY name ASC LIMIT 10
 🔍 Recipe preview generated: Жареный Лосось (7 steps)
 ✅ Preview generated: 7 steps, 11 min
 2026/01/08 09:54:56 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000169] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:51810 - 200 1049B in 1.270590958s
+
+2026/01/08 10:31:48 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [35;1mrecord not found
+[0m[33m[346.770ms] [34;1m[rows:0][0m SELECT * FROM "User" WHERE email = 'dima_fomin@icloud.com' ORDER BY "User"."id" LIMIT 1
+2026-01-08T10:31:48.405+0100	[31mERROR[0m	logger/logger.go:64	Login failed	{"error": "invalid credentials", "email": "dima_fomin@icloud.com"}
+github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger.Error
+	/Users/dmitrijfomin/Desktop/backend/internal/platform/logger/logger.go:64
+github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/transport/http.(*AuthHandler).Login
+	/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/transport/http/handlers.go:70
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:73
+github.com/go-chi/chi/v5.(*Mux).Mount.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:321
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).routeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:477
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/cors.(*Cors).Handler-fm.(*Cors).Handler.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/cors@v1.2.2/cors.go:231
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).setupModularRoutes.Timeout.func3.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/timeout.go:44
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.Recoverer.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/recoverer.go:45
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.init.0.RequestLogger.func1.1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/logger.go:55
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RealIP.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/realip.go:36
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5/middleware.RequestID.func1
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/middleware/request_id.go:76
+net/http.HandlerFunc.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294
+github.com/go-chi/chi/v5.(*Mux).ServeHTTP
+	/Users/dmitrijfomin/go/pkg/mod/github.com/go-chi/chi/v5@v5.2.3/mux.go:90
+net/http.serverHandler.ServeHTTP
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301
+net/http.(*conn).serve
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102
+2026/01/08 10:31:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000170] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:61129 - 401 61B in 347.508417ms
+2026/01/08 10:31:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000171] "GET http://localhost:8080/api/ingredients/suggest?query=salmon HTTP/1.1" from [::1]:61132 - 404 19B in 47.084µs
+2026/01/08 10:31:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000172] "GET http://localhost:8080/api/ingredients/suggest?query=rice HTTP/1.1" from [::1]:61133 - 404 19B in 22.375µs
+2026/01/08 10:31:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000173] "GET http://localhost:8080/api/ingredients/suggest?query=soy HTTP/1.1" from [::1]:61134 - 404 19B in 12.791µs
+2026/01/08 10:31:48 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
+2026/01/08 10:31:48 📋 Auth header present: true, length: 11
+2026/01/08 10:31:48 🎫 Token extracted, length: 4
+2026/01/08 10:31:48 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/08 10:31:48 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/08 10:31:48 ❌ JWT parse error: token is malformed: token contains an invalid number of segments
+2026/01/08 10:31:48 ❌ JWT validation failed for POST /api/admin/recipes/preview-ai: token is malformed: token contains an invalid number of segments
+2026/01/08 10:31:48 [MacBook-Air-Dmitrij.local/s66ndpRv1e-000174] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:61135 - 401 37B in 65.5µs
