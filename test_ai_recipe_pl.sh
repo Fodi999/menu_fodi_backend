@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Test AI Recipe Creation with Polish Language
-BASE_URL="https://backend-fridge-final-haxball9000-dmitrijfomins-projects.koyeb.app/api"
+BASE_URL="http://yeasty-madelaine-fodi999-671ccdf5.koyeb.app/api"
 
 echo "=== Testing AI Recipe Creation (Polish) ==="
 echo ""
