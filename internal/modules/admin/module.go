@@ -94,8 +94,10 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/recipes", m.handlers.GetAllRecipes)         // GET /api/admin/recipes - весь каталог рецептов
 		r.Get("/recipes/stats", m.handlers.GetRecipesStats) // GET /api/admin/recipes/stats - статистика
 		
-		// AI Recipe Creation (НОВОЕ)
+		// AI Recipe Creation
 		r.Post("/recipes/create-ai", m.handlers.CreateRecipeWithAI)   // POST /api/admin/recipes/create-ai - создать рецепт через AI
 		r.Post("/recipes/preview-ai", m.handlers.PreviewRecipeWithAI) // POST /api/admin/recipes/preview-ai - preview без сохранения
+		r.Post("/recipes/save", m.handlers.SaveEditedRecipe)          // POST /api/admin/recipes/save - сохранить отредактированный рецепт
+		r.Put("/recipes/{id}", m.handlers.UpdateRecipe)               // PUT /api/admin/recipes/{id} - обновить существующий рецепт
 	})
 }

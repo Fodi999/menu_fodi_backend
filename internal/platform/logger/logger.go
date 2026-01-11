@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"os"
 
 	"go.uber.org/zap"
@@ -8,6 +9,8 @@ import (
 )
 
 var Log *zap.Logger
+
+const RequestIDKey = "request_id"
 
 // Init initializes the logger
 func Init(env string) error {
@@ -86,4 +89,31 @@ func Fatal(msg string, fields ...zap.Field) {
 	} else {
 		os.Exit(1)
 	}
+}
+
+// WithContext creates a logger with request_id from context
+// Usage: logger.WithContext(ctx).Info("message", zap.String("key", "value"))
+func WithContext(ctx context.Context) *zap.Logger {
+	if Log == nil {
+		return zap.NewNop()
+	}
+
+	// Extract request_id from context
+	if requestID := ctx.Value(RequestIDKey); requestID != nil {
+		if id, ok := requestID.(string); ok {
+			return Log.With(zap.String("request_id", id))
+		}
+	}
+
+	return Log
+}
+
+// GetRequestID extracts request_id from context
+func GetRequestID(ctx context.Context) string {
+	if requestID := ctx.Value(RequestIDKey); requestID != nil {
+		if id, ok := requestID.(string); ok {
+			return id
+		}
+	}
+	return "unknown"
 }
