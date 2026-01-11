@@ -117,6 +117,7 @@ type AdminService interface {
 
 	// Recipes Catalog
 	GetAllRecipes() ([]models.RecipeCatalog, error)
+	GetFilteredRecipes(filter RecipeFilter) ([]models.RecipeCatalog, int64, error)
 	GetRecipesStats() (map[string]interface{}, error)
 	
 	// AI Recipe Creation
@@ -617,6 +618,33 @@ func (s *adminService) GetAllRecipes() ([]models.RecipeCatalog, error) {
 	}
 
 	return recipes, nil
+}
+
+// GetFilteredRecipes - получить рецепты с фильтрацией и пагинацией
+func (s *adminService) GetFilteredRecipes(filter RecipeFilter) ([]models.RecipeCatalog, int64, error) {
+	var recipes []models.RecipeCatalog
+
+	// Применяем фильтры декларативно
+	query := ApplyRecipeFilters(s.db, filter)
+
+	// Загружаем связанные данные
+	query = query.
+		Preload("Ingredients.Ingredient").
+		Preload("Allergens").
+		Preload("DietTags")
+
+	// Выполняем запрос
+	if err := query.Find(&recipes).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to fetch recipes: %w", err)
+	}
+
+	// Получаем общее количество (без пагинации)
+	total, err := GetFilteredRecipesCount(s.db, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return recipes, total, nil
 }
 
 // GetRecipesStats возвращает статистику по рецептам

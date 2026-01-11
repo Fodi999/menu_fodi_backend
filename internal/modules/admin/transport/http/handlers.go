@@ -876,9 +876,17 @@ func (h *AdminHandlers) GetIngredientsStats(w http.ResponseWriter, r *http.Reque
 	utils.RespondWithJSON(w, http.StatusOK, stats)
 }
 
-// GetAllRecipes возвращает весь каталог рецептов для админ-панели
+// GetAllRecipes возвращает каталог рецептов с фильтрацией и пагинацией
 func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
-	recipes, err := h.service.GetAllRecipes()
+	// Парсим фильтры из query параметров
+	filter := service.ParseRecipeFilter(r)
+
+	// Логируем фильтры для отладки и аналитики
+	fmt.Printf("📊 Recipes filter: page=%d, limit=%d, sort=%s, category=%v, difficulty=%v, timeLte=%v, ingredientIds=%v\n",
+		filter.Page, filter.Limit, filter.Sort, filter.Category, filter.Difficulty, filter.TimeLte, filter.IngredientIDs)
+
+	// Получаем отфильтрованные рецепты
+	recipes, total, err := h.service.GetFilteredRecipes(filter)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch recipes")
 		return
@@ -890,11 +898,13 @@ func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
 		recipeResponses[i] = ToRecipeResponse(&recipe)
 	}
 
-	// Формат совместимый с фронтендом (data + meta)
+	// Формат совместимый с фронтендом (data + meta + pagination)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"data": recipeResponses,
 		"meta": map[string]interface{}{
-			"total": len(recipeResponses),
+			"page":  filter.Page,
+			"limit": filter.Limit,
+			"total": total,
 			"count": len(recipeResponses),
 		},
 	})
