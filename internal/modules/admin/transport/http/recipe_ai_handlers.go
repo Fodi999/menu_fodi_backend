@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
@@ -44,6 +45,15 @@ func (h *AdminHandlers) CreateRecipeWithAI(w http.ResponseWriter, r *http.Reques
 		fmt.Printf("❌ Invalid request body: %v\n", err)
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
 		return
+	}
+
+	// ✅ CRITICAL FIX: Читаем язык из Accept-Language заголовка
+	if req.Language == "" {
+		acceptLang := r.Header.Get("Accept-Language")
+		req.Language = normalizeLang(acceptLang)
+		fmt.Printf("🌐 Language from Accept-Language: %s → %s\n", acceptLang, req.Language)
+	} else {
+		fmt.Printf("🌐 Language from body: %s\n", req.Language)
 	}
 
 	// Валидация
@@ -108,6 +118,15 @@ func (h *AdminHandlers) PreviewRecipeWithAI(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// ✅ CRITICAL FIX: Читаем язык из Accept-Language заголовка
+	if req.Language == "" {
+		acceptLang := r.Header.Get("Accept-Language")
+		req.Language = normalizeLang(acceptLang)
+		fmt.Printf("🌐 Language from Accept-Language: %s → %s\n", acceptLang, req.Language)
+	} else {
+		fmt.Printf("🌐 Language from body: %s\n", req.Language)
+	}
+
 	// Валидация
 	if req.Title == "" {
 		utils.RespondWithError(w, http.StatusBadRequest, "title is required")
@@ -142,5 +161,162 @@ func (h *AdminHandlers) PreviewRecipeWithAI(w http.ResponseWriter, r *http.Reque
 		"success": true,
 		"message": "Recipe preview generated",
 		"data":    preview,
+	})
+}
+
+// SaveEditedRecipe - POST /api/admin/recipes/save
+// Сохраняет отредактированный пользователем рецепт
+func (h *AdminHandlers) SaveEditedRecipe(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("🚨 PANIC in SaveEditedRecipe: %v\n", r)
+			utils.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		}
+	}()
+
+	// Получаем userID из контекста
+	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
+	if !ok {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+	userID := claims.UserID
+
+	// Парсим запрос
+	var req service.SaveEditedRecipeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Printf("❌ Invalid request body: %v\n", err)
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Валидация
+	if req.Title == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "title is required")
+		return
+	}
+	if len(req.Ingredients) == 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "ingredients are required")
+		return
+	}
+	if len(req.Steps) == 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "steps are required")
+	}
+
+	fmt.Printf("💾 SaveEditedRecipe: title='%s', ingredients=%d, steps=%d\n",
+		req.Title, len(req.Ingredients), len(req.Steps))
+
+	// Сохраняем через service
+	recipe, err := h.service.SaveEditedRecipe(req, userID)
+	if err != nil {
+		errMsg := err.Error()
+		
+		// 🎯 УМНАЯ ОБРАБОТКА КОНФЛИКТА: Проверяем на дубликат названия
+		if strings.Contains(errMsg, "already exists") {
+			fmt.Printf("⚠️  Recipe name conflict detected: '%s'\n", req.Title)
+			
+			// 🌍 Генерируем мульти-язычные альтернативные названия через AI
+			multilingualSuggestions, aiErr := h.service.GenerateMultilingualTitles(req.Title, req.Language)
+			if aiErr != nil {
+				fmt.Printf("⚠️  Failed to generate multilingual suggestions: %v\n", aiErr)
+				// Fallback: простые варианты только на основном языке
+				multilingualSuggestions = map[string][]string{
+					req.Language: {
+						req.Title + " (домашний рецепт)",
+						req.Title + " (авторский)",
+						req.Title + " на сковороде",
+					},
+				}
+			}
+
+			// Извлекаем canonical name из ошибки
+			canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
+			
+			// Возвращаем 409 с мульти-язычными подсказками
+			utils.RespondWithJSON(w, http.StatusConflict, map[string]interface{}{
+				"success": false,
+				"code":    "RECIPE_NAME_EXISTS",
+				"message": "Рецепт с таким названием уже существует",
+				"conflict": map[string]interface{}{
+					"canonicalName": canonicalName,
+					"originalTitle": req.Title,
+				},
+				"suggestions": multilingualSuggestions, // Теперь это map[string][]string
+			})
+			return
+		}
+		
+		fmt.Printf("❌ SaveEditedRecipe failed: %v\n", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to save recipe")
+		return
+	}
+
+	fmt.Printf("✅ Recipe saved: %s [%s]\n", recipe.Title, recipe.ID)
+	utils.RespondWithJSON(w, http.StatusCreated, map[string]interface{}{
+		"success": true,
+		"message": "Recipe saved successfully",
+		"data":    recipe,
+	})
+}
+
+// UpdateRecipe - PUT /api/admin/recipes/{id}
+// Обновляет существующий рецепт
+func (h *AdminHandlers) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("🚨 PANIC in UpdateRecipe: %v\n", r)
+			utils.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		}
+	}()
+
+	// Получаем recipeID из URL
+	recipeID := r.URL.Path[len("/api/admin/recipes/"):]
+	if recipeID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "recipe ID is required")
+		return
+	}
+
+	// Парсим запрос
+	var req service.UpdateRecipeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Printf("❌ Invalid request body: %v\n", err)
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Валидация
+	if req.Title == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "title is required")
+		return
+	}
+	if len(req.Ingredients) == 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "ingredients are required")
+		return
+	}
+	if len(req.Steps) == 0 {
+		utils.RespondWithError(w, http.StatusBadRequest, "steps are required")
+		return
+	}
+
+	fmt.Printf("🔄 UpdateRecipe: id=%s, title='%s'\n", recipeID, req.Title)
+
+	// Обновляем через service
+	recipe, err := h.service.UpdateRecipe(recipeID, req)
+	if err != nil {
+		errMsg := err.Error()
+		if errMsg == "recipe not found" {
+			utils.RespondWithError(w, http.StatusNotFound, errMsg)
+			return
+		}
+		fmt.Printf("❌ UpdateRecipe failed: %v\n", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update recipe")
+		return
+	}
+
+	fmt.Printf("✅ Recipe updated: %s [%s]\n", recipe.Title, recipe.ID)
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Recipe updated successfully",
+		"data":    recipe,
 	})
 }

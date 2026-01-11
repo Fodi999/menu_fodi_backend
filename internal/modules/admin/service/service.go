@@ -119,9 +119,13 @@ type AdminService interface {
 	GetAllRecipes() ([]models.RecipeCatalog, error)
 	GetRecipesStats() (map[string]interface{}, error)
 	
-	// AI Recipe Creation (НОВОЕ)
+	// AI Recipe Creation
 	CreateRecipeWithAI(req CreateRecipeAIRequest, authorID string) (*models.RecipeCatalog, error)
 	PreviewRecipeWithAI(req CreateRecipeAIRequest) (*AIRecipeResponse, error)
+	SaveEditedRecipe(req SaveEditedRecipeRequest, userID string) (*models.RecipeCatalog, error)
+	UpdateRecipe(recipeID string, req UpdateRecipeRequest) (*models.RecipeCatalog, error)
+	GenerateAlternativeTitles(originalTitle, language string) ([]string, error)
+	GenerateMultilingualTitles(originalTitle, primaryLanguage string) (map[string][]string, error)
 }
 
 // adminService реализация интерфейса AdminService
@@ -602,11 +606,12 @@ func (s *adminService) GetAllRecipes() ([]models.RecipeCatalog, error) {
 	var recipes []models.RecipeCatalog
 
 	// Загружаем рецепты с ингредиентами и связанными данными
+	// Сортировка: новые сверху (createdAt DESC)
 	if err := s.db.
 		Preload("Ingredients.Ingredient"). // Загружаем ингредиенты с их полной информацией
 		Preload("Allergens").              // Загружаем аллергены
 		Preload("DietTags").               // Загружаем диетические теги
-		Order("category ASC, \"canonicalName\" ASC").
+		Order("\"createdAt\" DESC").       // Новые рецепты сверху
 		Find(&recipes).Error; err != nil {
 		return nil, err
 	}

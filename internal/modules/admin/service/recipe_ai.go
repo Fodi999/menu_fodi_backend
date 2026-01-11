@@ -179,6 +179,10 @@ func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput, la
 	enriched := make([]EnrichedIngredient, 0, len(inputs))
 
 	for _, input := range inputs {
+		// 🔍 DEBUG: Логируем входные данные от frontend
+		fmt.Printf("📥 RAW INPUT: ID=%s, Quantity=%.6f, Amount=%.6f, Unit=%s\n",
+			input.IngredientID, input.Quantity, input.Amount, input.Unit)
+
 		// Загружаем ингредиент из БД
 		var ingredient models.Ingredient
 		if err := s.db.Where("id = ?", input.IngredientID).First(&ingredient).Error; err != nil {
@@ -188,14 +192,18 @@ func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput, la
 		// Выбираем локализованное название на основе языка
 		name := s.getLocalizedName(ingredient, lang)
 
+		finalQuantity := input.GetQuantity()
 		enriched = append(enriched, EnrichedIngredient{
 			IngredientID:   input.IngredientID, // Сохраняем ID!
 			Name:           name,
-			Quantity:       input.GetQuantity(), // Используем quantity или amount
+			Quantity:       finalQuantity, // Используем quantity или amount
 			Unit:           input.Unit,
 			NutritionGroup: ingredient.NutritionGroup,
 			Category:       ingredient.Category,
 		})
+
+		// 🔍 DEBUG: Логируем результат обогащения
+		fmt.Printf("📤 ENRICHED: Name=%s, Quantity=%.2f %s\n", name, finalQuantity, input.Unit)
 	}
 
 	fmt.Printf("🔧 Enriched %d ingredients for AI (lang=%s)\n", len(enriched), lang)
@@ -481,4 +489,535 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 		recipe.Title, recipe.ID, len(req.Ingredients), len(aiResponse.Steps))
 
 	return recipe, nil
+}
+
+// ===========================
+// ЭТАП 5: Save Edited Recipe
+// ===========================
+
+// SaveEditedRecipeRequest - структура для сохранения отредактированного рецепта
+type SaveEditedRecipeRequest struct {
+	Title       string             `json:"title"`        // Отредактированное название
+	Language    string             `json:"language"`     // Язык рецепта
+	Description string             `json:"description"`  // Отредактированное описание
+	Servings    int                `json:"servings"`     // Количество порций
+	TimeMinutes int                `json:"time_minutes"` // Время приготовления
+	Difficulty  string             `json:"difficulty"`   // easy, medium, hard
+	Calories    int                `json:"calories"`     // Калории
+	Ingredients []EditedIngredient `json:"ingredients"`  // Отредактированные ингредиенты
+	Steps       []EditedStep       `json:"steps"`        // Отредактированные шаги
+}
+
+// EditedIngredient - отредактированный ингредиент
+type EditedIngredient struct {
+	IngredientID string  `json:"ingredientId"` // UUID ингредиента из каталога
+	Name         string  `json:"name"`         // Локализованное название (для отображения)
+	Amount       float64 `json:"amount"`       // Количество
+	Unit         string  `json:"unit"`         // Единица измерения
+}
+
+// EditedStep - отредактированный шаг приготовления
+type EditedStep struct {
+	Order int    `json:"order"` // Порядковый номер
+	Text  string `json:"text"`  // Текст инструкции
+	Time  int    `json:"time"`  // Время выполнения в минутах
+}
+
+// SaveEditedRecipe сохраняет отредактированный пользователем рецепт в БД
+func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID string) (*models.RecipeCatalog, error) {
+	// Валидация
+	if req.Title == "" {
+		return nil, fmt.Errorf("title is required")
+	}
+	if len(req.Ingredients) == 0 {
+		return nil, fmt.Errorf("ingredients are required")
+	}
+	if len(req.Steps) == 0 {
+		return nil, fmt.Errorf("steps are required")
+	}
+
+	fmt.Printf("💾 Saving edited recipe: '%s' (lang=%s, %d ingredients, %d steps)\n",
+		req.Title, req.Language, len(req.Ingredients), len(req.Steps))
+
+	// Генерируем canonical name
+	canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
+
+	// Проверка на дубликаты
+	var existing models.RecipeCatalog
+	if err := s.db.Where("\"canonicalName\" = ?", canonicalName).First(&existing).Error; err == nil {
+		return nil, fmt.Errorf("recipe with similar name already exists: %s", canonicalName)
+	}
+
+	// Начинаем транзакцию
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			fmt.Printf("🚨 Transaction rolled back due to panic: %v\n", r)
+		}
+	}()
+
+	// Создаём Source JSONB
+	sourceJSON, _ := json.Marshal(map[string]interface{}{
+		"type":      "ai",
+		"generator": "groq-llama-3.3-70b",
+		"authorId":  userID,
+		"timestamp": time.Now().Unix(),
+	})
+
+	// Определяем страну по языку
+	country := "pl" // default
+	if req.Language == "ru" {
+		country = "ru"
+	} else if req.Language == "en" {
+		country = "us"
+	}
+
+	// 1. Создаём Recipe
+	recipe := &models.RecipeCatalog{
+		ID:            uuid.New(),
+		CanonicalName: canonicalName,
+		Title:         req.Title,
+		Category:      "main", // default
+		Difficulty:    req.Difficulty,
+		TimeMinutes:   req.TimeMinutes,
+		Servings:      req.Servings,
+		Country:       country,
+		Source:        datatypes.JSON(sourceJSON),
+	}
+
+	// Устанавливаем локализованное описание
+	if req.Language == "ru" {
+		recipe.DescriptionRu = &req.Description
+	} else if req.Language == "pl" {
+		recipe.DescriptionPl = &req.Description
+	} else {
+		recipe.DescriptionEn = &req.Description
+	}
+
+	// Сохраняем Recipe
+	if err := tx.Create(recipe).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create recipe: %w", err)
+	}
+
+	fmt.Printf("✅ Recipe created: ID=%s\n", recipe.ID)
+
+	// 2. Создаём CatalogIngredients
+	for _, ing := range req.Ingredients {
+		// Генерируем ingredientKey для поиска
+		ingredientKey := strings.ToLower(strings.ReplaceAll(ing.Name, " ", "_"))
+
+		recipeIng := models.CatalogIngredient{
+			ID:            uuid.New(),
+			RecipeID:      recipe.ID,
+			IngredientID:  ing.IngredientID,
+			IngredientKey: ingredientKey,
+			Quantity:      ing.Amount,
+			Unit:          ing.Unit,
+			Optional:      false,
+			SortOrder:     0,
+		}
+
+		if err := tx.Create(&recipeIng).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to create recipe ingredient: %w", err)
+		}
+	}
+
+	fmt.Printf("✅ Created %d recipe ingredients\n", len(req.Ingredients))
+
+	// 3. Создаём локализованные шаги
+	stepsData := make([]map[string]interface{}, 0, len(req.Steps))
+	for _, step := range req.Steps {
+		stepsData = append(stepsData, map[string]interface{}{
+			"order": step.Order,
+			"text":  step.Text,
+			"time":  step.Time,
+		})
+	}
+
+	stepsJSON, err := json.Marshal(stepsData)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to marshal steps: %w", err)
+	}
+
+	// Устанавливаем локализованные шаги
+	if req.Language == "ru" {
+		recipe.StepsRu = datatypes.JSON(stepsJSON)
+	} else if req.Language == "pl" {
+		recipe.StepsPl = datatypes.JSON(stepsJSON)
+	} else {
+		recipe.StepsEn = datatypes.JSON(stepsJSON)
+	}
+
+	fmt.Printf("✅ Created %d recipe steps\n", len(req.Steps))
+
+	// 4. Устанавливаем nutrition profile
+	nutritionJSON, _ := json.Marshal(map[string]int{
+		"calories":     req.Calories,
+		"protein":      0,
+		"fat":          0,
+		"carbohydrate": 0,
+	})
+	recipe.NutritionProfile = datatypes.JSON(nutritionJSON)
+
+	// Обновляем рецепт
+	if err := tx.Save(recipe).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to update recipe: %w", err)
+	}
+
+	// Коммит транзакции
+	if err := tx.Commit().Error; err != nil {
+		return nil, fmt.Errorf("transaction commit failed: %w", err)
+	}
+
+	fmt.Printf("💾 Edited recipe saved: %s [%s]\n", recipe.Title, recipe.ID)
+
+	return recipe, nil
+}
+
+// ===========================
+// ЭТАП 6: Update Existing Recipe
+// ===========================
+
+// UpdateRecipeRequest - структура для обновления существующего рецепта
+type UpdateRecipeRequest struct {
+	Title       string             `json:"title"`
+	Language    string             `json:"language"`
+	Description string             `json:"description"`
+	Servings    int                `json:"servings"`
+	TimeMinutes int                `json:"time_minutes"`
+	Difficulty  string             `json:"difficulty"`
+	Calories    int                `json:"calories"`
+	Ingredients []EditedIngredient `json:"ingredients"`
+	Steps       []EditedStep       `json:"steps"`
+}
+
+// UpdateRecipe обновляет существующий рецепт
+func (s *adminService) UpdateRecipe(recipeID string, req UpdateRecipeRequest) (*models.RecipeCatalog, error) {
+	// Валидация
+	if req.Title == "" {
+		return nil, fmt.Errorf("title is required")
+	}
+	if len(req.Ingredients) == 0 {
+		return nil, fmt.Errorf("ingredients are required")
+	}
+	if len(req.Steps) == 0 {
+		return nil, fmt.Errorf("steps are required")
+	}
+
+	fmt.Printf("🔄 Updating recipe: %s\n", recipeID)
+
+	// Начинаем транзакцию
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 1. Загружаем существующий рецепт
+	var recipe models.RecipeCatalog
+	if err := tx.Where("id = ?", recipeID).First(&recipe).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("recipe not found: %w", err)
+	}
+
+	// 2. Обновляем основные поля
+	recipe.Title = req.Title
+	canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
+	recipe.CanonicalName = canonicalName
+	recipe.Difficulty = req.Difficulty
+	recipe.TimeMinutes = req.TimeMinutes
+	recipe.Servings = req.Servings
+
+	// Обновляем описание
+	if req.Language == "ru" {
+		recipe.DescriptionRu = &req.Description
+	} else if req.Language == "pl" {
+		recipe.DescriptionPl = &req.Description
+	} else {
+		recipe.DescriptionEn = &req.Description
+	}
+
+	// 3. Удаляем старые ингредиенты
+	if err := tx.Where("\"recipeId\" = ?", recipeID).Delete(&models.CatalogIngredient{}).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to delete old ingredients: %w", err)
+	}
+
+	// 4. Создаём новые ингредиенты
+	for _, ing := range req.Ingredients {
+		ingredientKey := strings.ToLower(strings.ReplaceAll(ing.Name, " ", "_"))
+
+		recipeIng := models.CatalogIngredient{
+			ID:            uuid.New(),
+			RecipeID:      recipe.ID,
+			IngredientID:  ing.IngredientID,
+			IngredientKey: ingredientKey,
+			Quantity:      ing.Amount,
+			Unit:          ing.Unit,
+			Optional:      false,
+			SortOrder:     0,
+		}
+
+		if err := tx.Create(&recipeIng).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to create recipe ingredient: %w", err)
+		}
+	}
+
+	// 5. Обновляем шаги
+	stepsData := make([]map[string]interface{}, 0, len(req.Steps))
+	for _, step := range req.Steps {
+		stepsData = append(stepsData, map[string]interface{}{
+			"order": step.Order,
+			"text":  step.Text,
+			"time":  step.Time,
+		})
+	}
+
+	stepsJSON, err := json.Marshal(stepsData)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to marshal steps: %w", err)
+	}
+
+	if req.Language == "ru" {
+		recipe.StepsRu = datatypes.JSON(stepsJSON)
+	} else if req.Language == "pl" {
+		recipe.StepsPl = datatypes.JSON(stepsJSON)
+	} else {
+		recipe.StepsEn = datatypes.JSON(stepsJSON)
+	}
+
+	// 6. Обновляем nutrition
+	nutritionJSON, _ := json.Marshal(map[string]int{
+		"calories":     req.Calories,
+		"protein":      0,
+		"fat":          0,
+		"carbohydrate": 0,
+	})
+	recipe.NutritionProfile = datatypes.JSON(nutritionJSON)
+
+	// Сохраняем обновления
+	if err := tx.Save(&recipe).Error; err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to update recipe: %w", err)
+	}
+
+	// Коммит
+	if err := tx.Commit().Error; err != nil {
+		return nil, fmt.Errorf("transaction commit failed: %w", err)
+	}
+
+	fmt.Printf("✅ Recipe updated: %s [%s]\n", recipe.Title, recipe.ID)
+
+	return &recipe, nil
+}
+
+// ===========================
+// ЭТАП 7: Smart Conflict Resolution
+// ===========================
+
+// GenerateAlternativeTitles генерирует альтернативные названия рецепта через AI
+func (s *adminService) GenerateAlternativeTitles(originalTitle, language string) ([]string, error) {
+	// Определяем язык для промпта
+	langName := "Russian"
+	if language == "pl" {
+		langName = "Polish"
+	} else if language == "en" {
+		langName = "English"
+	}
+
+	systemPrompt := `You are a culinary naming assistant. Your task is to suggest alternative recipe titles that are:
+- Natural and appetizing
+- SEO-friendly
+- Clear and descriptive
+- Suitable for a cooking platform
+
+Return ONLY a valid JSON array of 5 strings. No markdown, no explanations.`
+
+	userPrompt := fmt.Sprintf(`Language: %s
+
+The recipe title "%s" already exists in the database.
+
+Generate 5 alternative titles that are unique but similar in meaning.
+
+Examples of good alternatives:
+- Add cooking method: "Pan-Fried Salmon"
+- Add style: "Homestyle Fried Salmon"
+- Add detail: "Fried Salmon with Crispy Skin"
+- Add variation: "Garlic Butter Fried Salmon"
+- Add regional touch: "Russian-Style Fried Salmon"
+
+Return JSON array:
+["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"]`, langName, originalTitle)
+
+	fmt.Printf("🤖 Generating alternative titles for '%s' (lang=%s)...\n", originalTitle, language)
+
+	// Вызываем Groq AI
+	response, err := s.groqClient.SimpleChat(systemPrompt, userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("AI call failed: %w", err)
+	}
+
+	fmt.Printf("📥 AI Response: %s\n", response)
+
+	// Очищаем ответ от markdown
+	cleaned := strings.TrimSpace(response)
+	cleaned = strings.TrimPrefix(cleaned, "```json")
+	cleaned = strings.TrimPrefix(cleaned, "```")
+	cleaned = strings.TrimSuffix(cleaned, "```")
+	cleaned = strings.TrimSpace(cleaned)
+
+	// Парсим JSON array
+	var suggestions []string
+	if err := json.Unmarshal([]byte(cleaned), &suggestions); err != nil {
+		fmt.Printf("❌ Failed to parse AI response as JSON array: %v\n", err)
+		// Fallback: базовые предложения
+		return []string{
+			originalTitle + " (домашний рецепт)",
+			originalTitle + " (авторский)",
+			originalTitle + " на сковороде",
+			originalTitle + " с пряностями",
+			originalTitle + " (классический)",
+		}, nil
+	}
+
+	fmt.Printf("✅ Generated %d alternative titles\n", len(suggestions))
+	return suggestions, nil
+}
+
+// GenerateMultilingualTitles генерирует альтернативные названия на всех языках (RU/EN/PL)
+func (s *adminService) GenerateMultilingualTitles(originalTitle, primaryLanguage string) (map[string][]string, error) {
+	fmt.Printf("🌍 Generating multilingual alternative titles for '%s' (primary=%s)...\n", originalTitle, primaryLanguage)
+
+	// Определяем все языки для генерации
+	languages := []string{"ru", "en", "pl"}
+	
+	// Результат: map языка на список предложений
+	result := make(map[string][]string)
+
+	// Оптимизация: генерируем все языки в одном AI запросе
+	systemPrompt := `You are a multilingual culinary naming assistant.
+Generate alternative recipe titles in 3 languages: Russian, English, and Polish.
+Return ONLY valid JSON. No markdown, no explanations.`
+
+	// Определяем примеры для каждого языка
+	examples := map[string]string{
+		"ru": `- Жареный Лосось с Хрустящей Кожей
+- Домашний Жареный Лосось
+- Лосось на Сковороде`,
+		"en": `- Pan-Fried Salmon with Crispy Skin
+- Homestyle Fried Salmon
+- Skillet Salmon`,
+		"pl": `- Smażony Łosoś z Chrupiącą Skórką
+- Domowy Smażony Łosoś
+- Łosoś na Patelni`,
+	}
+
+	userPrompt := fmt.Sprintf(`The recipe title "%s" already exists.
+
+Generate 5 alternative titles in EACH language (Russian, English, Polish).
+Make titles:
+- Natural and appetizing
+- SEO-friendly
+- Unique variations (add cooking method, style, or ingredients)
+
+Examples:
+Russian: %s
+English: %s
+Polish: %s
+
+Return JSON object:
+{
+  "ru": ["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"],
+  "en": ["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"],
+  "pl": ["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"]
+}`, originalTitle, examples["ru"], examples["en"], examples["pl"])
+
+	fmt.Printf("🤖 Calling AI for multilingual suggestions...\n")
+
+	// Вызываем Groq AI
+	response, err := s.groqClient.SimpleChat(systemPrompt, userPrompt)
+	if err != nil {
+		fmt.Printf("❌ AI call failed: %v\n", err)
+		// Fallback: генерируем простые варианты для каждого языка
+		return s.generateFallbackTitles(originalTitle), nil
+	}
+
+	fmt.Printf("📥 AI Response length: %d chars\n", len(response))
+
+	// Очищаем ответ от markdown
+	cleaned := strings.TrimSpace(response)
+	cleaned = strings.TrimPrefix(cleaned, "```json")
+	cleaned = strings.TrimPrefix(cleaned, "```")
+	cleaned = strings.TrimSuffix(cleaned, "```")
+	cleaned = strings.TrimSpace(cleaned)
+
+	// Парсим JSON object с языками
+	if err := json.Unmarshal([]byte(cleaned), &result); err != nil {
+		fmt.Printf("❌ Failed to parse multilingual response: %v\n", err)
+		// Fallback
+		return s.generateFallbackTitles(originalTitle), nil
+	}
+
+	// Валидация: проверяем, что все языки присутствуют
+	for _, lang := range languages {
+		if titles, ok := result[lang]; !ok || len(titles) == 0 {
+			fmt.Printf("⚠️  Missing suggestions for %s, adding fallback\n", lang)
+			result[lang] = s.generateFallbackForLanguage(originalTitle, lang)
+		}
+	}
+
+	fmt.Printf("✅ Generated multilingual titles: RU=%d, EN=%d, PL=%d\n", 
+		len(result["ru"]), len(result["en"]), len(result["pl"]))
+	
+	return result, nil
+}
+
+// generateFallbackTitles создаёт простые варианты на всех языках
+func (s *adminService) generateFallbackTitles(originalTitle string) map[string][]string {
+	return map[string][]string{
+		"ru": {
+			originalTitle + " (домашний рецепт)",
+			originalTitle + " (авторский)",
+			originalTitle + " на сковороде",
+			originalTitle + " с пряностями",
+			originalTitle + " (классический)",
+		},
+		"en": {
+			originalTitle + " (Homestyle)",
+			originalTitle + " (Chef's Version)",
+			originalTitle + " (Pan-Fried)",
+			originalTitle + " (Spiced)",
+			originalTitle + " (Classic)",
+		},
+		"pl": {
+			originalTitle + " (Domowy Przepis)",
+			originalTitle + " (Autorski)",
+			originalTitle + " (Na Patelni)",
+			originalTitle + " (Z Przyprawami)",
+			originalTitle + " (Klasyczny)",
+		},
+	}
+}
+
+// generateFallbackForLanguage создаёт простые варианты для одного языка
+func (s *adminService) generateFallbackForLanguage(originalTitle, lang string) []string {
+	suffixes := map[string][]string{
+		"ru": {" (домашний)", " (авторский)", " (улучшенный)", " на сковороде", " классический"},
+		"en": {" (Homestyle)", " (Chef's)", " (Improved)", " (Pan-Fried)", " (Classic)"},
+		"pl": {" (Domowy)", " (Autorski)", " (Ulepszony)", " (Na Patelni)", " (Klasyczny)"},
+	}
+
+	suggestions := make([]string, 0, 5)
+	for _, suffix := range suffixes[lang] {
+		suggestions = append(suggestions, originalTitle+suffix)
+	}
+	return suggestions
 }

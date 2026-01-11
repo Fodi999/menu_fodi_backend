@@ -55,6 +55,94 @@ func ToIngredientResponse(i *models.Ingredient) IngredientResponse {
 	return resp
 }
 
+// RecipeResponse - DTO для рецепта (camelCase для frontend)
+type RecipeResponse struct {
+	ID                 string      `json:"id"`
+	CanonicalName      string      `json:"canonicalName"`
+	Title              string      `json:"title"`
+	NamePl             string      `json:"namePl"`
+	NameEn             string      `json:"nameEn"`
+	NameRu             string      `json:"nameRu"`
+	DescriptionPl      string      `json:"descriptionPl"`
+	DescriptionEn      string      `json:"descriptionEn"`
+	DescriptionRu      string      `json:"descriptionRu"`
+	Country            string      `json:"country"`
+	Region             string      `json:"region"`
+	Category           string      `json:"category"`
+	Difficulty         string      `json:"difficulty"`
+	TimeMinutes        int         `json:"timeMinutes"`
+	Servings           int         `json:"servings"`
+	PortionWeightGrams int         `json:"portionWeightGrams"`
+	StepsPl            interface{} `json:"stepsPl"`
+	StepsEn            interface{} `json:"stepsEn"`
+	StepsRu            interface{} `json:"stepsRu"`
+	NutritionProfile   interface{} `json:"nutritionProfile"`
+	Source             interface{} `json:"source"`
+	CreatedAt          string      `json:"createdAt"`
+	UpdatedAt          string      `json:"updatedAt"`
+}
+
+// ToRecipeResponse - mapper из модели в DTO
+func ToRecipeResponse(r *models.RecipeCatalog) RecipeResponse {
+	resp := RecipeResponse{
+		ID:            r.ID.String(),
+		CanonicalName: r.CanonicalName,
+		Title:         r.Title,
+		Country:       r.Country,
+		Category:      r.Category,
+		Difficulty:    r.Difficulty,
+		TimeMinutes:   r.TimeMinutes,
+		Servings:      r.Servings,
+		CreatedAt:     r.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:     r.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+
+	// Безопасное разыменование указателей
+	if r.NamePl != nil {
+		resp.NamePl = *r.NamePl
+	}
+	if r.NameEn != nil {
+		resp.NameEn = *r.NameEn
+	}
+	if r.NameRu != nil {
+		resp.NameRu = *r.NameRu
+	}
+	if r.DescriptionPl != nil {
+		resp.DescriptionPl = *r.DescriptionPl
+	}
+	if r.DescriptionEn != nil {
+		resp.DescriptionEn = *r.DescriptionEn
+	}
+	if r.DescriptionRu != nil {
+		resp.DescriptionRu = *r.DescriptionRu
+	}
+	if r.Region != nil {
+		resp.Region = *r.Region
+	}
+	if r.PortionWeightGrams != nil {
+		resp.PortionWeightGrams = *r.PortionWeightGrams
+	}
+
+	// JSONB поля
+	if len(r.StepsPl) > 0 {
+		json.Unmarshal(r.StepsPl, &resp.StepsPl)
+	}
+	if len(r.StepsEn) > 0 {
+		json.Unmarshal(r.StepsEn, &resp.StepsEn)
+	}
+	if len(r.StepsRu) > 0 {
+		json.Unmarshal(r.StepsRu, &resp.StepsRu)
+	}
+	if len(r.NutritionProfile) > 0 {
+		json.Unmarshal(r.NutritionProfile, &resp.NutritionProfile)
+	}
+	if len(r.Source) > 0 {
+		json.Unmarshal(r.Source, &resp.Source)
+	}
+
+	return resp
+}
+
 type AdminHandlers struct {
 	service service.AdminService
 	policy  service.AdminPolicy
@@ -796,12 +884,18 @@ func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Преобразуем в DTO для фронтенда
+	recipeResponses := make([]RecipeResponse, len(recipes))
+	for i, recipe := range recipes {
+		recipeResponses[i] = ToRecipeResponse(&recipe)
+	}
+
 	// Формат совместимый с фронтендом (data + meta)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"data": recipes,
+		"data": recipeResponses,
 		"meta": map[string]interface{}{
-			"total": len(recipes),
-			"count": len(recipes),
+			"total": len(recipeResponses),
+			"count": len(recipeResponses),
 		},
 	})
 }
