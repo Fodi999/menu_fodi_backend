@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
@@ -878,6 +879,8 @@ func (h *AdminHandlers) GetIngredientsStats(w http.ResponseWriter, r *http.Reque
 
 // GetAllRecipes возвращает каталог рецептов с фильтрацией и пагинацией
 func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+	
 	// Парсим фильтры из query параметров
 	filter := service.ParseRecipeFilter(r)
 
@@ -898,6 +901,15 @@ func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
 		recipeResponses[i] = ToRecipeResponse(&recipe)
 	}
 
+	// Observability: логируем время выполнения
+	elapsed := time.Since(startTime)
+	if elapsed > 300*time.Millisecond {
+		fmt.Printf("⚠️  SLOW QUERY: Recipe catalog took %v (filters: category=%v, difficulty=%v, ingredients=%d)\n",
+			elapsed, filter.Category, filter.Difficulty, len(filter.IngredientIDs))
+	} else {
+		fmt.Printf("✅ Recipe catalog query: %v\n", elapsed)
+	}
+
 	// Формат совместимый с фронтендом (data + meta + pagination)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"data": recipeResponses,
@@ -907,6 +919,20 @@ func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
 			"total": total,
 			"count": len(recipeResponses),
 		},
+	})
+}
+
+// GetRecipeFilterMetadata возвращает метаданные для UI фильтров
+func (h *AdminHandlers) GetRecipeFilterMetadata(w http.ResponseWriter, r *http.Request) {
+	meta, err := h.service.GetRecipeFilterMetadata()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch filter metadata")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"data":    meta,
 	})
 }
 

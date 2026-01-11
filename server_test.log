@@ -1,35 +1,295 @@
-2026-01-08T10:26:48.745+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-08T10:26:49.433+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2026-01-08T10:26:49.433+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2026/01/08 10:26:49 ✅ EventBus initialized
-2026/01/08 10:26:49 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: token_earn (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: token_spend (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: task_completed (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: user_registered (total: 1)
-2026/01/08 10:26:49 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/08 10:26:49 📡 Hub subscribed to 10 event types
-2026/01/08 10:26:49 📡 WebSocket module initialized
-2026/01/08 10:26:49 🚀 WebSocket Hub started
-2026/01/08 10:26:49 🔧 Registering history module routes...
-2026/01/08 10:26:49 ✅ History module routes registered:
-2026/01/08 10:26:49    GET /api/history - Event history
-2026/01/08 10:26:49    GET /api/history/stats - Statistics
-2026/01/08 10:26:49    GET /api/history/recent - Recent activity
-2026/01/08 10:26:49    GET /api/history/losses - Expired items analytics
-2026/01/08 10:26:49 🔌 Registering WebSocket routes...
-2026/01/08 10:26:49 ✅ WebSocket routes registered:
-2026/01/08 10:26:49    GET /ws - General WebSocket connection
-2026/01/08 10:26:49    GET /ws/treasury - Treasury updates (admin)
-2026/01/08 10:26:49    GET /ws/tokens/{userID} - User token updates
-2026/01/08 10:26:49    GET /ws/stats - WebSocket statistics
-2026-01-08T10:26:49.434+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
-2026-01-08T10:26:49.435+0100	[31mFATAL[0m	logger/logger.go:85	Failed to start server	{"error": "listen tcp :8080: bind: address already in use"}
-github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger.Fatal
-	/Users/dmitrijfomin/Desktop/backend/internal/platform/logger/logger.go:85
-github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).Run.func1
-	/Users/dmitrijfomin/Desktop/backend/internal/app/server.go:75
+2026-01-11T20:50:43.144+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-11T20:50:43.580+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
+2026-01-11T20:50:43.580+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
+2026/01/11 20:50:43 ✅ EventBus initialized
+2026/01/11 20:50:43 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: token_earn (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: token_spend (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: task_completed (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: user_registered (total: 1)
+2026/01/11 20:50:43 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/11 20:50:43 📡 Hub subscribed to 10 event types
+2026/01/11 20:50:43 📡 WebSocket module initialized
+2026/01/11 20:50:43 🚀 WebSocket Hub started
+2026/01/11 20:50:43 🔧 Registering history module routes...
+2026/01/11 20:50:43 ✅ History module routes registered:
+2026/01/11 20:50:43    GET /api/history - Event history
+2026/01/11 20:50:43    GET /api/history/stats - Statistics
+2026/01/11 20:50:43    GET /api/history/recent - Recent activity
+2026/01/11 20:50:43    GET /api/history/losses - Expired items analytics
+2026/01/11 20:50:43 🔌 Registering WebSocket routes...
+2026/01/11 20:50:43 ✅ WebSocket routes registered:
+2026/01/11 20:50:43    GET /ws - General WebSocket connection
+2026/01/11 20:50:43    GET /ws/treasury - Treasury updates (admin)
+2026/01/11 20:50:43    GET /ws/tokens/{userID} - User token updates
+2026/01/11 20:50:43    GET /ws/stats - WebSocket statistics
+2026-01-11T20:50:43.581+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
+
+2026/01/11 20:50:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[152.362ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
+
+2026/01/11 20:50:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
+[0m[33m[193.494ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-11 20:50:59.574' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
+2026/01/11 20:50:59 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:50:59 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-11T20:50:59.768+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/11 20:50:59 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:55504 - 200 509B in 421.207458ms
+2026/01/11 20:50:59 🔐 AuthMiddleware: GET /api/admin/recipes/filters/meta
+2026/01/11 20:50:59 📋 Auth header present: true, length: 264
+2026/01/11 20:50:59 🎫 Token extracted, length: 257
+2026/01/11 20:50:59 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:50:59 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:50:59 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes/filters/meta
+
+2026/01/11 20:50:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_metadata.go:29
+[0m[33m[88.148ms] [34;1m[rows:3][0m SELECT DISTINCT "category" FROM "Recipe" ORDER BY category ASC
+
+2026/01/11 20:50:59 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_metadata.go:39
+[0m[33m[88.764ms] [34;1m[rows:2][0m SELECT DISTINCT "difficulty" FROM "Recipe" ORDER BY difficulty ASC
+2026/01/11 20:50:59 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000002] "GET http://localhost:8080/api/admin/recipes/filters/meta HTTP/1.1" from [::1]:55505 - 200 173B in 178.775625ms
+
+2026/01/11 20:51:09 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[100.240ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
+
+2026/01/11 20:51:09 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
+[0m[33m[171.954ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-11 20:51:09.74' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
+2026/01/11 20:51:09 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:51:09 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-11T20:51:09.912+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/11 20:51:09 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000003] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:55518 - 200 509B in 328.748667ms
+2026/01/11 20:51:09 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:51:09 📋 Auth header present: true, length: 264
+2026/01/11 20:51:09 🎫 Token extracted, length: 257
+2026/01/11 20:51:09 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:51:09 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:51:09 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=1, limit=10, sort=, category=0x1400049f910, difficulty=<nil>, timeLte=<nil>, ingredientIds=[]
+
+2026/01/11 20:51:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[102.130ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703','f393ee18-10a7-4a00-8e24-6263a464b592','6b8628ef-ef1e-42eb-a166-924566bb9b7b','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','56c18b33-dca0-46d3-846e-07285c0e82ee')
+
+2026/01/11 20:51:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[99.190ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703','f393ee18-10a7-4a00-8e24-6263a464b592','6b8628ef-ef1e-42eb-a166-924566bb9b7b','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','56c18b33-dca0-46d3-846e-07285c0e82ee')
+
+2026/01/11 20:51:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[107.921ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','10be8c97-a130-41c5-b4bc-836bd4194ff1','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','9ff773d2-a3ee-4f4b-bc45-4cfe0d7f680b','5d9c3de7-2148-43e0-9455-38601f6f4732')
+
+2026/01/11 20:51:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[212.645ms] [33m[rows:16][35m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703','f393ee18-10a7-4a00-8e24-6263a464b592','6b8628ef-ef1e-42eb-a166-924566bb9b7b','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','56c18b33-dca0-46d3-846e-07285c0e82ee')[0m
+
+2026/01/11 20:51:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[588.368ms] [33m[rows:10][35m SELECT * FROM "Recipe" WHERE category = 'main' ORDER BY "createdAt" DESC LIMIT 10[0m
+
+2026/01/11 20:51:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[103.773ms] [34;1m[rows:1][0m SELECT count(*) FROM "Recipe" WHERE category = 'main'
+⚠️  SLOW QUERY: Recipe catalog took 692.368ms (filters: category=0x1400049f910, difficulty=<nil>, ingredients=0)
+2026/01/11 20:51:10 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000004] "GET http://localhost:8080/api/admin/recipes?category=main&limit=10 HTTP/1.1" from [::1]:55519 - 200 11431B in 692.687083ms
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[127.778ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
+[0m[33m[148.733ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-11 20:52:07.227' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
+2026/01/11 20:52:07 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:07 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-11T20:52:07.376+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/11 20:52:07 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000005] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:55586 - 200 509B in 322.693125ms
+2026/01/11 20:52:07 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:52:07 📋 Auth header present: true, length: 264
+2026/01/11 20:52:07 🎫 Token extracted, length: 257
+2026/01/11 20:52:07 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:07 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:07 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=1, limit=10, sort=, category=0x14000558260, difficulty=0x14000558270, timeLte=<nil>, ingredientIds=[]
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[46.753ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703','f393ee18-10a7-4a00-8e24-6263a464b592','6b8628ef-ef1e-42eb-a166-924566bb9b7b','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','4fc60295-8555-450a-887b-a272304016c1','b07d3b58-87ba-4f24-87f3-5ecebf8ec057')
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[58.549ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703','f393ee18-10a7-4a00-8e24-6263a464b592','6b8628ef-ef1e-42eb-a166-924566bb9b7b','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','4fc60295-8555-450a-887b-a272304016c1','b07d3b58-87ba-4f24-87f3-5ecebf8ec057')
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[50.185ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','10be8c97-a130-41c5-b4bc-836bd4194ff1','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','9ff773d2-a3ee-4f4b-bc45-4cfe0d7f680b','5d9c3de7-2148-43e0-9455-38601f6f4732')
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[109.559ms] [34;1m[rows:15][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703','f393ee18-10a7-4a00-8e24-6263a464b592','6b8628ef-ef1e-42eb-a166-924566bb9b7b','eada0eb7-c00a-4a93-8cf3-98e9b27c62ce','4fc60295-8555-450a-887b-a272304016c1','b07d3b58-87ba-4f24-87f3-5ecebf8ec057')
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[356.505ms] [33m[rows:10][35m SELECT * FROM "Recipe" WHERE category = 'main' AND difficulty = 'easy' ORDER BY "createdAt" DESC LIMIT 10[0m
+
+2026/01/11 20:52:07 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[91.606ms] [34;1m[rows:1][0m SELECT count(*) FROM "Recipe" WHERE category = 'main' AND difficulty = 'easy'
+⚠️  SLOW QUERY: Recipe catalog took 448.753042ms (filters: category=0x14000558260, difficulty=0x14000558270, ingredients=0)
+2026/01/11 20:52:07 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000006] "GET http://localhost:8080/api/admin/recipes?category=main&difficulty=easy&limit=10 HTTP/1.1" from [::1]:55587 - 200 10332B in 449.382084ms
+
+2026/01/11 20:52:19 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[97.687ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
+[0m[33m[138.240ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-11 20:52:19.932' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
+2026/01/11 20:52:20 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:20 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-11T20:52:20.070+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/11 20:52:20 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000007] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:55601 - 200 509B in 293.711833ms
+2026/01/11 20:52:20 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:52:20 📋 Auth header present: true, length: 264
+2026/01/11 20:52:20 🎫 Token extracted, length: 257
+2026/01/11 20:52:20 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:20 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:20 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=1, limit=5, sort=, category=<nil>, difficulty=<nil>, timeLte=<nil>, ingredientIds=[]
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[130.227ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3')
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[139.678ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3')
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[118.043ms] [34;1m[rows:4][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','9ff773d2-a3ee-4f4b-bc45-4cfe0d7f680b','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','5d9c3de7-2148-43e0-9455-38601f6f4732')
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[226.758ms] [33m[rows:8][35m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff','b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3')[0m
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[681.284ms] [33m[rows:5][35m SELECT * FROM "Recipe" ORDER BY "createdAt" DESC LIMIT 5[0m
+
+2026/01/11 20:52:20 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[101.587ms] [34;1m[rows:1][0m SELECT count(*) FROM "Recipe"
+⚠️  SLOW QUERY: Recipe catalog took 783.210166ms (filters: category=<nil>, difficulty=<nil>, ingredients=0)
+2026/01/11 20:52:20 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000008] "GET http://localhost:8080/api/admin/recipes?limit=5 HTTP/1.1" from [::1]:55602 - 200 5986B in 783.601041ms
+
+2026/01/11 20:52:56 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[110.671ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
+
+2026/01/11 20:52:56 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
+[0m[33m[144.849ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-11 20:52:56.678' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
+2026/01/11 20:52:56 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:56 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-11T20:52:56.823+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/11 20:52:56 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000009] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:55637 - 200 509B in 329.409083ms
+2026/01/11 20:52:56 🔐 AuthMiddleware: GET /api/admin/recipes/filters/meta
+2026/01/11 20:52:56 📋 Auth header present: true, length: 264
+2026/01/11 20:52:56 🎫 Token extracted, length: 257
+2026/01/11 20:52:56 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:56 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:56 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes/filters/meta
+
+2026/01/11 20:52:56 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_metadata.go:29
+[0m[33m[58.140ms] [34;1m[rows:3][0m SELECT DISTINCT "category" FROM "Recipe" ORDER BY category ASC
+
+2026/01/11 20:52:56 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_metadata.go:39
+[0m[33m[48.796ms] [34;1m[rows:2][0m SELECT DISTINCT "difficulty" FROM "Recipe" ORDER BY difficulty ASC
+2026/01/11 20:52:56 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000010] "GET http://localhost:8080/api/admin/recipes/filters/meta HTTP/1.1" from [::1]:55638 - 200 173B in 107.543916ms
+2026/01/11 20:52:56 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:52:56 📋 Auth header present: true, length: 264
+2026/01/11 20:52:56 🎫 Token extracted, length: 257
+2026/01/11 20:52:56 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:56 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:56 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=1, limit=3, sort=, category=<nil>, difficulty=<nil>, timeLte=<nil>, ingredientIds=[fe1c7431-b1b7-4d36-94bf-74276481983e]
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[93.362ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[89.551ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[94.320ms] [34;1m[rows:3][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','5d9c3de7-2148-43e0-9455-38601f6f4732')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[199.299ms] [34;1m[rows:5][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[482.401ms] [33m[rows:3][35m SELECT "Recipe"."id","Recipe"."canonicalName","Recipe"."localName","Recipe"."title","Recipe"."name_pl","Recipe"."name_en","Recipe"."name_ru","Recipe"."description_pl","Recipe"."description_en","Recipe"."description_ru","Recipe"."country","Recipe"."region","Recipe"."category","Recipe"."difficulty","Recipe"."timeMinutes","Recipe"."servings","Recipe"."portionWeightGrams","Recipe"."steps","Recipe"."steps_pl","Recipe"."steps_en","Recipe"."steps_ru","Recipe"."nutritionProfile","Recipe"."source","Recipe"."createdAt","Recipe"."updatedAt" FROM "Recipe" JOIN recipe_ingredients ri ON ri.recipe_id = "Recipe".id WHERE ri.ingredient_id IN ('fe1c7431-b1b7-4d36-94bf-74276481983e') GROUP BY "Recipe".id ORDER BY "createdAt" DESC LIMIT 3[0m
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[90.302ms] [34;1m[rows:9][0m SELECT count(*) FROM "Recipe" JOIN recipe_ingredients ri ON ri.recipe_id = "Recipe".id WHERE ri.ingredient_id IN ('fe1c7431-b1b7-4d36-94bf-74276481983e') GROUP BY "Recipe".id
+⚠️  SLOW QUERY: Recipe catalog took 573.060584ms (filters: category=<nil>, difficulty=<nil>, ingredients=1)
+2026/01/11 20:52:57 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000011] "GET http://localhost:8080/api/admin/recipes?ingredientIds=fe1c7431-b1b7-4d36-94bf-74276481983e&limit=3 HTTP/1.1" from [::1]:55639 - 200 3310B in 573.332792ms
+2026/01/11 20:52:57 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:52:57 📋 Auth header present: true, length: 264
+2026/01/11 20:52:57 🎫 Token extracted, length: 257
+2026/01/11 20:52:57 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=1, limit=3, sort=, category=0x140005170e0, difficulty=0x140005170f0, timeLte=0x14000307a88, ingredientIds=[]
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[51.401ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[54.712ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[48.710ms] [34;1m[rows:3][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','5d9c3de7-2148-43e0-9455-38601f6f4732')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[124.719ms] [34;1m[rows:5][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[344.233ms] [33m[rows:3][35m SELECT * FROM "Recipe" WHERE category = 'main' AND difficulty = 'easy' AND "timeMinutes" <= 30 ORDER BY "createdAt" DESC LIMIT 3[0m
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[93.891ms] [34;1m[rows:1][0m SELECT count(*) FROM "Recipe" WHERE category = 'main' AND difficulty = 'easy' AND "timeMinutes" <= 30
+⚠️  SLOW QUERY: Recipe catalog took 438.346917ms (filters: category=0x140005170e0, difficulty=0x140005170f0, ingredients=0)
+2026/01/11 20:52:58 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000012] "GET http://localhost:8080/api/admin/recipes?category=main&difficulty=easy&timeLte=30&limit=3 HTTP/1.1" from [::1]:55640 - 200 3311B in 438.627084ms
+2026/01/11 20:52:58 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:52:58 📋 Auth header present: true, length: 264
+2026/01/11 20:52:58 🎫 Token extracted, length: 257
+2026/01/11 20:52:58 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:58 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:58 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=1, limit=3, sort=, category=<nil>, difficulty=<nil>, timeLte=<nil>, ingredientIds=[]
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[48.532ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[45.664ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[49.768ms] [34;1m[rows:3][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','1b7cea8e-b026-4329-9d2e-c94952e3fa6c','5d9c3de7-2148-43e0-9455-38601f6f4732')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[98.444ms] [34;1m[rows:5][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('696a2507-afe7-4a95-906e-cae7f7225e2f','37df3ec7-1b42-4e1b-af1f-1f9cc8fa0562','d7899f58-780c-4b58-85fb-74e42c54b4ff')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[253.991ms] [33m[rows:3][35m SELECT * FROM "Recipe" ORDER BY "createdAt" DESC LIMIT 3[0m
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[42.863ms] [34;1m[rows:1][0m SELECT count(*) FROM "Recipe"
+✅ Recipe catalog query: 297.19625ms
+2026/01/11 20:52:58 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000013] "GET http://localhost:8080/api/admin/recipes?page=1&limit=3 HTTP/1.1" from [::1]:55643 - 200 3311B in 297.62725ms
+2026/01/11 20:52:58 🔐 AuthMiddleware: GET /api/admin/recipes
+2026/01/11 20:52:58 📋 Auth header present: true, length: 264
+2026/01/11 20:52:58 🎫 Token extracted, length: 257
+2026/01/11 20:52:58 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/11 20:52:58 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/11 20:52:58 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/recipes
+📊 Recipes filter: page=2, limit=3, sort=, category=<nil>, difficulty=<nil>, timeLte=<nil>, ingredientIds=[]
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[44.955ms] [34;1m[rows:0][0m SELECT * FROM "recipe_allergens" WHERE "recipe_allergens"."recipe_id" IN ('b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[45.350ms] [34;1m[rows:0][0m SELECT * FROM "recipe_diet_tags" WHERE "recipe_diet_tags"."recipe_id" IN ('b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[100.265ms] [34;1m[rows:2][0m SELECT * FROM "Ingredient" WHERE "Ingredient"."id" IN ('fe1c7431-b1b7-4d36-94bf-74276481983e','9ff773d2-a3ee-4f4b-bc45-4cfe0d7f680b')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638
+[0m[33m[145.726ms] [34;1m[rows:5][0m SELECT * FROM "RecipeIngredient" WHERE "RecipeIngredient"."recipeId" IN ('b91902ce-967b-43ac-83e8-4ab507474158','74e32abc-92ce-40d7-aecb-98d2f09ff3e3','dcf23717-aa8a-428d-85c3-34c17aa33703')
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:638 [33mSLOW SQL >= 200ms
+[0m[31;1m[334.538ms] [33m[rows:3][35m SELECT * FROM "Recipe" ORDER BY "createdAt" DESC LIMIT 3 OFFSET 3[0m
+
+2026/01/11 20:52:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_filter_builder.go:144
+[0m[33m[44.218ms] [34;1m[rows:1][0m SELECT count(*) FROM "Recipe"
+⚠️  SLOW QUERY: Recipe catalog took 379.052792ms (filters: category=<nil>, difficulty=<nil>, ingredients=0)
+2026/01/11 20:52:58 [MacBook-Air-Dmitrij.local/dCqOpex8Jt-000014] "GET http://localhost:8080/api/admin/recipes?page=2&limit=3 HTTP/1.1" from [::1]:55644 - 200 3832B in 379.365041ms

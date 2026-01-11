@@ -118,6 +118,7 @@ type AdminService interface {
 	// Recipes Catalog
 	GetAllRecipes() ([]models.RecipeCatalog, error)
 	GetFilteredRecipes(filter RecipeFilter) ([]models.RecipeCatalog, int64, error)
+	GetRecipeFilterMetadata() (*FilterMetadata, error)
 	GetRecipesStats() (map[string]interface{}, error)
 	
 	// AI Recipe Creation
