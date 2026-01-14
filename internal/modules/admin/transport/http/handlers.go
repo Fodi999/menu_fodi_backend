@@ -22,8 +22,8 @@ type IngredientResponse struct {
 	NamePl          string `json:"namePl"`
 	NameEn          string `json:"nameEn"`
 	NameRu          string `json:"nameRu"`
-	Category        string `json:"category"`        // Culinary category (UI)
-	NutritionGroup  string `json:"nutritionGroup"`  // Nutritional grouping (analytics)
+	Category        string `json:"category"`       // Culinary category (UI)
+	NutritionGroup  string `json:"nutritionGroup"` // Nutritional grouping (analytics)
 	Unit            string `json:"unit"`
 	NormalizedValue string `json:"normalizedValue"`
 	AutoTranslated  bool   `json:"autoTranslated"`
@@ -833,7 +833,26 @@ func (h *AdminHandlers) ImportIngredients(w http.ResponseWriter, r *http.Request
 func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request) {
 	// Получаем параметр поиска из query
 	searchQuery := r.URL.Query().Get("search")
-	
+
+	// Парсим пагинацию
+	page := 1
+	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+		if val, err := strconv.Atoi(pageStr); err == nil && val > 0 {
+			page = val
+		}
+	}
+
+	limit := 50 // default
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if val, err := strconv.Atoi(limitStr); err == nil && val > 0 {
+			if val > 100 {
+				limit = 100 // max
+			} else {
+				limit = val
+			}
+		}
+	}
+
 	ingredients, err := h.service.GetAllIngredients()
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch ingredients")
@@ -856,12 +875,32 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 		ingredients = filtered
 	}
 
+	// Общее количество (до пагинации)
+	total := len(ingredients)
+
+	// Применяем пагинацию
+	offset := (page - 1) * limit
+	end := offset + limit
+
+	if offset > total {
+		ingredients = []models.Ingredient{} // Пустой массив
+	} else {
+		if end > total {
+			end = total
+		}
+		ingredients = ingredients[offset:end]
+	}
+
+	totalPages := (total + limit - 1) / limit
+
 	// Формат совместимый с фронтендом (data + meta)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"data": ingredients,
 		"meta": map[string]interface{}{
-			"total": len(ingredients),
-			"count": len(ingredients),
+			"page":       page,
+			"limit":      limit,
+			"total":      total,
+			"totalPages": totalPages,
 		},
 	})
 }
@@ -877,16 +916,51 @@ func (h *AdminHandlers) GetIngredientsStats(w http.ResponseWriter, r *http.Reque
 	utils.RespondWithJSON(w, http.StatusOK, stats)
 }
 
+// DeleteIngredient - удалить ингредиент из каталога
+func (h *AdminHandlers) DeleteIngredient(w http.ResponseWriter, r *http.Request) {
+	ingredientID := chi.URLParam(r, "id")
+
+	if ingredientID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Ingredient ID is required")
+		return
+	}
+
+	if err := h.service.DeleteIngredient(ingredientID); err != nil {
+		errMsg := err.Error()
+
+		// Ingredient not found
+		if strings.Contains(errMsg, "not found") {
+			utils.RespondWithError(w, http.StatusNotFound, errMsg)
+			return
+		}
+
+		// Ingredient is used in recipes (cannot delete)
+		if strings.Contains(errMsg, "used in") {
+			utils.RespondWithError(w, http.StatusConflict, errMsg)
+			return
+		}
+
+		// Other errors
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to delete ingredient")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Ingredient deleted successfully",
+	})
+}
+
 // GetAllRecipes возвращает каталог рецептов с фильтрацией и пагинацией
 func (h *AdminHandlers) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
-	
+
 	// Парсим фильтры из query параметров
 	filter := service.ParseRecipeFilter(r)
 
 	// Логируем фильтры для отладки и аналитики
-	fmt.Printf("📊 Recipes filter: page=%d, limit=%d, sort=%s, category=%v, difficulty=%v, timeLte=%v, ingredientIds=%v\n",
-		filter.Page, filter.Limit, filter.Sort, filter.Category, filter.Difficulty, filter.TimeLte, filter.IngredientIDs)
+	fmt.Printf("📊 Recipes filter: search=%q, page=%d, limit=%d, sort=%s, category=%v, difficulty=%v, timeLte=%v, ingredientIds=%v\n",
+		filter.Search, filter.Page, filter.Limit, filter.Sort, filter.Category, filter.Difficulty, filter.TimeLte, filter.IngredientIDs)
 
 	// Получаем отфильтрованные рецепты
 	recipes, total, err := h.service.GetFilteredRecipes(filter)
@@ -952,7 +1026,7 @@ func (h *AdminHandlers) GetRecipesStats(w http.ResponseWriter, r *http.Request) 
 // 🧠 ПОЛНАЯ AI-КЛАССИФИКАЦИЯ - принимает только inputName
 func (h *AdminHandlers) CreateIngredient(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("🎯 CreateIngredient handler called (AI Classification Mode)\n")
-	
+
 	var req struct {
 		InputName string `json:"inputName"`
 	}
@@ -1018,7 +1092,7 @@ func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Reques
 	acceptLang := r.Header.Get("Accept-Language")
 	lang := normalizeLang(acceptLang)
 
-	fmt.Printf("📥 Request: GET /suggest?q=%s&limit=%s (Accept-Language: %s → %s)\n", 
+	fmt.Printf("📥 Request: GET /suggest?q=%s&limit=%s (Accept-Language: %s → %s)\n",
 		query, limitStr, acceptLang, lang)
 
 	// Default limit
@@ -1056,12 +1130,12 @@ func (h *AdminHandlers) SuggestIngredients(w http.ResponseWriter, r *http.Reques
 // Примеры: "pl-PL" → "pl", "en-US" → "en", "ru-RU" → "ru"
 func normalizeLang(acceptLang string) string {
 	acceptLang = strings.ToLower(strings.TrimSpace(acceptLang))
-	
+
 	// Парсим первый язык из списка (например: "pl-PL,en;q=0.9" → "pl")
 	if idx := strings.Index(acceptLang, ","); idx > 0 {
 		acceptLang = acceptLang[:idx]
 	}
-	
+
 	// Проверяем префикс языка
 	switch {
 	case strings.HasPrefix(acceptLang, "pl"):

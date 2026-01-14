@@ -25,6 +25,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/metrics"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/nutrition"
 	prepareddishes "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/prepared_dishes"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/public"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes_admin"
 
@@ -98,6 +99,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	metricsModule := metrics.NewModule()
 	nutritionModule := nutrition.NewModule()
 	preparedDishesModule := prepareddishes.NewModule(a.db) // Prepared dishes after cooking
+	publicModule := public.NewModule()                     // PUBLIC: SEO-ready recipe endpoints (no auth)
 	recipesModule := recipes.NewModule(a.db)               // Updated: Pass DB for catalog services
 	recipesAdminModule := recipes_admin.NewModule()        // NEW: Admin recipe management (draft/publish workflow)
 	// semiFinishedModule := semi_finished.NewModule(a.db) // DISABLED: Not used in MVP
@@ -110,6 +112,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 	// Register contact module (public endpoint)
 	contactModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+	// Register PUBLIC module (SEO-ready recipe endpoints, no auth required)
+	publicModule.RegisterRoutes(r)
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {

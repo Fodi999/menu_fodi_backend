@@ -7,13 +7,13 @@ package models
 // Authentication Errors (AUTH_*)
 // ============================================================
 const (
-	ErrorAuthInvalidToken             = "AUTH_INVALID_TOKEN"
-	ErrorAuthMissingToken             = "AUTH_MISSING_TOKEN"
-	ErrorAuthInvalidCredentials       = "AUTH_INVALID_CREDENTIALS"
-	ErrorAuthUserExists               = "AUTH_USER_EXISTS"
-	ErrorAuthInsufficientPermissions  = "AUTH_INSUFFICIENT_PERMISSIONS"
-	ErrorAuthExpiredToken             = "AUTH_EXPIRED_TOKEN"
-	ErrorAuthInvalidRefreshToken      = "AUTH_INVALID_REFRESH_TOKEN"
+	ErrorAuthInvalidToken            = "AUTH_INVALID_TOKEN"
+	ErrorAuthMissingToken            = "AUTH_MISSING_TOKEN"
+	ErrorAuthInvalidCredentials      = "AUTH_INVALID_CREDENTIALS"
+	ErrorAuthUserExists              = "AUTH_USER_EXISTS"
+	ErrorAuthInsufficientPermissions = "AUTH_INSUFFICIENT_PERMISSIONS"
+	ErrorAuthExpiredToken            = "AUTH_EXPIRED_TOKEN"
+	ErrorAuthInvalidRefreshToken     = "AUTH_INVALID_REFRESH_TOKEN"
 )
 
 // ============================================================
@@ -31,13 +31,13 @@ const (
 // Recipe Errors (RECIPE_*)
 // ============================================================
 const (
-	ErrorRecipeNotFound             = "RECIPE_NOT_FOUND"
-	ErrorRecipeInvalidInput         = "RECIPE_INVALID_INPUT"
-	ErrorRecipeAIGenerationFailed   = "RECIPE_AI_GENERATION_FAILED"
-	ErrorRecipeValidationFailed     = "RECIPE_VALIDATION_FAILED"
+	ErrorRecipeNotFound                = "RECIPE_NOT_FOUND"
+	ErrorRecipeInvalidInput            = "RECIPE_INVALID_INPUT"
+	ErrorRecipeAIGenerationFailed      = "RECIPE_AI_GENERATION_FAILED"
+	ErrorRecipeValidationFailed        = "RECIPE_VALIDATION_FAILED"
 	ErrorRecipeInsufficientIngredients = "RECIPE_INSUFFICIENT_INGREDIENTS"
-	ErrorRecipeAlreadySaved         = "RECIPE_ALREADY_SAVED"
-	ErrorRecipeNotSaved             = "RECIPE_NOT_SAVED"
+	ErrorRecipeAlreadySaved            = "RECIPE_ALREADY_SAVED"
+	ErrorRecipeNotSaved                = "RECIPE_NOT_SAVED"
 )
 
 // ============================================================
@@ -77,22 +77,22 @@ const (
 // Marketplace Errors (MARKETPLACE_*)
 // ============================================================
 const (
-	ErrorMarketplaceRecipeNotFound  = "MARKETPLACE_RECIPE_NOT_FOUND"
+	ErrorMarketplaceRecipeNotFound     = "MARKETPLACE_RECIPE_NOT_FOUND"
 	ErrorMarketplaceInsufficientTokens = "MARKETPLACE_INSUFFICIENT_TOKENS"
-	ErrorMarketplacePurchaseFailed  = "MARKETPLACE_PURCHASE_FAILED"
-	ErrorMarketplaceAlreadyPurchased = "MARKETPLACE_ALREADY_PURCHASED"
-	ErrorMarketplaceInvalidPrice    = "MARKETPLACE_INVALID_PRICE"
+	ErrorMarketplacePurchaseFailed     = "MARKETPLACE_PURCHASE_FAILED"
+	ErrorMarketplaceAlreadyPurchased   = "MARKETPLACE_ALREADY_PURCHASED"
+	ErrorMarketplaceInvalidPrice       = "MARKETPLACE_INVALID_PRICE"
 )
 
 // ============================================================
 // Academy Errors (ACADEMY_*)
 // ============================================================
 const (
-	ErrorAcademyCourseNotFound     = "ACADEMY_COURSE_NOT_FOUND"
-	ErrorAcademyAlreadyEnrolled    = "ACADEMY_ALREADY_ENROLLED"
-	ErrorAcademyEnrollmentFailed   = "ACADEMY_ENROLLMENT_FAILED"
-	ErrorAcademyLessonNotFound     = "ACADEMY_LESSON_NOT_FOUND"
-	ErrorAcademyQuizNotFound       = "ACADEMY_QUIZ_NOT_FOUND"
+	ErrorAcademyCourseNotFound   = "ACADEMY_COURSE_NOT_FOUND"
+	ErrorAcademyAlreadyEnrolled  = "ACADEMY_ALREADY_ENROLLED"
+	ErrorAcademyEnrollmentFailed = "ACADEMY_ENROLLMENT_FAILED"
+	ErrorAcademyLessonNotFound   = "ACADEMY_LESSON_NOT_FOUND"
+	ErrorAcademyQuizNotFound     = "ACADEMY_QUIZ_NOT_FOUND"
 )
 
 // ============================================================
@@ -124,10 +124,10 @@ const (
 // File Upload Errors (UPLOAD_*)
 // ============================================================
 const (
-	ErrorUploadInvalidFile     = "UPLOAD_INVALID_FILE"
-	ErrorUploadFileTooLarge    = "UPLOAD_FILE_TOO_LARGE"
-	ErrorUploadInvalidFormat   = "UPLOAD_INVALID_FORMAT"
-	ErrorUploadFailed          = "UPLOAD_FAILED"
+	ErrorUploadInvalidFile   = "UPLOAD_INVALID_FILE"
+	ErrorUploadFileTooLarge  = "UPLOAD_FILE_TOO_LARGE"
+	ErrorUploadInvalidFormat = "UPLOAD_INVALID_FORMAT"
+	ErrorUploadFailed        = "UPLOAD_FAILED"
 )
 
 // ============================================================

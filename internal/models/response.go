@@ -11,9 +11,9 @@ import (
 
 // APIResponse is the standard response format for all endpoints
 type APIResponse struct {
-	Data  interface{}    `json:"data"`
-	Error *APIError      `json:"error"`
-	Meta  *ResponseMeta  `json:"meta"`
+	Data  interface{}   `json:"data"`
+	Error *APIError     `json:"error"`
+	Meta  *ResponseMeta `json:"meta"`
 }
 
 // APIError represents an error in the API

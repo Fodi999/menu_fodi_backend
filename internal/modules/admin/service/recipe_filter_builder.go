@@ -12,6 +12,15 @@ import (
 func ApplyRecipeFilters(db *gorm.DB, filter RecipeFilter) *gorm.DB {
 	query := db.Model(&models.RecipeCatalog{})
 
+	// 0. Search filter (полнотекстовый поиск по названию)
+	if filter.Search != "" {
+		searchPattern := "%" + filter.Search + "%"
+		query = query.Where(
+			"title ILIKE ? OR name_pl ILIKE ? OR name_en ILIKE ? OR name_ru ILIKE ? OR \"canonicalName\" ILIKE ?",
+			searchPattern, searchPattern, searchPattern, searchPattern, searchPattern,
+		)
+	}
+
 	// 1. Status filter
 	if filter.Status != nil && *filter.Status != "" {
 		query = query.Where("status = ?", *filter.Status)

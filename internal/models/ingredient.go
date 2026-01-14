@@ -36,9 +36,9 @@ type Ingredient struct {
 	NamePL               *string   `gorm:"column:name_pl" json:"namePl,omitempty"`
 	NameEN               *string   `gorm:"column:name_en" json:"nameEn,omitempty"`
 	NameRU               *string   `gorm:"column:name_ru" json:"nameRu,omitempty"`
-	NormalizedValue      *string   `gorm:"column:normalized_value" json:"-"` // For search only
-	Unit                 string    `gorm:"column:unit;not null" json:"unit"` // "g", "ml", "pcs"
-	Category             string    `gorm:"column:category;not null" json:"category"` // Culinary category (UI)
+	NormalizedValue      *string   `gorm:"column:normalized_value" json:"-"`                      // For search only
+	Unit                 string    `gorm:"column:unit;not null" json:"unit"`                      // "g", "ml", "pcs"
+	Category             string    `gorm:"column:category;not null" json:"category"`              // Culinary category (UI)
 	NutritionGroup       string    `gorm:"column:nutrition_group;not null" json:"nutritionGroup"` // Nutritional grouping (AI, analytics)
 	DefaultShelfLifeDays *int      `gorm:"column:defaultShelfLifeDays" json:"defaultShelfLifeDays,omitempty"`
 	DefaultPricePerUnit  *float64  `gorm:"column:defaultPricePerUnit" json:"defaultPricePerUnit,omitempty"`

@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
-	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin/service"
+	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
+	"github.com/go-chi/chi/v5"
 )
 
 // CreateRecipeWithAI - POST /api/admin/recipes/create-ai
@@ -30,7 +31,7 @@ func (h *AdminHandlers) CreateRecipeWithAI(w http.ResponseWriter, r *http.Reques
 		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
-	
+
 	userID := claims.UserID
 	if userID == "" {
 		utils.RespondWithError(w, http.StatusUnauthorized, "User ID is empty")
@@ -210,11 +211,11 @@ func (h *AdminHandlers) SaveEditedRecipe(w http.ResponseWriter, r *http.Request)
 	recipe, err := h.service.SaveEditedRecipe(req, userID)
 	if err != nil {
 		errMsg := err.Error()
-		
+
 		// 🎯 УМНАЯ ОБРАБОТКА КОНФЛИКТА: Проверяем на дубликат названия
 		if strings.Contains(errMsg, "already exists") {
 			fmt.Printf("⚠️  Recipe name conflict detected: '%s'\n", req.Title)
-			
+
 			// 🌍 Генерируем мульти-язычные альтернативные названия через AI
 			multilingualSuggestions, aiErr := h.service.GenerateMultilingualTitles(req.Title, req.Language)
 			if aiErr != nil {
@@ -231,7 +232,7 @@ func (h *AdminHandlers) SaveEditedRecipe(w http.ResponseWriter, r *http.Request)
 
 			// Извлекаем canonical name из ошибки
 			canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
-			
+
 			// Возвращаем 409 с мульти-язычными подсказками
 			utils.RespondWithJSON(w, http.StatusConflict, map[string]interface{}{
 				"success": false,
@@ -245,7 +246,7 @@ func (h *AdminHandlers) SaveEditedRecipe(w http.ResponseWriter, r *http.Request)
 			})
 			return
 		}
-		
+
 		fmt.Printf("❌ SaveEditedRecipe failed: %v\n", err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to save recipe")
 		return
@@ -318,5 +319,42 @@ func (h *AdminHandlers) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"message": "Recipe updated successfully",
 		"data":    recipe,
+	})
+}
+
+// DeleteRecipe - удалить рецепт (DELETE /api/admin/recipes/:id)
+func (h *AdminHandlers) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("🚨 PANIC in DeleteRecipe: %v\n", r)
+			utils.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
+		}
+	}()
+
+	// Получаем recipeID из URL
+	recipeID := chi.URLParam(r, "id")
+	if recipeID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "recipe ID is required")
+		return
+	}
+
+	fmt.Printf("🗑️  DeleteRecipe: id=%s\n", recipeID)
+
+	// Удаляем через service
+	if err := h.service.DeleteRecipe(recipeID); err != nil {
+		errMsg := err.Error()
+		if errMsg == "recipe not found" {
+			utils.RespondWithError(w, http.StatusNotFound, "Recipe not found")
+			return
+		}
+		fmt.Printf("❌ DeleteRecipe failed: %v\n", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to delete recipe")
+		return
+	}
+
+	fmt.Printf("✅ Recipe deleted: %s\n", recipeID)
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Recipe deleted successfully",
 	})
 }

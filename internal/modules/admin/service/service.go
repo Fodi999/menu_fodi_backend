@@ -27,7 +27,7 @@ type GetUsersParams struct {
 // IngredientSuggestion - DTO для быстрых подсказок (с локализацией)
 type IngredientSuggestion struct {
 	ID             string `json:"id"`
-	Name           string `json:"name"`           // Локализованное имя (выбирается на бэкенде)
+	Name           string `json:"name"` // Локализованное имя (выбирается на бэкенде)
 	Category       string `json:"category"`
 	NutritionGroup string `json:"nutritionGroup"`
 	Unit           string `json:"unit"`
@@ -99,10 +99,11 @@ type AdminService interface {
 	GetIngredientsStats() (map[string]interface{}, error)
 	CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error)
 	CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool)
-	
+	DeleteIngredient(ingredientID string) error
+
 	// Ingredient Suggestions (fast autocomplete, no AI, с локализацией)
 	SuggestIngredients(query string, limit int, lang string) ([]IngredientSuggestion, error)
-	
+
 	// AI Hint (smart conflict resolution)
 	GenerateIngredientHint(input string, existing []string) (*string, error)
 
@@ -119,13 +120,15 @@ type AdminService interface {
 	GetAllRecipes() ([]models.RecipeCatalog, error)
 	GetFilteredRecipes(filter RecipeFilter) ([]models.RecipeCatalog, int64, error)
 	GetRecipeFilterMetadata() (*FilterMetadata, error)
+	GetRecipeByCanonicalName(canonicalName string) (*models.RecipeCatalog, error)
 	GetRecipesStats() (map[string]interface{}, error)
-	
+
 	// AI Recipe Creation
 	CreateRecipeWithAI(req CreateRecipeAIRequest, authorID string) (*models.RecipeCatalog, error)
 	PreviewRecipeWithAI(req CreateRecipeAIRequest) (*AIRecipeResponse, error)
 	SaveEditedRecipe(req SaveEditedRecipeRequest, userID string) (*models.RecipeCatalog, error)
 	UpdateRecipe(recipeID string, req UpdateRecipeRequest) (*models.RecipeCatalog, error)
+	DeleteRecipe(recipeID string) error
 	GenerateAlternativeTitles(originalTitle, language string) ([]string, error)
 	GenerateMultilingualTitles(originalTitle, primaryLanguage string) (map[string][]string, error)
 }
@@ -603,6 +606,42 @@ func (s *adminService) GetIngredientsStats() (map[string]interface{}, error) {
 	}, nil
 }
 
+// DeleteIngredient - удалить ингредиент из каталога
+func (s *adminService) DeleteIngredient(ingredientID string) error {
+	fmt.Printf("🗑️  Deleting ingredient: %s\n", ingredientID)
+
+	// Проверяем существование ингредиента
+	var ingredient models.Ingredient
+	if err := s.db.Where("id = ?", ingredientID).First(&ingredient).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("ingredient not found")
+		}
+		return fmt.Errorf("failed to find ingredient: %w", err)
+	}
+
+	ingredientName := ingredient.Name
+
+	// Проверяем, используется ли ингредиент в рецептах
+	var recipeCount int64
+	if err := s.db.Model(&models.CatalogIngredient{}).
+		Where("\"ingredientId\" = ?", ingredientID).
+		Count(&recipeCount).Error; err != nil {
+		return fmt.Errorf("failed to check ingredient usage: %w", err)
+	}
+
+	if recipeCount > 0 {
+		return fmt.Errorf("cannot delete ingredient: used in %d recipes", recipeCount)
+	}
+
+	// Удаляем ингредиент
+	if err := s.db.Delete(&ingredient).Error; err != nil {
+		return fmt.Errorf("failed to delete ingredient: %w", err)
+	}
+
+	fmt.Printf("✅ Ingredient deleted: %s [%s]\n", ingredientName, ingredientID)
+	return nil
+}
+
 // GetAllRecipes возвращает все рецепты из каталога с ингредиентами
 func (s *adminService) GetAllRecipes() ([]models.RecipeCatalog, error) {
 	var recipes []models.RecipeCatalog
@@ -646,6 +685,27 @@ func (s *adminService) GetFilteredRecipes(filter RecipeFilter) ([]models.RecipeC
 	}
 
 	return recipes, total, nil
+}
+
+// GetRecipeByCanonicalName - получить рецепт по canonicalName (для SEO URL)
+func (s *adminService) GetRecipeByCanonicalName(canonicalName string) (*models.RecipeCatalog, error) {
+	var recipe models.RecipeCatalog
+
+	err := s.db.
+		Preload("Ingredients.Ingredient").
+		Preload("Allergens").
+		Preload("DietTags").
+		Where(`"canonicalName" = ?`, canonicalName).
+		First(&recipe).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("recipe with canonical name '%s' not found", canonicalName)
+		}
+		return nil, fmt.Errorf("failed to fetch recipe: %w", err)
+	}
+
+	return &recipe, nil
 }
 
 // GetRecipesStats возвращает статистику по рецептам
@@ -707,29 +767,29 @@ func (s *adminService) GetRecipesStats() (map[string]interface{}, error) {
 
 // IngredientClassification полная классификация ингредиента через AI
 type IngredientClassification struct {
-	NamePL           string `json:"name_pl"`
-	NameEN           string `json:"name_en"`
-	NameRU           string `json:"name_ru"`
-	Category         string `json:"category"`          // Culinary category (fish, meat, vegetable, etc.)
-	NutritionGroup   string `json:"nutrition_group"`   // Nutritional grouping (protein, carbohydrate, etc.)
-	Unit             string `json:"unit"`
-	NormalizedValue  string `json:"normalized_value"`
+	NamePL          string `json:"name_pl"`
+	NameEN          string `json:"name_en"`
+	NameRU          string `json:"name_ru"`
+	Category        string `json:"category"`        // Culinary category (fish, meat, vegetable, etc.)
+	NutritionGroup  string `json:"nutrition_group"` // Nutritional grouping (protein, carbohydrate, etc.)
+	Unit            string `json:"unit"`
+	NormalizedValue string `json:"normalized_value"`
 }
 
 // sanitizeIngredientName очищает input от мусора перед отправкой в AI
 func sanitizeIngredientName(input string) string {
 	// Убираем лишние пробелы
 	input = strings.TrimSpace(input)
-	
+
 	// Разбиваем на слова
 	words := strings.Fields(input)
-	
+
 	// Фильтруем мусорные слова
 	bannedWords := map[string]bool{
 		"test": true, "testing": true, "prod": true, "production": true,
 		"demo": true, "sample": true, "example": true, "debug": true,
 	}
-	
+
 	cleanWords := []string{}
 	for _, word := range words {
 		// Пропускаем числа
@@ -741,18 +801,18 @@ func sanitizeIngredientName(input string) string {
 			continue
 		}
 		cleanWords = append(cleanWords, word)
-		
+
 		// Максимум 3 слова (чтобы не перегружать AI)
 		if len(cleanWords) >= 3 {
 			break
 		}
 	}
-	
+
 	// Возвращаем очищенную строку
 	if len(cleanWords) == 0 {
 		return input // Если всё отфильтровалось, вернём оригинал
 	}
-	
+
 	return strings.Join(cleanWords, " ")
 }
 
@@ -966,8 +1026,8 @@ func (s *adminService) SuggestIngredients(query string, limit int, lang string) 
 		LOWER(COALESCE(name_ru, '')) LIKE ? OR
 		LOWER(COALESCE(normalized_value, '')) LIKE ?
 	`
-	
-	fmt.Printf("📋 SQL Query:\nSELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE %s\nORDER BY name ASC LIMIT %d\n", 
+
+	fmt.Printf("📋 SQL Query:\nSELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE %s\nORDER BY name ASC LIMIT %d\n",
 		sqlQuery, limit)
 
 	var ingredients []models.Ingredient
@@ -1025,7 +1085,7 @@ func (s *adminService) getLocalizedName(ing models.Ingredient, lang string) stri
 			return *ing.NameEN
 		}
 	}
-	
+
 	// Fallback chain: EN → PL → RU → name
 	if ing.NameEN != nil && *ing.NameEN != "" {
 		return *ing.NameEN

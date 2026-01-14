@@ -9,6 +9,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 // ===========================
@@ -17,10 +18,10 @@ import (
 
 // CreateRecipeAIRequest - минимальный человеко-ориентированный запрос
 type CreateRecipeAIRequest struct {
-	Title          string                    `json:"title"`          // "Лосось с рисом и соусом терияки"
-	Language       string                    `json:"language"`       // "pl", "en", "ru" (опционально, default "en")
-	Ingredients    []RecipeIngredientInput   `json:"ingredients"`    // [{ingredientId, quantity, unit}]
-	RawCookingText string                    `json:"rawCookingText"` // "Рыбу замариновать в соусе, обжарить. Рис отварить."
+	Title          string                  `json:"title"`          // "Лосось с рисом и соусом терияки"
+	Language       string                  `json:"language"`       // "pl", "en", "ru" (опционально, default "en")
+	Ingredients    []RecipeIngredientInput `json:"ingredients"`    // [{ingredientId, quantity, unit}]
+	RawCookingText string                  `json:"rawCookingText"` // "Рыбу замариновать в соусе, обжарить. Рис отварить."
 }
 
 // RecipeIngredientInput - ингредиент из запроса
@@ -51,24 +52,24 @@ type EnrichedIngredient struct {
 
 // AIRecipePromptContext - контекст для AI
 type AIRecipePromptContext struct {
-	Title              string                  `json:"title"`
-	Language           string                  `json:"language"`        // "pl", "en", "ru"
-	Ingredients        []EnrichedIngredient    `json:"ingredients"`
+	Title               string                  `json:"title"`
+	Language            string                  `json:"language"` // "pl", "en", "ru"
+	Ingredients         []EnrichedIngredient    `json:"ingredients"`
 	OriginalIngredients []RecipeIngredientInput `json:"-"` // Для валидации (не передаем в AI)
-	RawCookingText     string                  `json:"cooking_instructions"`
+	RawCookingText      string                  `json:"cooking_instructions"`
 }
 
 // AIRecipeResponse - строгий контракт ответа от AI (ПОЛНЫЙ)
 type AIRecipeResponse struct {
-	Title       string                   `json:"title"`        // Оригинальное название (НЕ МЕНЯТЬ)
-	Language    string                   `json:"language"`     // Язык рецепта
-	Description string                   `json:"description"`  // Краткое описание (summary)
-	Servings    int                      `json:"servings"`     // Порций
-	TimeMinutes int                      `json:"time_minutes"` // Общее время
-	Difficulty  string                   `json:"difficulty"`   // easy/medium/hard
-	Calories    int                      `json:"calories"`     // Калории на порцию
-	Ingredients []AIRecipeIngredient     `json:"ingredients"`  // Ингредиенты с ID
-	Steps       []RecipeStepAI           `json:"steps"`        // Шаги приготовления
+	Title       string               `json:"title"`        // Оригинальное название (НЕ МЕНЯТЬ)
+	Language    string               `json:"language"`     // Язык рецепта
+	Description string               `json:"description"`  // Краткое описание (summary)
+	Servings    int                  `json:"servings"`     // Порций
+	TimeMinutes int                  `json:"time_minutes"` // Общее время
+	Difficulty  string               `json:"difficulty"`   // easy/medium/hard
+	Calories    int                  `json:"calories"`     // Калории на порцию
+	Ingredients []AIRecipeIngredient `json:"ingredients"`  // Ингредиенты с ID
+	Steps       []RecipeStepAI       `json:"steps"`        // Шаги приготовления
 }
 
 // AIRecipeIngredient - ингредиент в ответе AI (с сохранением ID)
@@ -88,10 +89,10 @@ type RecipeStepAI struct {
 
 // RecipeNutrition - БЖУ и калории
 type RecipeNutrition struct {
-	Calories      int     `json:"calories"`      // 520
-	Protein       float64 `json:"protein"`       // 38
-	Fat           float64 `json:"fat"`           // 22
-	Carbohydrate  float64 `json:"carbohydrate"`  // 42
+	Calories     int     `json:"calories"`     // 520
+	Protein      float64 `json:"protein"`      // 38
+	Fat          float64 `json:"fat"`          // 22
+	Carbohydrate float64 `json:"carbohydrate"` // 42
 }
 
 // ===========================
@@ -385,7 +386,7 @@ func validateAIResponse(response *AIRecipeResponse, originalTitle string, origin
 func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIRecipeResponse, authorID string) (*models.RecipeCatalog, error) {
 	// Генерируем canonical name из title
 	canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
-	
+
 	// Проверка на дубликаты (using GORM field name, not SQL column)
 	var existing models.RecipeCatalog
 	if err := s.db.Where("\"canonicalName\" = ?", canonicalName).First(&existing).Error; err == nil {
@@ -405,8 +406,8 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 		ID:            uuid.New(),
 		CanonicalName: canonicalName,
 		Title:         aiResponse.Title, // Используем title из AI (должен совпадать с req.Title)
-		Country:       "pl", // Default, можно добавить в запрос
-		Category:      "main", // Default, можно добавить в запрос
+		Country:       "pl",             // Default, можно добавить в запрос
+		Category:      "main",           // Default, можно добавить в запрос
 		Difficulty:    aiResponse.Difficulty,
 		TimeMinutes:   aiResponse.TimeMinutes,
 		Servings:      aiResponse.Servings,
@@ -819,6 +820,63 @@ func (s *adminService) UpdateRecipe(recipeID string, req UpdateRecipeRequest) (*
 	return &recipe, nil
 }
 
+// DeleteRecipe - удалить рецепт из каталога
+func (s *adminService) DeleteRecipe(recipeID string) error {
+	fmt.Printf("🗑️  Deleting recipe: %s\n", recipeID)
+
+	// Начинаем транзакцию
+	tx := s.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 1. Проверяем существование рецепта
+	var recipe models.RecipeCatalog
+	if err := tx.Where("id = ?", recipeID).First(&recipe).Error; err != nil {
+		tx.Rollback()
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("recipe not found")
+		}
+		return fmt.Errorf("failed to find recipe: %w", err)
+	}
+
+	recipeName := recipe.Title
+
+	// 2. Удаляем связанные ингредиенты (CASCADE через GORM)
+	if err := tx.Where("\"recipeId\" = ?", recipeID).Delete(&models.CatalogIngredient{}).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete recipe ingredients: %w", err)
+	}
+
+	// 3. Удаляем связи с аллергенами (many2many)
+	if err := tx.Exec("DELETE FROM \"RecipeAllergen\" WHERE \"recipeId\" = ?", recipeID).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete recipe allergens: %w", err)
+	}
+
+	// 4. Удаляем связи с диет-тегами (many2many)
+	if err := tx.Exec("DELETE FROM \"RecipeDietTag\" WHERE \"recipeId\" = ?", recipeID).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete recipe diet tags: %w", err)
+	}
+
+	// 5. Удаляем сам рецепт
+	if err := tx.Delete(&recipe).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to delete recipe: %w", err)
+	}
+
+	// Коммит
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("transaction commit failed: %w", err)
+	}
+
+	fmt.Printf("✅ Recipe deleted: %s [%s]\n", recipeName, recipeID)
+	return nil
+}
+
 // ===========================
 // ЭТАП 7: Smart Conflict Resolution
 // ===========================
@@ -898,7 +956,7 @@ func (s *adminService) GenerateMultilingualTitles(originalTitle, primaryLanguage
 
 	// Определяем все языки для генерации
 	languages := []string{"ru", "en", "pl"}
-	
+
 	// Результат: map языка на список предложений
 	result := make(map[string][]string)
 
@@ -974,9 +1032,9 @@ Return JSON object:
 		}
 	}
 
-	fmt.Printf("✅ Generated multilingual titles: RU=%d, EN=%d, PL=%d\n", 
+	fmt.Printf("✅ Generated multilingual titles: RU=%d, EN=%d, PL=%d\n",
 		len(result["ru"]), len(result["en"]), len(result["pl"]))
-	
+
 	return result, nil
 }
 

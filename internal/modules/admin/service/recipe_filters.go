@@ -10,7 +10,8 @@ import (
 
 // RecipeFilter - DTO для фильтрации рецептов
 type RecipeFilter struct {
-	// Language & Status
+	// Search & Language
+	Search string  `json:"search"` // Полнотекстовый поиск по названию
 	Lang   string  `json:"lang"`   // ru | en | pl
 	Status *string `json:"status"` // published | draft
 
@@ -43,8 +44,9 @@ type RecipeFilter struct {
 func ParseRecipeFilter(r *http.Request) RecipeFilter {
 	query := r.URL.Query()
 	filter := RecipeFilter{
-		Lang: query.Get("lang"), // ru | en | pl
-		Sort: query.Get("sort"), // newest (default)
+		Search: query.Get("search"), // Полнотекстовый поиск
+		Lang:   query.Get("lang"),   // ru | en | pl
+		Sort:   query.Get("sort"),   // newest (default)
 	}
 
 	// Status

@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
