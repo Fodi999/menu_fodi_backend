@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -831,8 +832,12 @@ func (h *AdminHandlers) ImportIngredients(w http.ResponseWriter, r *http.Request
 
 // GetAllIngredients возвращает полный каталог ингредиентов для админ-панели
 func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request) {
-	// Получаем параметр поиска из query
+	// Получаем параметры фильтрации из query
 	searchQuery := r.URL.Query().Get("search")
+	categoryFilter := r.URL.Query().Get("category")
+
+	// 🚨 КРИТ!!! Логируем СРАЗУ чтобы видеть что хендлер вызывается
+	log.Printf("🚨🚨🚨 [GetAllIngredients] START - category='%s', search='%s'", categoryFilter, searchQuery)
 
 	// Парсим пагинацию
 	page := 1
@@ -857,6 +862,27 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch ingredients")
 		return
+	}
+
+	// 🔍 DEBUG: Логируем параметры фильтрации и примеры категорий
+	log.Printf("🔍 [GetAllIngredients] categoryFilter='%s', total ingredients before filter=%d", categoryFilter, len(ingredients))
+	if len(ingredients) > 0 {
+		log.Printf("🔍 [GetAllIngredients] Sample categories: [0]='%s', [1]='%s', [2]='%s'", 
+			ingredients[0].Category, 
+			func() string { if len(ingredients) > 1 { return ingredients[1].Category }; return "N/A" }(),
+			func() string { if len(ingredients) > 2 { return ingredients[2].Category }; return "N/A" }())
+	}
+
+	// 🏷️ Фильтруем по категории если указана (и не "all")
+	if categoryFilter != "" && categoryFilter != "all" {
+		var filtered []models.Ingredient
+		for _, ing := range ingredients {
+			if ing.Category == categoryFilter {
+				filtered = append(filtered, ing)
+			}
+		}
+		log.Printf("✅ [GetAllIngredients] Filtered by category '%s': %d -> %d items", categoryFilter, len(ingredients), len(filtered))
+		ingredients = filtered
 	}
 
 	// 🔍 Фильтруем по поисковому запросу если он указан
