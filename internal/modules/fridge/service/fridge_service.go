@@ -186,7 +186,7 @@ func (s *FridgeService) GetItemByID(itemID string) (*models.FridgeItemResponse, 
 
 // DeleteItem удаляет продукт из холодильника
 func (s *FridgeService) DeleteItem(itemID string, userID string) error {
-	// Проверяем, что продукт принадлежит пользователю
+	// 1. Проверяем, что продукт принадлежит пользователю И получаем данные
 	item, err := s.fridgeRepo.GetByID(itemID)
 	if err != nil {
 		return fmt.Errorf("fridge item not found: %w", err)
@@ -196,7 +196,15 @@ func (s *FridgeService) DeleteItem(itemID string, userID string) error {
 		return errors.New("access denied: item does not belong to user")
 	}
 
-	return s.fridgeRepo.Delete(itemID)
+	// 2. Удаляем продукт
+	if err := s.fridgeRepo.Delete(itemID); err != nil {
+		return err
+	}
+
+	// 3. Создаём уведомление ПОСЛЕ успешного удаления
+	s.createItemDeletedNotification(userID, item)
+
+	return nil
 }
 
 // GetExpiringSoon возвращает продукты с истекающим сроком
@@ -758,6 +766,69 @@ func (s *FridgeService) createItemAddedNotification(userID string, item *models.
 			zap.Error(err))
 	} else {
 		logger.Info("notification created",
+			zap.String("user_id", userID),
+			zap.String("item_name", ingredientName))
+	}
+}
+
+// createItemDeletedNotification создаёт уведомление об удалении продукта
+func (s *FridgeService) createItemDeletedNotification(userID string, item *models.UserFridgeItem) {
+	if item.Ingredient == nil {
+		logger.Warn("cannot create delete notification: ingredient data missing",
+			zap.String("item_id", item.ID),
+			zap.String("user_id", userID))
+		return
+	}
+
+	// Получаем польское название если доступно
+	ingredientName := item.Ingredient.Name
+	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+		ingredientName = *item.Ingredient.NamePL
+	}
+
+	// Формат: "Czosnek удалён из холодильника (3.5 g)"
+	message := fmt.Sprintf("%s удалён из холодильника (%.1f %s)",
+		ingredientName,
+		item.Quantity,
+		item.Unit,
+	)
+
+	// Meta данные для уведомления
+	meta := map[string]interface{}{
+		"fridgeItemId": item.ID,
+		"ingredientId": item.IngredientID,
+		"quantity":     item.Quantity,
+		"unit":         item.Unit,
+		"action":       "deleted",
+	}
+
+	metaBytes, err := json.Marshal(meta)
+	if err != nil {
+		logger.Warn("failed to marshal notification meta",
+			zap.String("item_id", item.ID),
+			zap.Error(err))
+		return
+	}
+	metaStr := string(metaBytes)
+
+	// Создаём уведомление
+	notification := &models.Notification{
+		UserID:  userID,
+		Type:    models.NotificationTypeFridge,
+		Level:   models.NotificationLevelInfo,
+		Title:   "Продукт удалён из холодильника",
+		Message: message,
+		Meta:    &metaStr,
+	}
+
+	// Не блокируем удаление при ошибке создания уведомления
+	if err := s.notificationService.Create(notification); err != nil {
+		logger.Warn("failed to create item deleted notification",
+			zap.String("user_id", userID),
+			zap.String("item_id", item.ID),
+			zap.Error(err))
+	} else {
+		logger.Info("delete notification created",
 			zap.String("user_id", userID),
 			zap.String("item_name", ingredientName))
 	}
