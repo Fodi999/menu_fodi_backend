@@ -609,8 +609,8 @@ func (s *adminService) GetAllIngredientsWithParams(params GetAllIngredientsParam
 		)
 	}
 
-	// ⚡ ГЛАВНОЕ: ORDER BY created_at DESC - новые продукты сверху!
-	query = query.Order("created_at DESC")
+	// ⚡ ГЛАВНОЕ: ORDER BY createdAt DESC - новые продукты сверху!
+	query = query.Order("\"createdAt\" DESC")
 
 	// 📄 Пагинация
 	if params.Limit > 0 {

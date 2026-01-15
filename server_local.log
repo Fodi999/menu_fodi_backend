@@ -1,51 +1,55 @@
-2026-01-15T10:10:32.480+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-15T10:10:33.743+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
-2026-01-15T10:10:33.743+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
-2026/01/15 10:10:33 ✅ EventBus initialized
-2026/01/15 10:10:33 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: token_earn (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: token_spend (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: task_completed (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: user_registered (total: 1)
-2026/01/15 10:10:33 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/15 10:10:33 📡 Hub subscribed to 10 event types
-2026/01/15 10:10:33 📡 WebSocket module initialized
-2026/01/15 10:10:33 🚀 WebSocket Hub started
-2026/01/15 10:10:33 🔧 Registering history module routes...
-2026/01/15 10:10:33 ✅ History module routes registered:
-2026/01/15 10:10:33    GET /api/history - Event history
-2026/01/15 10:10:33    GET /api/history/stats - Statistics
-2026/01/15 10:10:33    GET /api/history/recent - Recent activity
-2026/01/15 10:10:33    GET /api/history/losses - Expired items analytics
-2026/01/15 10:10:33 🔌 Registering WebSocket routes...
-2026/01/15 10:10:33 ✅ WebSocket routes registered:
-2026/01/15 10:10:33    GET /ws - General WebSocket connection
-2026/01/15 10:10:33    GET /ws/treasury - Treasury updates (admin)
-2026/01/15 10:10:33    GET /ws/tokens/{userID} - User token updates
-2026/01/15 10:10:33    GET /ws/stats - WebSocket statistics
-2026-01-15T10:10:33.744+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
+2026-01-15T10:18:15.044+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-15T10:18:15.633+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
+2026-01-15T10:18:15.633+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
+2026/01/15 10:18:15 ✅ EventBus initialized
+2026/01/15 10:18:15 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: token_earn (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: token_spend (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: task_completed (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: user_registered (total: 1)
+2026/01/15 10:18:15 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/15 10:18:15 📡 Hub subscribed to 10 event types
+2026/01/15 10:18:15 📡 WebSocket module initialized
+2026/01/15 10:18:15 🚀 WebSocket Hub started
+2026/01/15 10:18:15 🔧 Registering history module routes...
+2026/01/15 10:18:15 ✅ History module routes registered:
+2026/01/15 10:18:15    GET /api/history - Event history
+2026/01/15 10:18:15    GET /api/history/stats - Statistics
+2026/01/15 10:18:15    GET /api/history/recent - Recent activity
+2026/01/15 10:18:15    GET /api/history/losses - Expired items analytics
+2026/01/15 10:18:15 🔌 Registering WebSocket routes...
+2026/01/15 10:18:15 ✅ WebSocket routes registered:
+2026/01/15 10:18:15    GET /ws - General WebSocket connection
+2026/01/15 10:18:15    GET /ws/treasury - Treasury updates (admin)
+2026/01/15 10:18:15    GET /ws/tokens/{userID} - User token updates
+2026/01/15 10:18:15    GET /ws/stats - WebSocket statistics
+2026-01-15T10:18:15.634+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
 
-2026/01/15 10:10:48 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
-[0m[31;1m[219.716ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
+2026/01/15 10:18:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
+[0m[31;1m[488.627ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
 
-2026/01/15 10:10:48 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[216.774ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:10:48.642' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 10:10:48 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:10:48 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T10:10:48.859+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 10:10:48 [MacBook-Air-Dmitrij.local/pGRsup3Afc-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:54234 - 200 509B in 513.187375ms
-2026/01/15 10:10:48 🔐 AuthMiddleware: GET /api/admin/ingredients
-2026/01/15 10:10:48 📋 Auth header present: true, length: 264
-2026/01/15 10:10:48 🎫 Token extracted, length: 257
-2026/01/15 10:10:48 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:10:48 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 10:10:48 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
-2026/01/15 10:10:48 🚨🚨🚨 [GetAllIngredients] START - category='', search=''
+2026/01/15 10:18:28 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
+[0m[31;1m[575.322ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:18:27.922' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
+2026/01/15 10:18:28 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 10:18:28 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-15T10:18:28.498+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/15 10:18:28 [MacBook-Air-Dmitrij.local/YNMFpkIpWT-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:56136 - 200 509B in 1.140361458s
+2026/01/15 10:18:28 🔐 AuthMiddleware: GET /api/admin/ingredients
+2026/01/15 10:18:28 📋 Auth header present: true, length: 264
+2026/01/15 10:18:28 🎫 Token extracted, length: 257
+2026/01/15 10:18:28 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 10:18:28 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 10:18:28 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
+2026/01/15 10:18:28 🚨🚨🚨 [GetAllIngredients] START - category='', search=''
 
-2026/01/15 10:10:48 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:624 [35;1mERROR: column "created_at" does not exist (SQLSTATE 42703)
-[0m[33m[54.247ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" ORDER BY created_at DESC LIMIT 5
-2026/01/15 10:10:48 [MacBook-Air-Dmitrij.local/pGRsup3Afc-000002] "GET http://localhost:8080/api/admin/ingredients?limit=5 HTTP/1.1" from [::1]:54235 - 500 39B in 54.770916ms
+2026/01/15 10:18:28 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:624 [33mSLOW SQL >= 200ms
+[0m[31;1m[256.469ms] [33m[rows:5][35m SELECT * FROM "Ingredient" ORDER BY "createdAt" DESC LIMIT 5[0m
+
+2026/01/15 10:18:29 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/transport/http/handlers.go:890 [33mSLOW SQL >= 200ms
+[0m[31;1m[274.076ms] [33m[rows:1][35m SELECT count(*) FROM "Ingredient"[0m
+2026/01/15 10:18:29 ✅ [GetAllIngredients] Returning 5 items (page 1 of 45, total=225)
+2026/01/15 10:18:29 [MacBook-Air-Dmitrij.local/YNMFpkIpWT-000002] "GET http://localhost:8080/api/admin/ingredients?limit=5 HTTP/1.1" from [::1]:56145 - 200 1423B in 531.549667ms
