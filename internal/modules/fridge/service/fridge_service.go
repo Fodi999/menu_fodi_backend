@@ -39,68 +39,14 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		return nil, fmt.Errorf("ingredient not found: %w", err)
 	}
 
-	// 2. Проверяем, есть ли уже этот ингредиент у пользователя
-	// UNIQUE constraint: (user_id, ingredient_id) - не может быть дубликатов
-	existingItems, err := s.fridgeRepo.GetUserFridgeItems(userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check existing items: %w", err)
-	}
+	// 2. НОВАЯ ЛОГИКА: Всегда создаём новую запись (отдельную партию)
+	// Убрали UNIQUE constraint - теперь можно иметь несколько партий одного продукта:
+	//   - с разными датами поступления (arrived_at)
+	//   - с разными сроками годности (expires_at)
+	//   - с разными ценами (price history)
+	// Это правильная модель холодильника: купил молоко сегодня + купил молоко вчера = 2 записи
 
-	// Ищем существующий item с таким же ingredient_id
-	var existingItem *models.UserFridgeItem
-	for i := range existingItems {
-		if existingItems[i].IngredientID == req.IngredientID {
-			existingItem = &existingItems[i]
-			break
-		}
-	}
-
-	// 3. Если ингредиент уже есть → обновляем количество
-	if existingItem != nil {
-		logger.Info("ingredient already exists in fridge, updating quantity",
-			zap.String("user_id", userID),
-			zap.String("ingredient_id", req.IngredientID),
-			zap.Float64("old_quantity", existingItem.Quantity),
-			zap.Float64("new_quantity", req.Quantity))
-
-		// Увеличиваем количество (складываем)
-		existingItem.Quantity += req.Quantity
-
-		// Обновляем expires_at если указано новое значение
-		if req.ExpiresAt != nil {
-			existingItem.ExpiresAt = req.ExpiresAt
-		}
-
-		// Обновляем arrived_at на текущее время
-		existingItem.ArrivedAt = time.Now()
-
-		// Сохраняем обновления
-		if err := s.fridgeRepo.Update(existingItem); err != nil {
-			return nil, fmt.Errorf("failed to update fridge item: %w", err)
-		}
-
-		// Если указана новая цена, добавляем событие
-		if req.PriceInput != nil {
-			normalized, err := s.normalizePrice(req.PriceInput.Value, req.PriceInput.Per, ingredient.Unit)
-			if err != nil {
-				return nil, fmt.Errorf("invalid price input: %w", err)
-			}
-
-			priceReq := models.AddPriceRequest{
-				PricePerUnit: normalized,
-				Currency:     "PLN",
-				Source:       "manual",
-			}
-
-			if err := s.AddPrice(userID, existingItem.ID, priceReq); err != nil {
-				logger.Warn("failed to add price update", zap.Error(err))
-			}
-		}
-
-		return s.buildFridgeItemResponse(existingItem, ingredient), nil
-	}
-
-	// 4. Если ингредиента еще нет → создаем новую запись
+	// 3. Создаем новую запись (новая партия)
 	arrivedAt := time.Now()
 
 	// Вычисляем expires_at автоматически, если не задано явно
