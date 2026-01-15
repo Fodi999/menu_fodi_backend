@@ -10,6 +10,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/dto"
+	notificationService "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/notifications/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -17,17 +18,19 @@ import (
 
 // FridgeService сервис для работы с холодильником
 type FridgeService struct {
-	db             *gorm.DB
-	fridgeRepo     *database.UserFridgeRepository
-	ingredientRepo *database.IngredientRepository
+	db                  *gorm.DB
+	fridgeRepo          *database.UserFridgeRepository
+	ingredientRepo      *database.IngredientRepository
+	notificationService notificationService.NotificationService
 }
 
 // NewFridgeService создает новый экземпляр сервиса
 func NewFridgeService(db *gorm.DB, fridgeRepo *database.UserFridgeRepository, ingredientRepo *database.IngredientRepository) *FridgeService {
 	return &FridgeService{
-		db:             db,
-		fridgeRepo:     fridgeRepo,
-		ingredientRepo: ingredientRepo,
+		db:                  db,
+		fridgeRepo:          fridgeRepo,
+		ingredientRepo:      ingredientRepo,
+		notificationService: notificationService.NewNotificationService(db),
 	}
 }
 
@@ -92,7 +95,10 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		}
 	}
 
-	// 6. Формируем ответ
+	// 6. Создаём системное уведомление о добавлении продукта
+	s.createItemAddedNotification(userID, item, ingredient)
+
+	// 7. Формируем ответ
 	return s.buildFridgeItemResponse(item, ingredient), nil
 }
 
@@ -709,4 +715,50 @@ func (s *FridgeService) AddMissingFromRecipe(userID string, recipeID string) (*d
 	}
 
 	return result, nil
+}
+
+// createItemAddedNotification создаёт системное уведомление о добавлении продукта
+func (s *FridgeService) createItemAddedNotification(userID string, item *models.UserFridgeItem, ingredient *models.Ingredient) {
+	// Получаем название продукта (предпочтительно на польском)
+	ingredientName := ingredient.Name
+	if ingredient.NamePL != nil && *ingredient.NamePL != "" {
+		ingredientName = *ingredient.NamePL
+	}
+
+	// Форматируем количество
+	quantityStr := fmt.Sprintf("%.1f %s", item.Quantity, item.Unit)
+	
+	// Формируем сообщение
+	message := fmt.Sprintf("%s добавлен в холодильник (%s)", ingredientName, quantityStr)
+	
+	// Формируем meta информацию
+	metaJSON, _ := json.Marshal(map[string]interface{}{
+		"fridgeItemId": item.ID,
+		"ingredientId": item.IngredientID,
+		"quantity":     item.Quantity,
+		"unit":         item.Unit,
+	})
+	metaStr := string(metaJSON)
+
+	// Создаём уведомление
+	notification := &models.Notification{
+		UserID:  userID,
+		Type:    models.NotificationTypeFridge,
+		Level:   models.NotificationLevelInfo,
+		Title:   "Продукт добавлен в холодильник",
+		Message: message,
+		Meta:    &metaStr,
+	}
+
+	// Сохраняем в БД (не фейлим если не получилось)
+	if err := s.notificationService.Create(notification); err != nil {
+		logger.Warn("failed to create item added notification",
+			zap.String("user_id", userID),
+			zap.String("item_id", item.ID),
+			zap.Error(err))
+	} else {
+		logger.Info("notification created",
+			zap.String("user_id", userID),
+			zap.String("item_name", ingredientName))
+	}
 }

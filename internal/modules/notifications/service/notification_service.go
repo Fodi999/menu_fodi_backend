@@ -13,6 +13,7 @@ type NotificationService interface {
 	MarkAsRead(notificationID string, userID string) error
 	MarkAllAsRead(userID string) error
 	GetUnreadCount(userID string) (int64, error)
+	Create(notification *models.Notification) error
 }
 
 type notificationService struct {
@@ -87,4 +88,13 @@ func (s *notificationService) GetUnreadCount(userID string) (int64, error) {
 	}
 
 	return count, nil
+}
+
+// Create создать новое уведомление
+func (s *notificationService) Create(notification *models.Notification) error {
+	if err := s.db.Create(notification).Error; err != nil {
+		return fmt.Errorf("failed to create notification: %w", err)
+	}
+
+	return nil
 }
