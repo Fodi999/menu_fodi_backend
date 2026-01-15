@@ -1,118 +1,51 @@
-2026-01-15T09:59:22.543+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-15T09:59:23.349+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
-2026-01-15T09:59:23.349+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
-2026/01/15 09:59:23 ✅ EventBus initialized
-2026/01/15 09:59:23 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: token_earn (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: token_spend (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: task_completed (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: user_registered (total: 1)
-2026/01/15 09:59:23 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/15 09:59:23 📡 Hub subscribed to 10 event types
-2026/01/15 09:59:23 📡 WebSocket module initialized
-2026/01/15 09:59:23 🚀 WebSocket Hub started
-2026/01/15 09:59:23 🔧 Registering history module routes...
-2026/01/15 09:59:23 ✅ History module routes registered:
-2026/01/15 09:59:23    GET /api/history - Event history
-2026/01/15 09:59:23    GET /api/history/stats - Statistics
-2026/01/15 09:59:23    GET /api/history/recent - Recent activity
-2026/01/15 09:59:23    GET /api/history/losses - Expired items analytics
-2026/01/15 09:59:23 🔌 Registering WebSocket routes...
-2026/01/15 09:59:23 ✅ WebSocket routes registered:
-2026/01/15 09:59:23    GET /ws - General WebSocket connection
-2026/01/15 09:59:23    GET /ws/treasury - Treasury updates (admin)
-2026/01/15 09:59:23    GET /ws/tokens/{userID} - User token updates
-2026/01/15 09:59:23    GET /ws/stats - WebSocket statistics
-2026-01-15T09:59:23.349+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
+2026-01-15T10:10:32.480+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-15T10:10:33.743+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
+2026-01-15T10:10:33.743+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
+2026/01/15 10:10:33 ✅ EventBus initialized
+2026/01/15 10:10:33 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: token_earn (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: token_spend (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: task_completed (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: user_registered (total: 1)
+2026/01/15 10:10:33 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/15 10:10:33 📡 Hub subscribed to 10 event types
+2026/01/15 10:10:33 📡 WebSocket module initialized
+2026/01/15 10:10:33 🚀 WebSocket Hub started
+2026/01/15 10:10:33 🔧 Registering history module routes...
+2026/01/15 10:10:33 ✅ History module routes registered:
+2026/01/15 10:10:33    GET /api/history - Event history
+2026/01/15 10:10:33    GET /api/history/stats - Statistics
+2026/01/15 10:10:33    GET /api/history/recent - Recent activity
+2026/01/15 10:10:33    GET /api/history/losses - Expired items analytics
+2026/01/15 10:10:33 🔌 Registering WebSocket routes...
+2026/01/15 10:10:33 ✅ WebSocket routes registered:
+2026/01/15 10:10:33    GET /ws - General WebSocket connection
+2026/01/15 10:10:33    GET /ws/treasury - Treasury updates (admin)
+2026/01/15 10:10:33    GET /ws/tokens/{userID} - User token updates
+2026/01/15 10:10:33    GET /ws/stats - WebSocket statistics
+2026-01-15T10:10:33.744+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
 
-2026/01/15 09:59:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
-[0m[31;1m[225.395ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
+2026/01/15 10:10:48 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
+[0m[31;1m[219.716ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
 
-2026/01/15 09:59:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[339.524ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 09:59:34.527' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 09:59:34 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 09:59:34 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T09:59:34.867+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 09:59:34 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51389 - 200 509B in 624.89025ms
-2026/01/15 09:59:34 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/15 09:59:34 📋 Auth header present: true, length: 11
-2026/01/15 09:59:34 🎫 Token extracted, length: 4
-2026/01/15 09:59:34 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 09:59:34 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 09:59:34 ❌ JWT parse error: token is malformed: token contains an invalid number of segments
-2026/01/15 09:59:34 ❌ JWT validation failed for GET /api/admin/ingredients/suggest: token is malformed: token contains an invalid number of segments
-2026/01/15 09:59:34 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000002] "GET http://localhost:8080/api/admin/ingredients/suggest?q=ка&limit=5 HTTP/1.1" from [::1]:51394 - 401 37B in 201.834µs
+2026/01/15 10:10:48 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
+[0m[31;1m[216.774ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:10:48.642' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
+2026/01/15 10:10:48 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 10:10:48 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-15T10:10:48.859+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/15 10:10:48 [MacBook-Air-Dmitrij.local/pGRsup3Afc-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:54234 - 200 509B in 513.187375ms
+2026/01/15 10:10:48 🔐 AuthMiddleware: GET /api/admin/ingredients
+2026/01/15 10:10:48 📋 Auth header present: true, length: 264
+2026/01/15 10:10:48 🎫 Token extracted, length: 257
+2026/01/15 10:10:48 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 10:10:48 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 10:10:48 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
+2026/01/15 10:10:48 🚨🚨🚨 [GetAllIngredients] START - category='', search=''
 
-2026/01/15 09:59:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
-[0m[33m[143.477ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
-
-2026/01/15 09:59:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[283.083ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 09:59:40.329' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 09:59:40 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 09:59:40 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T09:59:40.612+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 09:59:40 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000003] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51416 - 200 509B in 489.064667ms
-2026/01/15 09:59:40 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/15 09:59:40 📋 Auth header present: true, length: 11
-2026/01/15 09:59:40 🎫 Token extracted, length: 4
-2026/01/15 09:59:40 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 09:59:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 09:59:40 ❌ JWT parse error: token is malformed: token contains an invalid number of segments
-2026/01/15 09:59:40 ❌ JWT validation failed for GET /api/admin/ingredients/suggest: token is malformed: token contains an invalid number of segments
-2026/01/15 09:59:40 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000004] "GET http://localhost:8080/api/admin/ingredients/suggest?q=ка&limit=5 HTTP/1.1" from [::1]:51421 - 401 37B in 111.5µs
-
-2026/01/15 09:59:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
-[0m[33m[197.998ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
-
-2026/01/15 09:59:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[246.626ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 09:59:58.052' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 09:59:58 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 09:59:58 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T09:59:58.299+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 09:59:58 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000005] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51494 - 200 509B in 514.137ms
-
-2026/01/15 10:00:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
-[0m[33m[144.519ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
-
-2026/01/15 10:00:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
-[0m[33m[188.990ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-15 10:00:04.14' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
-2026/01/15 10:00:04 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:00:04 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T10:00:04.329+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 10:00:04 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000006] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51519 - 200 509B in 382.561667ms
-2026/01/15 10:00:04 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/15 10:00:04 📋 Auth header present: true, length: 264
-2026/01/15 10:00:04 🎫 Token extracted, length: 257
-2026/01/15 10:00:04 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:00:04 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 10:00:04 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=ка&limit=5 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='ка', limit=5, lang='ru'
-🔍 SuggestIngredients: query='ка', limit=5, lang='ru'
-🔎 SQL pattern: '%ка%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		name ILIKE ? OR
-		COALESCE(name_pl, '') ILIKE ? OR
-		COALESCE(name_en, '') ILIKE ? OR
-		COALESCE(name_ru, '') ILIKE ? OR
-		COALESCE(normalized_value, '') ILIKE ?
-	
-ORDER BY name ASC LIMIT 5
-
-2026/01/15 10:00:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:1037
-[0m[33m[162.819ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" WHERE 
-		name ILIKE '%ка%' OR
-		COALESCE(name_pl, '') ILIKE '%ка%' OR
-		COALESCE(name_en, '') ILIKE '%ка%' OR
-		COALESCE(name_ru, '') ILIKE '%ка%' OR
-		COALESCE(normalized_value, '') ILIKE '%ка%'
-	 ORDER BY name ASC LIMIT 5
-✅ Found 5 rows from DB
-🔍 Suggest: query='ка', lang='ru' → 5 results (after filtering)
-✅ Returning 5 suggestions (lang=ru)
-2026/01/15 10:00:04 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000007] "GET http://localhost:8080/api/admin/ingredients/suggest?q=ка&limit=5 HTTP/1.1" from [::1]:51521 - 200 675B in 163.388584ms
+2026/01/15 10:10:48 [31;1m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:624 [35;1mERROR: column "created_at" does not exist (SQLSTATE 42703)
+[0m[33m[54.247ms] [34;1m[rows:0][0m SELECT * FROM "Ingredient" ORDER BY created_at DESC LIMIT 5
+2026/01/15 10:10:48 [MacBook-Air-Dmitrij.local/pGRsup3Afc-000002] "GET http://localhost:8080/api/admin/ingredients?limit=5 HTTP/1.1" from [::1]:54235 - 500 39B in 54.770916ms

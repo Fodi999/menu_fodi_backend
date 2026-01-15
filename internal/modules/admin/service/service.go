@@ -96,10 +96,12 @@ type AdminService interface {
 
 	// Ingredients Catalog (AI-powered)
 	GetAllIngredients() ([]models.Ingredient, error)
+	GetAllIngredientsWithParams(params GetAllIngredientsParams) ([]models.Ingredient, error)
 	GetIngredientsStats() (map[string]interface{}, error)
 	CreateIngredientWithAI(inputName, userID string) (*models.Ingredient, error)
 	CheckIngredientExists(normalizedValue string) (*models.Ingredient, bool)
 	DeleteIngredient(ingredientID string) error
+	DB() *gorm.DB
 
 	// Ingredient Suggestions (fast autocomplete, no AI, с локализацией)
 	SuggestIngredients(query string, limit int, lang string) ([]IngredientSuggestion, error)
@@ -145,6 +147,11 @@ func NewAdminService() AdminService {
 		db:         database.GetDB(),
 		groqClient: ai_core.NewGroqClient(),
 	}
+}
+
+// DB возвращает инстанс базы данных (для прямых запросов в хендлерах)
+func (s *adminService) DB() *gorm.DB {
+	return s.db
 }
 
 // GetAllUsers возвращает всех пользователей
@@ -569,10 +576,52 @@ func (s *adminService) BulkImportIngredients(ingredients []struct {
 }
 
 // GetAllIngredients возвращает весь каталог ингредиентов
+// GetAllIngredientsParams параметры для фильтрации и пагинации
+type GetAllIngredientsParams struct {
+	Search   string
+	Category string
+	Page     int
+	Limit    int
+}
+
 func (s *adminService) GetAllIngredients() ([]models.Ingredient, error) {
+	// Deprecated: используйте GetAllIngredientsWithParams
+	return s.GetAllIngredientsWithParams(GetAllIngredientsParams{})
+}
+
+// GetAllIngredientsWithParams получить список ингредиентов с фильтрацией
+func (s *adminService) GetAllIngredientsWithParams(params GetAllIngredientsParams) ([]models.Ingredient, error) {
 	var ingredients []models.Ingredient
 
-	if err := s.db.Order("category ASC, name ASC").Find(&ingredients).Error; err != nil {
+	query := s.db.Model(&models.Ingredient{})
+
+	// 🔍 Фильтр по категории
+	if params.Category != "" && params.Category != "all" {
+		query = query.Where("category = ?", params.Category)
+	}
+
+	// 🔍 Фильтр по поиску (ищем во всех языковых полях)
+	if params.Search != "" {
+		searchPattern := "%" + params.Search + "%"
+		query = query.Where(
+			"name ILIKE ? OR COALESCE(name_pl, '') ILIKE ? OR COALESCE(name_en, '') ILIKE ? OR COALESCE(name_ru, '') ILIKE ?",
+			searchPattern, searchPattern, searchPattern, searchPattern,
+		)
+	}
+
+	// ⚡ ГЛАВНОЕ: ORDER BY created_at DESC - новые продукты сверху!
+	query = query.Order("created_at DESC")
+
+	// 📄 Пагинация
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
+		if params.Page > 1 {
+			offset := (params.Page - 1) * params.Limit
+			query = query.Offset(offset)
+		}
+	}
+
+	if err := query.Find(&ingredients).Error; err != nil {
 		return nil, err
 	}
 

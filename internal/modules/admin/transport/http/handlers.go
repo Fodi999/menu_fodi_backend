@@ -858,66 +858,44 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	ingredients, err := h.service.GetAllIngredients()
+	// ⚡ ОПТИМИЗАЦИЯ: Передаем фильтры на уровень БД
+	params := service.GetAllIngredientsParams{
+		Search:   searchQuery,
+		Category: categoryFilter,
+		Page:     page,
+		Limit:    limit,
+	}
+
+	ingredients, err := h.service.GetAllIngredientsWithParams(params)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch ingredients")
 		return
 	}
 
-	// 🔍 DEBUG: Логируем параметры фильтрации и примеры категорий
-	log.Printf("🔍 [GetAllIngredients] categoryFilter='%s', total ingredients before filter=%d", categoryFilter, len(ingredients))
-	if len(ingredients) > 0 {
-		log.Printf("🔍 [GetAllIngredients] Sample categories: [0]='%s', [1]='%s', [2]='%s'", 
-			ingredients[0].Category, 
-			func() string { if len(ingredients) > 1 { return ingredients[1].Category }; return "N/A" }(),
-			func() string { if len(ingredients) > 2 { return ingredients[2].Category }; return "N/A" }())
-	}
-
-	// 🏷️ Фильтруем по категории если указана (и не "all")
+	// Получаем общее количество (для мета-информации)
+	var total int64
+	query := h.service.DB().Model(&models.Ingredient{})
+	
 	if categoryFilter != "" && categoryFilter != "all" {
-		var filtered []models.Ingredient
-		for _, ing := range ingredients {
-			if ing.Category == categoryFilter {
-				filtered = append(filtered, ing)
-			}
-		}
-		log.Printf("✅ [GetAllIngredients] Filtered by category '%s': %d -> %d items", categoryFilter, len(ingredients), len(filtered))
-		ingredients = filtered
+		query = query.Where("category = ?", categoryFilter)
 	}
-
-	// 🔍 Фильтруем по поисковому запросу если он указан
 	if searchQuery != "" {
-		searchQuery = strings.ToLower(searchQuery)
-		var filtered []models.Ingredient
-		for _, ing := range ingredients {
-			// Ищем в name, namePl, nameEn, nameRu
-			if strings.Contains(strings.ToLower(ing.Name), searchQuery) ||
-				(ing.NamePL != nil && strings.Contains(strings.ToLower(*ing.NamePL), searchQuery)) ||
-				(ing.NameEN != nil && strings.Contains(strings.ToLower(*ing.NameEN), searchQuery)) ||
-				(ing.NameRU != nil && strings.Contains(strings.ToLower(*ing.NameRU), searchQuery)) {
-				filtered = append(filtered, ing)
-			}
-		}
-		ingredients = filtered
+		searchPattern := "%" + searchQuery + "%"
+		query = query.Where(
+			"name ILIKE ? OR COALESCE(name_pl, '') ILIKE ? OR COALESCE(name_en, '') ILIKE ? OR COALESCE(name_ru, '') ILIKE ?",
+			searchPattern, searchPattern, searchPattern, searchPattern,
+		)
+	}
+	
+	if err := query.Count(&total).Error; err != nil {
+		log.Printf("❌ Failed to count ingredients: %v", err)
+		total = int64(len(ingredients)) // fallback
 	}
 
-	// Общее количество (до пагинации)
-	total := len(ingredients)
+	totalPages := int((total + int64(limit) - 1) / int64(limit))
 
-	// Применяем пагинацию
-	offset := (page - 1) * limit
-	end := offset + limit
-
-	if offset > total {
-		ingredients = []models.Ingredient{} // Пустой массив
-	} else {
-		if end > total {
-			end = total
-		}
-		ingredients = ingredients[offset:end]
-	}
-
-	totalPages := (total + limit - 1) / limit
+	log.Printf("✅ [GetAllIngredients] Returning %d items (page %d of %d, total=%d)", 
+		len(ingredients), page, totalPages, total)
 
 	// Формат совместимый с фронтендом (data + meta)
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
@@ -925,7 +903,7 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 		"meta": map[string]interface{}{
 			"page":       page,
 			"limit":      limit,
-			"total":      total,
+			"total":      int(total),
 			"totalPages": totalPages,
 		},
 	})
