@@ -1,130 +1,52 @@
-2026-01-15T10:37:02.422+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-15T10:37:03.142+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
-2026-01-15T10:37:03.142+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
-2026/01/15 10:37:03 ✅ EventBus initialized
-2026/01/15 10:37:03 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: token_earn (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: token_spend (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: task_completed (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: user_registered (total: 1)
-2026/01/15 10:37:03 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/15 10:37:03 📡 Hub subscribed to 10 event types
-2026/01/15 10:37:03 📡 WebSocket module initialized
-2026/01/15 10:37:03 🚀 WebSocket Hub started
-2026/01/15 10:37:03 🔧 Registering history module routes...
-2026/01/15 10:37:03 ✅ History module routes registered:
-2026/01/15 10:37:03    GET /api/history - Event history
-2026/01/15 10:37:03    GET /api/history/stats - Statistics
-2026/01/15 10:37:03    GET /api/history/recent - Recent activity
-2026/01/15 10:37:03    GET /api/history/losses - Expired items analytics
-2026/01/15 10:37:03 🔌 Registering WebSocket routes...
-2026/01/15 10:37:03 ✅ WebSocket routes registered:
-2026/01/15 10:37:03    GET /ws - General WebSocket connection
-2026/01/15 10:37:03    GET /ws/treasury - Treasury updates (admin)
-2026/01/15 10:37:03    GET /ws/tokens/{userID} - User token updates
-2026/01/15 10:37:03    GET /ws/stats - WebSocket statistics
-2026-01-15T10:37:03.143+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
+2026-01-15T11:34:25.333+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-15T11:34:25.951+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
+🕐 CRON: Fridge expiry checker started (daily at 08:00 UTC)
+2026-01-15T11:34:25.951+0100	[34mINFO[0m	logger/logger.go:60	⏰ CRON jobs initialized - Daily fridge expiry checks at 08:00 UTC
+2026-01-15T11:34:25.951+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
+2026/01/15 11:34:25 ✅ EventBus initialized
+2026/01/15 11:34:25 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: token_earn (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: token_spend (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: task_completed (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: user_registered (total: 1)
+2026/01/15 11:34:25 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/15 11:34:25 📡 Hub subscribed to 10 event types
+2026/01/15 11:34:25 📡 WebSocket module initialized
+2026/01/15 11:34:25 🚀 WebSocket Hub started
+2026/01/15 11:34:25 🔧 Registering history module routes...
+2026/01/15 11:34:25 ✅ History module routes registered:
+2026/01/15 11:34:25    GET /api/history - Event history
+2026/01/15 11:34:25    GET /api/history/stats - Statistics
+2026/01/15 11:34:25    GET /api/history/recent - Recent activity
+2026/01/15 11:34:25    GET /api/history/losses - Expired items analytics
+2026/01/15 11:34:25 🔌 Registering WebSocket routes...
+2026/01/15 11:34:25 ✅ WebSocket routes registered:
+2026/01/15 11:34:25    GET /ws - General WebSocket connection
+2026/01/15 11:34:25    GET /ws/treasury - Treasury updates (admin)
+2026/01/15 11:34:25    GET /ws/tokens/{userID} - User token updates
+2026/01/15 11:34:25    GET /ws/stats - WebSocket statistics
+2026-01-15T11:34:25.952+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
+2026/01/15 11:34:49 🔐 AuthMiddleware: GET /api/notifications/unread-count
+2026/01/15 11:34:49 📋 Auth header present: true, length: 264
+2026/01/15 11:34:49 🎫 Token extracted, length: 257
+2026/01/15 11:34:49 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 11:34:49 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 11:34:49 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/notifications/unread-count
 
-2026/01/15 10:37:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
-[0m[31;1m[319.756ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
+2026/01/15 11:34:50 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/notifications/service/notification_service.go:83 [33mSLOW SQL >= 200ms
+[0m[31;1m[279.499ms] [33m[rows:1][35m SELECT count(*) FROM "notifications" WHERE user_id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' AND read_at IS NULL[0m
+2026/01/15 11:34:50 [MacBook-Air-Dmitrij.local/GwWb0mJG0a-000001] "GET http://localhost:8080/api/notifications/unread-count HTTP/1.1" from [::1]:59325 - 200 11B in 280.338584ms
+2026/01/15 11:35:05 🔐 AuthMiddleware: GET /api/notifications
+2026/01/15 11:35:05 📋 Auth header present: true, length: 264
+2026/01/15 11:35:05 🎫 Token extracted, length: 257
+2026/01/15 11:35:05 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 11:35:05 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 11:35:05 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/notifications
 
-2026/01/15 10:37:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[364.633ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:37:17.494' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 10:37:17 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:17 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T10:37:17.859+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 10:37:17 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:60943 - 200 509B in 758.780417ms
-2026/01/15 10:37:17 🔐 AuthMiddleware: GET /api/admin/ingredients
-2026/01/15 10:37:17 📋 Auth header present: true, length: 264
-2026/01/15 10:37:17 🎫 Token extracted, length: 257
-2026/01/15 10:37:17 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 10:37:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
-2026/01/15 10:37:17 🚨🚨🚨 [GetAllIngredients] START - category='', search='', sort='newest', order=''
-
-2026/01/15 10:37:18 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:627 [33mSLOW SQL >= 200ms
-[0m[31;1m[269.317ms] [33m[rows:3][35m SELECT * FROM "Ingredient" ORDER BY "createdAt" DESC LIMIT 3[0m
-
-2026/01/15 10:37:18 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/transport/http/handlers.go:895
-[0m[33m[157.458ms] [34;1m[rows:1][0m SELECT count(*) FROM "Ingredient"
-2026/01/15 10:37:18 ✅ [GetAllIngredients] Returning 3 items (page 1 of 75, total=225)
-2026/01/15 10:37:18 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000002] "GET http://localhost:8080/api/admin/ingredients?sort=newest&limit=3 HTTP/1.1" from [::1]:60949 - 200 954B in 427.814625ms
-
-2026/01/15 10:37:26 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
-[0m[33m[118.292ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
-
-2026/01/15 10:37:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[315.265ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:37:27.031' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 10:37:27 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:27 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T10:37:27.347+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 10:37:27 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000003] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:60987 - 200 509B in 490.775042ms
-2026/01/15 10:37:27 🔐 AuthMiddleware: GET /api/admin/ingredients
-2026/01/15 10:37:27 📋 Auth header present: true, length: 264
-2026/01/15 10:37:27 🎫 Token extracted, length: 257
-2026/01/15 10:37:27 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:27 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 10:37:27 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
-2026/01/15 10:37:27 🚨🚨🚨 [GetAllIngredients] START - category='', search='', sort='name', order=''
-
-2026/01/15 10:37:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:627
-[0m[33m[172.041ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" ORDER BY name ASC LIMIT 5
-
-2026/01/15 10:37:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/transport/http/handlers.go:895
-[0m[33m[91.651ms] [34;1m[rows:1][0m SELECT count(*) FROM "Ingredient"
-2026/01/15 10:37:27 ✅ [GetAllIngredients] Returning 5 items (page 1 of 45, total=225)
-2026/01/15 10:37:27 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000004] "GET http://localhost:8080/api/admin/ingredients?sort=name&limit=5 HTTP/1.1" from [::1]:60988 - 200 1655B in 264.520875ms
-
-2026/01/15 10:37:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
-[0m[31;1m[341.154ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
-
-2026/01/15 10:37:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[348.160ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:37:34.845' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 10:37:35 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:35 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T10:37:35.193+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 10:37:35 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000005] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:61018 - 200 509B in 759.875458ms
-2026/01/15 10:37:35 🔐 AuthMiddleware: GET /api/admin/ingredients
-2026/01/15 10:37:35 📋 Auth header present: true, length: 264
-2026/01/15 10:37:35 🎫 Token extracted, length: 257
-2026/01/15 10:37:35 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:35 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 10:37:35 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
-2026/01/15 10:37:35 🚨🚨🚨 [GetAllIngredients] START - category='', search='', sort='usage', order=''
-
-2026/01/15 10:37:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:627 [33mSLOW SQL >= 200ms
-[0m[31;1m[344.309ms] [33m[rows:5][35m SELECT * FROM "Ingredient" ORDER BY usage_count DESC LIMIT 5[0m
-
-2026/01/15 10:37:35 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/transport/http/handlers.go:895
-[0m[33m[88.475ms] [34;1m[rows:1][0m SELECT count(*) FROM "Ingredient"
-2026/01/15 10:37:35 ✅ [GetAllIngredients] Returning 5 items (page 1 of 45, total=225)
-2026/01/15 10:37:35 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000006] "GET http://localhost:8080/api/admin/ingredients?sort=usage&limit=5 HTTP/1.1" from [::1]:61023 - 200 1587B in 433.538667ms
-
-2026/01/15 10:37:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
-[0m[31;1m[228.990ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
-
-2026/01/15 10:37:43 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
-[0m[31;1m[516.618ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 10:37:43.02' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
-2026/01/15 10:37:43 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:43 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
-2026-01-15T10:37:43.537+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
-2026/01/15 10:37:43 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000007] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:61052 - 200 509B in 820.969542ms
-2026/01/15 10:37:43 🔐 AuthMiddleware: GET /api/admin/ingredients
-2026/01/15 10:37:43 📋 Auth header present: true, length: 264
-2026/01/15 10:37:43 🎫 Token extracted, length: 257
-2026/01/15 10:37:43 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 10:37:43 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 10:37:43 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients
-2026/01/15 10:37:43 🚨🚨🚨 [GetAllIngredients] START - category='meat', search='', sort='usage', order=''
-
-2026/01/15 10:37:43 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:627 [33mSLOW SQL >= 200ms
-[0m[31;1m[261.695ms] [33m[rows:3][35m SELECT * FROM "Ingredient" WHERE category = 'meat' ORDER BY usage_count DESC LIMIT 3[0m
-
-2026/01/15 10:37:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/transport/http/handlers.go:895 [33mSLOW SQL >= 200ms
-[0m[31;1m[252.375ms] [33m[rows:1][35m SELECT count(*) FROM "Ingredient" WHERE category = 'meat'[0m
-2026/01/15 10:37:44 ✅ [GetAllIngredients] Returning 3 items (page 1 of 9, total=26)
-2026/01/15 10:37:44 [MacBook-Air-Dmitrij.local/u7FgvaSk7l-000008] "GET http://localhost:8080/api/admin/ingredients?category=meat&sort=usage&limit=3 HTTP/1.1" from [::1]:61057 - 200 1042B in 514.657542ms
+2026/01/15 11:35:05 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/notifications/service/notification_service.go:38 [33mSLOW SQL >= 200ms
+[0m[31;1m[304.124ms] [33m[rows:0][35m SELECT * FROM "notifications" WHERE user_id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY created_at DESC LIMIT 100[0m
+2026/01/15 11:35:05 [MacBook-Air-Dmitrij.local/GwWb0mJG0a-000002] "GET http://localhost:8080/api/notifications?page=1&limit=20 HTTP/1.1" from [::1]:59388 - 200 11B in 304.743958ms

@@ -60,7 +60,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Добавляем данные пользователя в контекст
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
-		ctx = context.WithValue(ctx, contextKey("userID"), claims.UserID) // Добавляем userID для удобства
+		ctx = context.WithValue(ctx, "userID", claims.UserID) // Добавляем userID для удобства (string key для совместимости)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
