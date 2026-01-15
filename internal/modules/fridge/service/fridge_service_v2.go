@@ -1,10 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	notificationService "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/notifications/service"
 	"gorm.io/gorm"
 )
 
@@ -22,12 +24,14 @@ type FridgeServiceV2 interface {
 }
 
 type fridgeServiceV2 struct {
-	db *gorm.DB
+	db                  *gorm.DB
+	notificationService notificationService.NotificationService
 }
 
 func NewFridgeServiceV2(db *gorm.DB) FridgeServiceV2 {
 	return &fridgeServiceV2{
-		db: db,
+		db:                  db,
+		notificationService: notificationService.NewNotificationService(db),
 	}
 }
 
@@ -168,6 +172,18 @@ func (s *fridgeServiceV2) UpdateItem(itemID string, userID string, req UpdateFri
 
 // DeleteItem удалить продукт из холодильника
 func (s *fridgeServiceV2) DeleteItem(itemID string, userID string) error {
+	// 1. ОБЯЗАТЕЛЬНО получить данные ПЕРЕД удалением
+	var item models.FridgeItem
+	if err := s.db.Where("id = ? AND user_id = ?", itemID, userID).
+		Preload("Ingredient").
+		First(&item).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("fridge item not found")
+		}
+		return fmt.Errorf("failed to get fridge item: %w", err)
+	}
+
+	// 2. Удаляем продукт
 	result := s.db.Where("id = ? AND user_id = ?", itemID, userID).Delete(&models.FridgeItem{})
 	
 	if result.Error != nil {
@@ -178,6 +194,9 @@ func (s *fridgeServiceV2) DeleteItem(itemID string, userID string) error {
 		return fmt.Errorf("fridge item not found")
 	}
 
+	// 3. Создаём уведомление ПОСЛЕ успешного удаления
+	s.createItemDeletedNotification(userID, &item)
+
 	return nil
 }
 
@@ -185,16 +204,22 @@ func (s *fridgeServiceV2) DeleteItem(itemID string, userID string) error {
 func (s *fridgeServiceV2) DiscardItem(itemID string, userID string) error {
 	var item models.FridgeItem
 	
-	if err := s.db.Where("id = ? AND user_id = ?", itemID, userID).First(&item).Error; err != nil {
+	// 1. Получаем продукт с данными ингредиента
+	if err := s.db.Where("id = ? AND user_id = ?", itemID, userID).
+		Preload("Ingredient").
+		First(&item).Error; err != nil {
 		return fmt.Errorf("fridge item not found: %w", err)
 	}
 
-	// Меняем статус на discarded
+	// 2. Меняем статус на discarded
 	if err := s.db.Model(&item).Update("status", models.FridgeItemStatusDiscarded).Error; err != nil {
 		return fmt.Errorf("failed to discard item: %w", err)
 	}
 
 	fmt.Printf("🗑️  Item %s discarded (loss: %.2f PLN)\n", item.ID, item.PriceTotal)
+
+	// 3. Создаём уведомление ПОСЛЕ успешного выброса
+	s.createItemDiscardedNotification(userID, &item)
 
 	return nil
 }
@@ -207,4 +232,121 @@ func (s *fridgeServiceV2) CheckAndNotifyExpiring(userID string) error {
 // SetDB устанавливает подключение к БД (для инжекции)
 func (s *fridgeServiceV2) SetDB(db *gorm.DB) {
 	s.db = db
+}
+
+// createItemDeletedNotification создаёт уведомление об удалении продукта
+func (s *fridgeServiceV2) createItemDeletedNotification(userID string, item *models.FridgeItem) {
+	if item.Ingredient == nil {
+		fmt.Printf("⚠️  Cannot create delete notification: ingredient data missing (item_id=%s, user_id=%s)\n",
+			item.ID, userID)
+		return
+	}
+
+	// Получаем польское название если доступно
+	ingredientName := item.Ingredient.Name
+	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+		ingredientName = *item.Ingredient.NamePL
+	}
+
+	// Формат: "Czosnek удалён из холодильника (3.5 g)"
+	message := fmt.Sprintf("%s удалён из холодильника (%.1f %s)",
+		ingredientName,
+		item.Quantity,
+		item.Unit,
+	)
+
+	// Meta данные для уведомления
+	meta := map[string]interface{}{
+		"fridgeItemId": item.ID,
+		"ingredientId": item.IngredientID,
+		"quantity":     item.Quantity,
+		"unit":         item.Unit,
+		"action":       "deleted",
+	}
+
+	metaBytes, err := json.Marshal(meta)
+	if err != nil {
+		fmt.Printf("⚠️  Failed to marshal notification meta (item_id=%s, error=%v)\n", item.ID, err)
+		return
+	}
+	metaStr := string(metaBytes)
+
+	// Создаём уведомление
+	notification := &models.Notification{
+		UserID:  userID,
+		Type:    models.NotificationTypeFridge,
+		Level:   models.NotificationLevelInfo,
+		Title:   "Продукт удалён из холодильника",
+		Message: message,
+		Meta:    &metaStr,
+	}
+
+	// Не блокируем удаление при ошибке создания уведомления
+	if err := s.notificationService.Create(notification); err != nil {
+		fmt.Printf("⚠️  Failed to create delete notification (user_id=%s, item_id=%s, error=%v)\n",
+			userID, item.ID, err)
+	}
+}
+
+// createItemDiscardedNotification создаёт уведомление о выбросе продукта
+func (s *fridgeServiceV2) createItemDiscardedNotification(userID string, item *models.FridgeItem) {
+	if item.Ingredient == nil {
+		fmt.Printf("⚠️  Cannot create discard notification: ingredient data missing (item_id=%s, user_id=%s)\n",
+			item.ID, userID)
+		return
+	}
+
+	// Получаем польское название если доступно
+	ingredientName := item.Ingredient.Name
+	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+		ingredientName = *item.Ingredient.NamePL
+	}
+
+	// Определяем level и title в зависимости от стоимости
+	level := models.NotificationLevelWarning
+	title := "Продукт выброшен"
+
+	if item.PriceTotal > 0 {
+		level = models.NotificationLevelCritical
+		title = "Потеря продукта"
+	}
+
+	// Формат: "Czosnek выброшен. Потеря: 5.50 PLN"
+	message := fmt.Sprintf("%s выброшен. Потеря: %.2f PLN",
+		ingredientName,
+		item.PriceTotal,
+	)
+
+	// Meta данные для уведомления
+	meta := map[string]interface{}{
+		"fridgeItemId": item.ID,
+		"ingredientId": item.IngredientID,
+		"quantity":     item.Quantity,
+		"unit":         item.Unit,
+		"action":       "discarded",
+		"loss":         item.PriceTotal,
+	}
+
+	metaBytes, err := json.Marshal(meta)
+	if err != nil {
+		fmt.Printf("⚠️  Failed to marshal notification meta (item_id=%s, error=%v)\n", item.ID, err)
+		return
+	}
+	metaStr := string(metaBytes)
+
+	// Создаём уведомление
+	notification := &models.Notification{
+		UserID:  userID,
+		Type:    models.NotificationTypeFridge,
+		Level:   level,
+		Title:   title,
+		Message: message,
+		Meta:    &metaStr,
+	}
+
+	// Не блокируем выброс при ошибке создания уведомления
+	if err := s.notificationService.Create(notification); err != nil {
+		fmt.Printf("⚠️  Failed to create discard notification (user_id=%s, item_id=%s, error=%v)\n",
+			userID, item.ID, err)
+	}
 }
