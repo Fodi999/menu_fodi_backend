@@ -1,852 +1,118 @@
-2026-01-08T11:31:44.291+0100	[34mINFO[0m	logger/logger.go:57	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-08T11:31:44.783+0100	[34mINFO[0m	logger/logger.go:57	✅ Database connected successfully
-2026-01-08T11:31:44.784+0100	[34mINFO[0m	logger/logger.go:57	📦 Using MODULAR routes (DDD architecture)
-2026/01/08 11:31:44 ✅ EventBus initialized
-2026/01/08 11:31:44 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: token_earn (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: token_spend (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: task_completed (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: user_registered (total: 1)
-2026/01/08 11:31:44 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/08 11:31:44 📡 Hub subscribed to 10 event types
-2026/01/08 11:31:44 📡 WebSocket module initialized
-2026/01/08 11:31:44 🚀 WebSocket Hub started
-2026/01/08 11:31:44 🔧 Registering history module routes...
-2026/01/08 11:31:44 ✅ History module routes registered:
-2026/01/08 11:31:44    GET /api/history - Event history
-2026/01/08 11:31:44    GET /api/history/stats - Statistics
-2026/01/08 11:31:44    GET /api/history/recent - Recent activity
-2026/01/08 11:31:44    GET /api/history/losses - Expired items analytics
-2026/01/08 11:31:44 🔌 Registering WebSocket routes...
-2026/01/08 11:31:44 ✅ WebSocket routes registered:
-2026/01/08 11:31:44    GET /ws - General WebSocket connection
-2026/01/08 11:31:44    GET /ws/treasury - Treasury updates (admin)
-2026/01/08 11:31:44    GET /ws/tokens/{userID} - User token updates
-2026/01/08 11:31:44    GET /ws/stats - WebSocket statistics
-2026-01-08T11:31:44.785+0100	[34mINFO[0m	logger/logger.go:57	🌐 Server starting	{"port": "8080"}
-2026/01/08 11:33:18 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000001] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 162.583µs
-2026/01/08 11:33:18 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:18 📋 Auth header present: true, length: 264
-2026/01/08 11:33:18 🎫 Token extracted, length: 257
-2026/01/08 11:33:18 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:18 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:18 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:18.903+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:18.903+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026-01-15T09:59:22.543+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-15T09:59:23.349+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
+2026-01-15T09:59:23.349+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
+2026/01/15 09:59:23 ✅ EventBus initialized
+2026/01/15 09:59:23 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: token_earn (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: token_spend (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: task_completed (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: user_registered (total: 1)
+2026/01/15 09:59:23 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/15 09:59:23 📡 Hub subscribed to 10 event types
+2026/01/15 09:59:23 📡 WebSocket module initialized
+2026/01/15 09:59:23 🚀 WebSocket Hub started
+2026/01/15 09:59:23 🔧 Registering history module routes...
+2026/01/15 09:59:23 ✅ History module routes registered:
+2026/01/15 09:59:23    GET /api/history - Event history
+2026/01/15 09:59:23    GET /api/history/stats - Statistics
+2026/01/15 09:59:23    GET /api/history/recent - Recent activity
+2026/01/15 09:59:23    GET /api/history/losses - Expired items analytics
+2026/01/15 09:59:23 🔌 Registering WebSocket routes...
+2026/01/15 09:59:23 ✅ WebSocket routes registered:
+2026/01/15 09:59:23    GET /ws - General WebSocket connection
+2026/01/15 09:59:23    GET /ws/treasury - Treasury updates (admin)
+2026/01/15 09:59:23    GET /ws/tokens/{userID} - User token updates
+2026/01/15 09:59:23    GET /ws/stats - WebSocket statistics
+2026-01-15T09:59:23.349+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
 
-2026/01/08 11:33:19 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[177.771ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:19.081+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:19 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000002] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 178.817708ms
-2026/01/08 11:33:19 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000003] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 40.792µs
-2026/01/08 11:33:19 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:19 📋 Auth header present: true, length: 264
-2026/01/08 11:33:19 🎫 Token extracted, length: 257
-2026/01/08 11:33:19 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:19 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:19 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:19.314+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:19.314+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/15 09:59:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37 [33mSLOW SQL >= 200ms
+[0m[31;1m[225.395ms] [33m[rows:1][35m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1[0m
 
-2026/01/08 11:33:19 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[29.701ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:19.344+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:19 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000004] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 30.305083ms
-2026/01/08 11:33:41 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000005] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 32.25µs
-2026/01/08 11:33:41 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:41 📋 Auth header present: true, length: 264
-2026/01/08 11:33:41 🎫 Token extracted, length: 257
-2026/01/08 11:33:41 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:41 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:41 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:41.842+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:41.843+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:41 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000007] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 10.75µs
-2026/01/08 11:33:41 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:41 📋 Auth header present: true, length: 264
-2026/01/08 11:33:41 🎫 Token extracted, length: 257
-2026/01/08 11:33:41 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:41 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:41 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:41.844+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:41.844+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/15 09:59:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
+[0m[31;1m[339.524ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 09:59:34.527' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
+2026/01/15 09:59:34 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 09:59:34 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-15T09:59:34.867+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/15 09:59:34 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000001] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51389 - 200 509B in 624.89025ms
+2026/01/15 09:59:34 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/15 09:59:34 📋 Auth header present: true, length: 11
+2026/01/15 09:59:34 🎫 Token extracted, length: 4
+2026/01/15 09:59:34 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 09:59:34 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 09:59:34 ❌ JWT parse error: token is malformed: token contains an invalid number of segments
+2026/01/15 09:59:34 ❌ JWT validation failed for GET /api/admin/ingredients/suggest: token is malformed: token contains an invalid number of segments
+2026/01/15 09:59:34 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000002] "GET http://localhost:8080/api/admin/ingredients/suggest?q=ка&limit=5 HTTP/1.1" from [::1]:51394 - 401 37B in 201.834µs
 
-2026/01/08 11:33:41 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[61.259ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:41.904+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:41 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000006] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 79.944375ms
+2026/01/15 09:59:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[143.477ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
 
-2026/01/08 11:33:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
-[0m[31;1m[276.523ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
-2026-01-08T11:33:42.121+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000008] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 276.810125ms
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000009] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 281.208µs
-2026/01/08 11:33:42 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:42 📋 Auth header present: true, length: 264
-2026/01/08 11:33:42 🎫 Token extracted, length: 257
-2026/01/08 11:33:42 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:42.369+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:42.369+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/15 09:59:40 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
+[0m[31;1m[283.083ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 09:59:40.329' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
+2026/01/15 09:59:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 09:59:40 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-15T09:59:40.612+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/15 09:59:40 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000003] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51416 - 200 509B in 489.064667ms
+2026/01/15 09:59:40 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/15 09:59:40 📋 Auth header present: true, length: 11
+2026/01/15 09:59:40 🎫 Token extracted, length: 4
+2026/01/15 09:59:40 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 09:59:40 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 09:59:40 ❌ JWT parse error: token is malformed: token contains an invalid number of segments
+2026/01/15 09:59:40 ❌ JWT validation failed for GET /api/admin/ingredients/suggest: token is malformed: token contains an invalid number of segments
+2026/01/15 09:59:40 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000004] "GET http://localhost:8080/api/admin/ingredients/suggest?q=ка&limit=5 HTTP/1.1" from [::1]:51421 - 401 37B in 111.5µs
 
-2026/01/08 11:33:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[60.266ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:42.429+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000010] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 60.527333ms
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000011] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 13.375µs
-2026/01/08 11:33:42 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:42 📋 Auth header present: true, length: 264
-2026/01/08 11:33:42 🎫 Token extracted, length: 257
-2026/01/08 11:33:42 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:42.484+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:42.484+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/15 09:59:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[197.998ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
 
-2026/01/08 11:33:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[30.843ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:42.515+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000012] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 31.066042ms
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000013] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 13.333µs
-2026/01/08 11:33:42 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:42 📋 Auth header present: true, length: 264
-2026/01/08 11:33:42 🎫 Token extracted, length: 257
-2026/01/08 11:33:42 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:42.625+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:42.625+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/15 09:59:58 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68 [33mSLOW SQL >= 200ms
+[0m[31;1m[246.626ms] [33m[rows:1][35m UPDATE "User" SET "last_login"='2026-01-15 09:59:58.052' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'[0m
+2026/01/15 09:59:58 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 09:59:58 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-15T09:59:58.299+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/15 09:59:58 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000005] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51494 - 200 509B in 514.137ms
 
-2026/01/08 11:33:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[33.669ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:42.659+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000014] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 33.865042ms
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000015] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 9.125µs
-2026/01/08 11:33:42 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:42 📋 Auth header present: true, length: 264
-2026/01/08 11:33:42 🎫 Token extracted, length: 257
-2026/01/08 11:33:42 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:42.784+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:42.784+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
+2026/01/15 10:00:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:37
+[0m[33m[144.519ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE email = 'admin@example.com' ORDER BY "User"."id" LIMIT 1
 
-2026/01/08 11:33:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[32.008ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:42.816+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000016] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 32.237667ms
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000017] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 9.875µs
-2026/01/08 11:33:57 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:57 📋 Auth header present: true, length: 264
-2026/01/08 11:33:57 🎫 Token extracted, length: 257
-2026/01/08 11:33:57 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:57.190+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:57.190+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:33:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[65.589ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:57.255+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000018] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 65.809583ms
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000019] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 14.042µs
-2026/01/08 11:33:57 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:57 📋 Auth header present: true, length: 264
-2026/01/08 11:33:57 🎫 Token extracted, length: 257
-2026/01/08 11:33:57 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:57.366+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:57.366+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:33:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[30.003ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:57.396+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000020] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 30.246917ms
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000021] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 14.584µs
-2026/01/08 11:33:57 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:57 📋 Auth header present: true, length: 264
-2026/01/08 11:33:57 🎫 Token extracted, length: 257
-2026/01/08 11:33:57 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:57.522+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:57.522+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:33:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[30.176ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:57.553+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000022] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 30.609542ms
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000023] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 17.75µs
-2026/01/08 11:33:57 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:33:57 📋 Auth header present: true, length: 264
-2026/01/08 11:33:57 🎫 Token extracted, length: 257
-2026/01/08 11:33:57 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:33:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:33:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:33:57.653+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:33:57.653+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:33:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[32.129ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:33:57.685+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:33:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000024] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 32.3755ms
-2026/01/08 11:34:14 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000025] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 19.416µs
-2026/01/08 11:34:14 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:14 📋 Auth header present: true, length: 264
-2026/01/08 11:34:14 🎫 Token extracted, length: 257
-2026/01/08 11:34:14 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:14 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:14 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:14.758+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:14.758+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:14 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
-[0m[31;1m[215.380ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
-2026-01-08T11:34:14.973+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:14 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000026] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 215.627959ms
-2026/01/08 11:34:15 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000027] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 15.042µs
-2026/01/08 11:34:15 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:15 📋 Auth header present: true, length: 264
-2026/01/08 11:34:15 🎫 Token extracted, length: 257
-2026/01/08 11:34:15 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:15 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:15 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:15.061+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:15.061+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:15 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[30.159ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:15.092+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:15 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000028] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 30.566334ms
-2026/01/08 11:34:15 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000029] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 14.75µs
-2026/01/08 11:34:15 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:15 📋 Auth header present: true, length: 264
-2026/01/08 11:34:15 🎫 Token extracted, length: 257
-2026/01/08 11:34:15 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:15 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:15 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:15.206+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:15.206+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:15 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[29.901ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:15.236+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:15 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000030] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 30.110291ms
-2026/01/08 11:34:15 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000031] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 12.833µs
-2026/01/08 11:34:15 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:15 📋 Auth header present: true, length: 264
-2026/01/08 11:34:15 🎫 Token extracted, length: 257
-2026/01/08 11:34:15 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:15 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:15 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:15.295+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:15.295+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:15 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[110.035ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:15.405+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:15 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000032] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 110.252542ms
-2026/01/08 11:34:26 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000033] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 33µs
-2026/01/08 11:34:26 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:26 📋 Auth header present: true, length: 264
-2026/01/08 11:34:26 🎫 Token extracted, length: 257
-2026/01/08 11:34:26 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:26 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:26 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:26.583+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:26.583+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:26 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[157.777ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:26.740+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:26 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000034] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 158.077458ms
-2026/01/08 11:34:26 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000035] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 8.5µs
-2026/01/08 11:34:26 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:26 📋 Auth header present: true, length: 264
-2026/01/08 11:34:26 🎫 Token extracted, length: 257
-2026/01/08 11:34:26 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:26 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:26 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:26.765+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:26.765+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:26 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000037] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 28.667µs
-2026/01/08 11:34:26 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:26 📋 Auth header present: true, length: 264
-2026/01/08 11:34:26 🎫 Token extracted, length: 257
-2026/01/08 11:34:26 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:26 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:26 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:26.884+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:26.884+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
-[0m[31;1m[236.724ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
-2026-01-08T11:34:27.001+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:27 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000036] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 236.967042ms
-2026/01/08 11:34:27 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000039] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 9.625µs
-2026/01/08 11:34:27 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:27 📋 Auth header present: true, length: 264
-2026/01/08 11:34:27 🎫 Token extracted, length: 257
-2026/01/08 11:34:27 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:27 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:27 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:27.009+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:27.009+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[96.927ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:27.106+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:27 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000040] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:54031 - 200 97B in 97.284458ms
-
-2026/01/08 11:34:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249 [33mSLOW SQL >= 200ms
-[0m[31;1m[221.629ms] [33m[rows:1][35m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1[0m
-2026-01-08T11:34:27.106+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:27 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000038] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 221.878875ms
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000041] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 18.291µs
-2026/01/08 11:34:39 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:39 📋 Auth header present: true, length: 264
-2026/01/08 11:34:39 🎫 Token extracted, length: 257
-2026/01/08 11:34:39 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:39 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:39 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:39.134+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:39.134+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:39 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[60.101ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:39.194+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000042] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 60.273667ms
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000043] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53763 - 200 0B in 21.542µs
-2026/01/08 11:34:39 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:39 📋 Auth header present: true, length: 264
-2026/01/08 11:34:39 🎫 Token extracted, length: 257
-2026/01/08 11:34:39 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:39 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:39 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:39.288+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:39.288+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:39 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[32.559ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:39.321+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000044] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53765 - 200 97B in 32.812583ms
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000045] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 21.167µs
-2026/01/08 11:34:39 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:39 📋 Auth header present: true, length: 264
-2026/01/08 11:34:39 🎫 Token extracted, length: 257
-2026/01/08 11:34:39 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:39 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:39 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:39.436+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:39.436+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:39 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[30.219ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:39.467+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000046] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 30.54175ms
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000047] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 32.333µs
-2026/01/08 11:34:39 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:39 📋 Auth header present: true, length: 264
-2026/01/08 11:34:39 🎫 Token extracted, length: 257
-2026/01/08 11:34:39 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:39 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:39 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:39.544+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:39.544+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:39 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[29.524ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:39.574+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:39 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000048] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 29.714042ms
-2026/01/08 11:34:44 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000049] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 16.708µs
-2026/01/08 11:34:44 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:44 📋 Auth header present: true, length: 264
-2026/01/08 11:34:44 🎫 Token extracted, length: 257
-2026/01/08 11:34:44 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:44 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:44 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:44.909+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:44.909+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:44 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[68.420ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:44.977+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:44 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000050] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 68.725125ms
-2026/01/08 11:34:45 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000051] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 30.583µs
-2026/01/08 11:34:45 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:34:45 📋 Auth header present: true, length: 264
-2026/01/08 11:34:45 🎫 Token extracted, length: 257
-2026/01/08 11:34:45 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:34:45 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:34:45 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:34:45.095+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:34:45.095+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:34:45 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[29.931ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:34:45.125+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:34:45 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000052] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 30.402708ms
-2026/01/08 11:35:17 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000053] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 312.333µs
-2026/01/08 11:35:17 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:35:17 📋 Auth header present: true, length: 264
-2026/01/08 11:35:17 🎫 Token extracted, length: 257
-2026/01/08 11:35:17 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:35:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:35:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:35:17.153+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:35:17.157+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:35:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[78.546ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:35:17.239+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:35:17 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000054] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 89.146ms
-2026/01/08 11:35:17 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000055] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 16µs
-2026/01/08 11:35:17 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:35:17 📋 Auth header present: true, length: 264
-2026/01/08 11:35:17 🎫 Token extracted, length: 257
-2026/01/08 11:35:17 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:35:17 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:35:17 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:35:17.746+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:35:17.746+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:35:17 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[43.082ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:35:17.790+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:35:17 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000056] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 43.493792ms
-2026/01/08 11:35:28 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000057] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:53658 - 200 0B in 16.916µs
-2026/01/08 11:35:28 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:35:28 📋 Auth header present: true, length: 264
-2026/01/08 11:35:28 🎫 Token extracted, length: 257
-2026/01/08 11:35:28 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:35:28 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:35:28 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=ло&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
-🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
-🔎 SQL pattern: '%ло%'
+2026/01/15 10:00:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/auth/repo/repository.go:68
+[0m[33m[188.990ms] [34;1m[rows:1][0m UPDATE "User" SET "last_login"='2026-01-15 10:00:04.14' WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306'
+2026/01/15 10:00:04 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 10:00:04 🔑 GenerateToken: Using JWT_SECRET from env (len=64)
+2026-01-15T10:00:04.329+0100	[34mINFO[0m	logger/logger.go:60	User logged in successfully	{"userId": "7ec8aba4-8195-4be1-a9a8-067c30aae306", "email": "admin@example.com"}
+2026/01/15 10:00:04 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000006] "POST http://localhost:8080/api/auth/login HTTP/1.1" from [::1]:51519 - 200 509B in 382.561667ms
+2026/01/15 10:00:04 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
+2026/01/15 10:00:04 📋 Auth header present: true, length: 264
+2026/01/15 10:00:04 🎫 Token extracted, length: 257
+2026/01/15 10:00:04 ✅ JWT_SECRET loaded from environment (length: 64)
+2026/01/15 10:00:04 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
+2026/01/15 10:00:04 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
+📥 Request: GET /suggest?q=ка&limit=5 (Accept-Language: ru → ru)
+🔍 SuggestIngredients: query='ка', limit=5, lang='ru'
+🔍 SuggestIngredients: query='ка', limit=5, lang='ru'
+🔎 SQL pattern: '%ка%'
 📋 SQL Query:
 SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
+		name ILIKE ? OR
+		COALESCE(name_pl, '') ILIKE ? OR
+		COALESCE(name_en, '') ILIKE ? OR
+		COALESCE(name_ru, '') ILIKE ? OR
+		COALESCE(normalized_value, '') ILIKE ?
 	
-ORDER BY name ASC LIMIT 10
+ORDER BY name ASC LIMIT 5
 
-2026/01/08 11:35:28 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[122.184ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%ло%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 10 rows from DB
-🔍 Suggest: query='ло', lang='ru' → 10 results (after filtering)
-✅ Returning 10 suggestions (lang=ru)
-2026/01/08 11:35:28 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000058] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:53659 - 200 1326B in 122.673792ms
-2026/01/08 11:35:29 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000059] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:53658 - 200 0B in 9.708µs
-2026/01/08 11:35:29 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:35:29 📋 Auth header present: true, length: 264
-2026/01/08 11:35:29 🎫 Token extracted, length: 257
-2026/01/08 11:35:29 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:35:29 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:35:29 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=лосо&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
-🔍 SuggestIngredients: query='лосо', limit=10, lang='ru'
-🔎 SQL pattern: '%лосо%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:35:29 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[64.228ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%лосо%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%лосо%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%лосо%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%лосо%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%лосо%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 8 rows from DB
-🔍 Suggest: query='лосо', lang='ru' → 8 results (after filtering)
-✅ Returning 8 suggestions (lang=ru)
-2026/01/08 11:35:29 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000060] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE&limit=10 HTTP/1.1" from [::1]:53659 - 200 1130B in 64.64975ms
-2026/01/08 11:35:34 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000061] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8&limit=10 HTTP/1.1" from [::1]:53658 - 200 0B in 13.833µs
-2026/01/08 11:35:34 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:35:34 📋 Auth header present: true, length: 264
-2026/01/08 11:35:34 🎫 Token extracted, length: 257
-2026/01/08 11:35:34 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:35:34 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:35:34 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=ри&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='ри', limit=10, lang='ru'
-🔍 SuggestIngredients: query='ри', limit=10, lang='ru'
-🔎 SQL pattern: '%ри%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:35:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[63.094ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%ри%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%ри%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%ри%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%ри%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%ри%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 10 rows from DB
-🔍 Suggest: query='ри', lang='ru' → 10 results (after filtering)
-✅ Returning 10 suggestions (lang=ru)
-2026/01/08 11:35:34 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000062] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8&limit=10 HTTP/1.1" from [::1]:53659 - 200 1343B in 63.700917ms
-2026/01/08 11:35:34 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000063] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8%D1%81+&limit=10 HTTP/1.1" from [::1]:53658 - 200 0B in 13.375µs
-2026/01/08 11:35:34 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:35:34 📋 Auth header present: true, length: 264
-2026/01/08 11:35:34 🎫 Token extracted, length: 257
-2026/01/08 11:35:34 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:35:34 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:35:34 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=рис &limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='рис', limit=10, lang='ru'
-🔍 SuggestIngredients: query='рис', limit=10, lang='ru'
-🔎 SQL pattern: '%рис%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:35:34 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[33.887ms] [34;1m[rows:6][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%рис%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%рис%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%рис%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%рис%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%рис%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 6 rows from DB
-🔍 Suggest: query='рис', lang='ru' → 6 results (after filtering)
-✅ Returning 6 suggestions (lang=ru)
-2026/01/08 11:35:34 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000064] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8%D1%81+&limit=10 HTTP/1.1" from [::1]:53659 - 200 769B in 34.163625ms
-2026/01/08 11:36:19 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000065] "OPTIONS http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:53658 - 200 0B in 44.75µs
-2026/01/08 11:36:19 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
-2026/01/08 11:36:19 📋 Auth header present: true, length: 264
-2026/01/08 11:36:19 🎫 Token extracted, length: 257
-2026/01/08 11:36:19 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:36:19 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:36:19 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
-🔍 PreviewRecipeWithAI: title='Драгон ролл', ingredients=1
-
-2026/01/08 11:36:19 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:184
-[0m[33m[134.029ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
-🔧 Enriched 1 ingredients for AI (lang=en)
-🤖 Calling AI for recipe: Драгон ролл
-📋 Ingredients count: 1
-📥 AI Response length: 1350 chars
-✅ AI generated recipe: 5 steps, 45 min, medium difficulty
-🔍 Recipe preview generated: Драгон ролл (5 steps)
-✅ Preview generated: 5 steps, 45 min
-2026/01/08 11:36:20 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000066] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:53659 - 200 1306B in 1.537453958s
-2026/01/08 11:37:10 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000067] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 14.75µs
-2026/01/08 11:37:10 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:37:10 📋 Auth header present: true, length: 264
-2026/01/08 11:37:10 🎫 Token extracted, length: 257
-2026/01/08 11:37:10 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:37:10 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:37:10 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:37:10.562+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:37:10.562+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:37:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[61.220ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:37:10.623+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:37:10 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000068] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 61.568667ms
-2026/01/08 11:37:10 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000069] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:53658 - 200 0B in 11.458µs
-2026/01/08 11:37:10 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:37:10 📋 Auth header present: true, length: 264
-2026/01/08 11:37:10 🎫 Token extracted, length: 257
-2026/01/08 11:37:10 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:37:10 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:37:10 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:37:10.752+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:37:10.752+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:37:10 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[63.547ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:37:10.816+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:37:10 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000070] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:53659 - 200 97B in 63.774708ms
-2026/01/08 11:39:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000071] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:55510 - 200 0B in 89.125µs
-2026/01/08 11:39:57 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:39:57 📋 Auth header present: true, length: 264
-2026/01/08 11:39:57 🎫 Token extracted, length: 257
-2026/01/08 11:39:57 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:39:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:39:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:39:57.257+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:39:57.257+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:39:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[141.209ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:39:57.398+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:39:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000072] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:55511 - 200 97B in 141.591917ms
-2026/01/08 11:39:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000073] "OPTIONS http://localhost:8080/api/settings HTTP/1.1" from [::1]:55510 - 200 0B in 13.917µs
-2026/01/08 11:39:57 🔐 AuthMiddleware: GET /api/settings
-2026/01/08 11:39:57 📋 Auth header present: true, length: 264
-2026/01/08 11:39:57 🎫 Token extracted, length: 257
-2026/01/08 11:39:57 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:39:57 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:39:57 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/settings
-2026-01-08T11:39:57.524+0100	[34mINFO[0m	logger/logger.go:57	⚙️ GetSettings handler called
-2026-01-08T11:39:57.524+0100	[34mINFO[0m	logger/logger.go:57	⚙️ Processing GetSettings for user	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-
-2026/01/08 11:39:57 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/user/repo/repository.go:249
-[0m[33m[29.811ms] [34;1m[rows:1][0m SELECT * FROM "User" WHERE id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY "User"."id" LIMIT 1
-2026-01-08T11:39:57.554+0100	[34mINFO[0m	logger/logger.go:57	✅ GetSettings success	{"user_id": "7ec8aba4-8195-4be1-a9a8-067c30aae306"}
-2026/01/08 11:39:57 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000074] "GET http://localhost:8080/api/settings HTTP/1.1" from [::1]:55511 - 200 97B in 30.14225ms
-2026/01/08 11:40:27 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000075] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:55510 - 200 0B in 17.25µs
-2026/01/08 11:40:27 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:40:27 📋 Auth header present: true, length: 264
-2026/01/08 11:40:27 🎫 Token extracted, length: 257
-2026/01/08 11:40:27 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:40:27 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:40:27 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=ло&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
-🔍 SuggestIngredients: query='ло', limit=10, lang='ru'
-🔎 SQL pattern: '%ло%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:40:27 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[65.801ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%ло%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%ло%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%ло%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%ло%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%ло%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 10 rows from DB
-🔍 Suggest: query='ло', lang='ru' → 10 results (after filtering)
-✅ Returning 10 suggestions (lang=ru)
-2026/01/08 11:40:27 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000076] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE&limit=10 HTTP/1.1" from [::1]:55511 - 200 1326B in 66.375792ms
-2026/01/08 11:40:28 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000077] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:55510 - 200 0B in 25.5µs
-2026/01/08 11:40:28 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:40:28 📋 Auth header present: true, length: 264
-2026/01/08 11:40:28 🎫 Token extracted, length: 257
-2026/01/08 11:40:28 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:40:28 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:40:28 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=лосос&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='лосос', limit=10, lang='ru'
-🔍 SuggestIngredients: query='лосос', limit=10, lang='ru'
-🔎 SQL pattern: '%лосос%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:40:28 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[36.340ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%лосос%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%лосос%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%лосос%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%лосос%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%лосос%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 8 rows from DB
-🔍 Suggest: query='лосос', lang='ru' → 8 results (after filtering)
-✅ Returning 8 suggestions (lang=ru)
-2026/01/08 11:40:28 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000078] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81&limit=10 HTTP/1.1" from [::1]:55511 - 200 1130B in 36.966542ms
-2026/01/08 11:40:28 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000079] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:55510 - 200 0B in 29.709µs
-2026/01/08 11:40:28 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:40:28 📋 Auth header present: true, length: 264
-2026/01/08 11:40:28 🎫 Token extracted, length: 257
-2026/01/08 11:40:28 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:40:28 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:40:28 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=лосось&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='лосось', limit=10, lang='ru'
-🔍 SuggestIngredients: query='лосось', limit=10, lang='ru'
-🔎 SQL pattern: '%лосось%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:40:28 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[35.881ms] [34;1m[rows:8][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%лосось%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%лосось%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%лосось%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%лосось%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%лосось%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 8 rows from DB
-🔍 Suggest: query='лосось', lang='ru' → 8 results (after filtering)
-✅ Returning 8 suggestions (lang=ru)
-2026/01/08 11:40:28 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000080] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D1%8C&limit=10 HTTP/1.1" from [::1]:55511 - 200 1130B in 36.495958ms
-2026/01/08 11:40:33 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000081] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8&limit=10 HTTP/1.1" from [::1]:55510 - 200 0B in 58.709µs
-2026/01/08 11:40:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:40:33 📋 Auth header present: true, length: 264
-2026/01/08 11:40:33 🎫 Token extracted, length: 257
-2026/01/08 11:40:33 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:40:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:40:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=ри&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='ри', limit=10, lang='ru'
-🔍 SuggestIngredients: query='ри', limit=10, lang='ru'
-🔎 SQL pattern: '%ри%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:40:33 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[87.721ms] [34;1m[rows:10][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%ри%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%ри%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%ри%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%ри%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%ри%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 10 rows from DB
-🔍 Suggest: query='ри', lang='ru' → 10 results (after filtering)
-✅ Returning 10 suggestions (lang=ru)
-2026/01/08 11:40:33 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000082] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8&limit=10 HTTP/1.1" from [::1]:55511 - 200 1343B in 88.249542ms
-2026/01/08 11:40:33 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000083] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8%D1%81+&limit=10 HTTP/1.1" from [::1]:55510 - 200 0B in 28.916µs
-2026/01/08 11:40:33 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:40:33 📋 Auth header present: true, length: 264
-2026/01/08 11:40:33 🎫 Token extracted, length: 257
-2026/01/08 11:40:33 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:40:33 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:40:33 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=рис &limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='рис', limit=10, lang='ru'
-🔍 SuggestIngredients: query='рис', limit=10, lang='ru'
-🔎 SQL pattern: '%рис%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:40:33 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[31.343ms] [34;1m[rows:6][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%рис%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%рис%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%рис%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%рис%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%рис%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 6 rows from DB
-🔍 Suggest: query='рис', lang='ru' → 6 results (after filtering)
-✅ Returning 6 suggestions (lang=ru)
-2026/01/08 11:40:33 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000084] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%80%D0%B8%D1%81+&limit=10 HTTP/1.1" from [::1]:55511 - 200 769B in 31.870709ms
-2026/01/08 11:40:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000085] "OPTIONS http://localhost:8080/api/admin/ingredients/suggest?q=%D1%81%D1%8B%D1%80&limit=10 HTTP/1.1" from [::1]:55510 - 200 0B in 34.333µs
-2026/01/08 11:40:42 🔐 AuthMiddleware: GET /api/admin/ingredients/suggest
-2026/01/08 11:40:42 📋 Auth header present: true, length: 264
-2026/01/08 11:40:42 🎫 Token extracted, length: 257
-2026/01/08 11:40:42 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:40:42 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:40:42 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/admin/ingredients/suggest
-📥 Request: GET /suggest?q=сыр&limit=10 (Accept-Language: ru → ru)
-🔍 SuggestIngredients: query='сыр', limit=10, lang='ru'
-🔍 SuggestIngredients: query='сыр', limit=10, lang='ru'
-🔎 SQL pattern: '%сыр%'
-📋 SQL Query:
-SELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE 
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
-	
-ORDER BY name ASC LIMIT 10
-
-2026/01/08 11:40:42 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:943
-[0m[33m[80.467ms] [34;1m[rows:7][0m SELECT * FROM "Ingredient" WHERE 
-		LOWER(name) LIKE '%сыр%' OR
-		LOWER(COALESCE(name_pl, '')) LIKE '%сыр%' OR
-		LOWER(COALESCE(name_en, '')) LIKE '%сыр%' OR
-		LOWER(COALESCE(name_ru, '')) LIKE '%сыр%' OR
-		LOWER(COALESCE(normalized_value, '')) LIKE '%сыр%'
-	 ORDER BY name ASC LIMIT 10
-✅ Found 7 rows from DB
-🔍 Suggest: query='сыр', lang='ru' → 7 results (after filtering)
-✅ Returning 7 suggestions (lang=ru)
-2026/01/08 11:40:42 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000086] "GET http://localhost:8080/api/admin/ingredients/suggest?q=%D1%81%D1%8B%D1%80&limit=10 HTTP/1.1" from [::1]:55511 - 200 935B in 80.992209ms
-2026/01/08 11:41:23 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000087] "OPTIONS http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:55510 - 200 0B in 47.5µs
-2026/01/08 11:41:23 🔐 AuthMiddleware: POST /api/admin/recipes/preview-ai
-2026/01/08 11:41:23 📋 Auth header present: true, length: 264
-2026/01/08 11:41:23 🎫 Token extracted, length: 257
-2026/01/08 11:41:23 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/08 11:41:23 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/08 11:41:23 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: POST /api/admin/recipes/preview-ai
-🔍 PreviewRecipeWithAI: title='Драгон Ролл', ingredients=3
-
-2026/01/08 11:41:23 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:184
-[0m[33m[61.435ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'fe1c7431-b1b7-4d36-94bf-74276481983e' ORDER BY "Ingredient"."id" LIMIT 1
-
-2026/01/08 11:41:23 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:184
-[0m[33m[32.312ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = '10be8c97-a130-41c5-b4bc-836bd4194ff1' ORDER BY "Ingredient"."id" LIMIT 1
-
-2026/01/08 11:41:23 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/recipe_ai.go:184
-[0m[33m[32.550ms] [34;1m[rows:1][0m SELECT * FROM "Ingredient" WHERE id = 'de74bf44-1a85-4c97-8765-f7bf471275ba' ORDER BY "Ingredient"."id" LIMIT 1
-🔧 Enriched 3 ingredients for AI (lang=en)
-🤖 Calling AI for recipe: Драгон Ролл
-📋 Ingredients count: 3
-📥 AI Response length: 1629 chars
-✅ AI generated recipe: 5 steps, 45 min, medium difficulty
-🔍 Recipe preview generated: Драгон Ролл (5 steps)
-✅ Preview generated: 5 steps, 45 min
-2026/01/08 11:41:25 [MacBook-Air-Dmitrij.local/nolZA2rOVx-000088] "POST http://localhost:8080/api/admin/recipes/preview-ai HTTP/1.1" from [::1]:55511 - 200 1561B in 1.585763708s
+2026/01/15 10:00:04 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/admin/service/service.go:1037
+[0m[33m[162.819ms] [34;1m[rows:5][0m SELECT * FROM "Ingredient" WHERE 
+		name ILIKE '%ка%' OR
+		COALESCE(name_pl, '') ILIKE '%ка%' OR
+		COALESCE(name_en, '') ILIKE '%ка%' OR
+		COALESCE(name_ru, '') ILIKE '%ка%' OR
+		COALESCE(normalized_value, '') ILIKE '%ка%'
+	 ORDER BY name ASC LIMIT 5
+✅ Found 5 rows from DB
+🔍 Suggest: query='ка', lang='ru' → 5 results (after filtering)
+✅ Returning 5 suggestions (lang=ru)
+2026/01/15 10:00:04 [MacBook-Air-Dmitrij.local/U14E3MB6x0-000007] "GET http://localhost:8080/api/admin/ingredients/suggest?q=ка&limit=5 HTTP/1.1" from [::1]:51521 - 200 675B in 163.388584ms

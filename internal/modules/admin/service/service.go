@@ -1014,17 +1014,17 @@ func (s *adminService) SuggestIngredients(query string, limit int, lang string) 
 	}
 
 	// SQL injection защита через параметризованный запрос
-	pattern := "%" + strings.ToLower(query) + "%"
+	pattern := "%" + query + "%"
 	fmt.Printf("🔎 SQL pattern: '%s'\n", pattern)
 
 	// ВАЖНО: Всегда выбираем ВСЕ языковые поля + метаданные
-	// Никогда не выбираем только одну колонку
+	// Используем ILIKE для case-insensitive поиска с поддержкой кириллицы
 	sqlQuery := `
-		LOWER(name) LIKE ? OR
-		LOWER(COALESCE(name_pl, '')) LIKE ? OR
-		LOWER(COALESCE(name_en, '')) LIKE ? OR
-		LOWER(COALESCE(name_ru, '')) LIKE ? OR
-		LOWER(COALESCE(normalized_value, '')) LIKE ?
+		name ILIKE ? OR
+		COALESCE(name_pl, '') ILIKE ? OR
+		COALESCE(name_en, '') ILIKE ? OR
+		COALESCE(name_ru, '') ILIKE ? OR
+		COALESCE(normalized_value, '') ILIKE ?
 	`
 
 	fmt.Printf("📋 SQL Query:\nSELECT id, name, name_pl, name_en, name_ru, category, nutrition_group, unit FROM Ingredient WHERE %s\nORDER BY name ASC LIMIT %d\n",
