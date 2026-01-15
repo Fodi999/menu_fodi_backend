@@ -43,6 +43,7 @@ type Ingredient struct {
 	DefaultShelfLifeDays *int      `gorm:"column:defaultShelfLifeDays" json:"defaultShelfLifeDays,omitempty"`
 	DefaultPricePerUnit  *float64  `gorm:"column:defaultPricePerUnit" json:"defaultPricePerUnit,omitempty"`
 	AutoTranslated       bool      `gorm:"column:auto_translated;default:false" json:"autoTranslated"`
+	UsageCount           int       `gorm:"column:usage_count;default:0" json:"usageCount"`        // How many recipes use this ingredient
 	CreatedAt            time.Time `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 }
 

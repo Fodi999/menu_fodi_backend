@@ -580,6 +580,8 @@ func (s *adminService) BulkImportIngredients(ingredients []struct {
 type GetAllIngredientsParams struct {
 	Search   string
 	Category string
+	Sort     string // newest, name, usage
+	Order    string // asc, desc
 	Page     int
 	Limit    int
 }
@@ -609,8 +611,9 @@ func (s *adminService) GetAllIngredientsWithParams(params GetAllIngredientsParam
 		)
 	}
 
-	// ⚡ ГЛАВНОЕ: ORDER BY createdAt DESC - новые продукты сверху!
-	query = query.Order("\"createdAt\" DESC")
+	// 🔄 Сортировка (3 режима: newest, name, usage)
+	orderClause := getOrderByClause(params.Sort, params.Order)
+	query = query.Order(orderClause)
 
 	// 📄 Пагинация
 	if params.Limit > 0 {
@@ -626,6 +629,40 @@ func (s *adminService) GetAllIngredientsWithParams(params GetAllIngredientsParam
 	}
 
 	return ingredients, nil
+}
+
+// getOrderByClause возвращает SQL ORDER BY в зависимости от режима сортировки
+func getOrderByClause(sort, order string) string {
+	// Нормализуем sort (по умолчанию newest)
+	if sort == "" {
+		sort = "newest"
+	}
+
+	// Определяем направление сортировки
+	direction := "DESC"
+	if order == "asc" {
+		direction = "ASC"
+	}
+
+	switch sort {
+	case "name":
+		// Сортировка по имени - по умолчанию ASC
+		if order == "" {
+			direction = "ASC"
+		}
+		return "name " + direction
+
+	case "usage":
+		// Сортировка по использованию - всегда DESC (самые популярные сверху)
+		return "usage_count DESC"
+
+	case "newest":
+		// Сортировка по дате создания - всегда DESC (новые сверху)
+		return "\"createdAt\" DESC"
+
+	default:
+		return "\"createdAt\" DESC"
+	}
 }
 
 // GetIngredientsStats возвращает статистику по ингредиентам

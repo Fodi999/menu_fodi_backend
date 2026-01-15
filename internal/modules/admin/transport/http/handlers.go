@@ -835,9 +835,12 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 	// Получаем параметры фильтрации из query
 	searchQuery := r.URL.Query().Get("search")
 	categoryFilter := r.URL.Query().Get("category")
+	sortParam := r.URL.Query().Get("sort")   // newest, name, usage
+	orderParam := r.URL.Query().Get("order") // asc, desc
 
 	// 🚨 КРИТ!!! Логируем СРАЗУ чтобы видеть что хендлер вызывается
-	log.Printf("🚨🚨🚨 [GetAllIngredients] START - category='%s', search='%s'", categoryFilter, searchQuery)
+	log.Printf("🚨🚨🚨 [GetAllIngredients] START - category='%s', search='%s', sort='%s', order='%s'", 
+		categoryFilter, searchQuery, sortParam, orderParam)
 
 	// Парсим пагинацию
 	page := 1
@@ -862,6 +865,8 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 	params := service.GetAllIngredientsParams{
 		Search:   searchQuery,
 		Category: categoryFilter,
+		Sort:     sortParam,
+		Order:    orderParam,
 		Page:     page,
 		Limit:    limit,
 	}
