@@ -13,7 +13,8 @@ import (
 
 // Module представляет модуль холодильника для HOME_CHEF пользователей
 type Module struct {
-	handlers *fridgehttp.FridgeHandlers
+	handlers   *fridgehttp.FridgeHandlers
+	handlersV2 *fridgehttp.FridgeHandlersV2
 }
 
 // NewModule создает новый модуль холодильника
@@ -22,14 +23,19 @@ func NewModule(db *gorm.DB) *Module {
 	fridgeRepo := database.NewUserFridgeRepository(db)
 	ingredientRepo := &database.IngredientRepository{}
 
-	// Инициализируем сервис
+	// Инициализируем сервис V1 (старый)
 	svc := service.NewFridgeService(db, fridgeRepo, ingredientRepo)
 
-	// Инициализируем handlers
+	// Инициализируем сервис V2 (новый - с expiry tracking)
+	svcV2 := service.NewFridgeServiceV2(db)
+
+	// Инициализируем handlers V1 и V2
 	handlers := fridgehttp.NewFridgeHandlers(svc)
+	handlersV2 := fridgehttp.NewFridgeHandlersV2(svcV2)
 
 	return &Module{
-		handlers: handlers,
+		handlers:   handlers,
+		handlersV2: handlersV2,
 	}
 }
 
@@ -39,6 +45,11 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 		// Требуется только аутентификация (доступно всем пользователям)
 		r.Use(jwtMiddleware)
 
+		// === V2 API (NEW - Loss Prevention System) ===
+		// Discard endpoint for soft delete and loss tracking
+		r.Post("/items/{id}/discard", m.handlersV2.DiscardItem) // POST /api/fridge/items/{id}/discard - утилизировать продукт
+
+		// === V1 API (OLD - Basic fridge management) ===
 		// Операции с продуктами
 		r.Get("/items", m.handlers.GetUserItems)              // GET /api/fridge/items - список продуктов
 		r.Post("/items", m.handlers.AddItem)                  // POST /api/fridge/items - добавить продукт

@@ -25,9 +25,9 @@ type fridgeServiceV2 struct {
 	db *gorm.DB
 }
 
-func NewFridgeServiceV2() FridgeServiceV2 {
+func NewFridgeServiceV2(db *gorm.DB) FridgeServiceV2 {
 	return &fridgeServiceV2{
-		db: nil, // Will be injected
+		db: db,
 	}
 }
 

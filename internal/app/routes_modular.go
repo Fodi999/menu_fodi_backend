@@ -23,6 +23,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/meal_plan"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/meta"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/metrics"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/notifications"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/nutrition"
 	prepareddishes "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/prepared_dishes"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/public"
@@ -97,6 +98,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	mealPlanModule := meal_plan.NewModule()
 	metaModule := meta.NewModule() // Metadata (countries, cuisines, categories, difficulties)
 	metricsModule := metrics.NewModule()
+	notificationsModule := notifications.NewModule(a.db) // Notifications (fridge expiry, system, etc.)
 	nutritionModule := nutrition.NewModule()
 	preparedDishesModule := prepareddishes.NewModule(a.db) // Prepared dishes after cooking
 	publicModule := public.NewModule()                     // PUBLIC: SEO-ready recipe endpoints (no auth)
@@ -176,6 +178,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register nutrition module routes
 		nutritionModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register notifications module routes (unified notification system)
+		notificationsModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register prepared dishes module routes (cook result management)
 		preparedDishesModule.RegisterRoutes(r, middleware.AuthMiddleware)
