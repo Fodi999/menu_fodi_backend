@@ -145,8 +145,8 @@ notificationsModule.RegisterRoutes(r, middleware.AuthMiddleware)
 - ✅ No lint errors (except false positives)
 
 ### Production Testing (After Koyeb Deploy):
-- ⏳ Test notifications endpoint: `GET /api/notifications/unread-count`
-- ⏳ Test notifications list: `GET /api/notifications?page=1&limit=20`
+- ✅ Test notifications endpoint: `GET /api/notifications/unread-count` → **200 OK** `{"count":0}`
+- ✅ Test notifications list: `GET /api/notifications?page=1&limit=20` → **200 OK** `{"data":[]}`
 - ⏳ Test mark as read: `PATCH /api/notifications/{id}/read`
 - ⏳ Test mark all read: `POST /api/notifications/read-all`
 - ⏳ Test discard endpoint: `POST /api/fridge/items/{id}/discard`
@@ -167,6 +167,18 @@ notificationsModule.RegisterRoutes(r, middleware.AuthMiddleware)
    - SHA: `f68911c`
    - Files: 2 changed, 19 insertions, 5 deletions
    - Modified: `internal/app/server.go`, `bin/server`
+
+3. ✅ **Commit 3:** `docs: Add route registration completion documentation`
+   - SHA: `b7da4b4`
+   - Files: 1 changed, 310 insertions
+   - New: `ROUTE_REGISTRATION_COMPLETE.md`
+
+4. ✅ **Commit 4:** `fix: Auth middleware context key bug causing notification 500 errors` ⭐ **CRITICAL FIX**
+   - SHA: `d3398eb`
+   - Files: 3 changed, 53 insertions, 131 deletions
+   - Fixed: `internal/middleware/auth.go` (contextKey → string)
+   - Issue: 500 errors on all notification endpoints
+   - Resolution: Changed `contextKey("userID")` to plain `"userID"` string
 
 ### Push Status:
 - ✅ Pushed to `main` branch
