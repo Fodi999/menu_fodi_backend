@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/cron"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/config"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
@@ -18,9 +19,10 @@ import (
 
 // App represents the application
 type App struct {
-	config *config.Config
-	db     *gorm.DB
-	server *http.Server
+	config     *config.Config
+	db         *gorm.DB
+	server     *http.Server
+	cronChecker *cron.FridgeExpiryChecker
 }
 
 // New creates a new application instance
@@ -45,9 +47,15 @@ func New() (*App, error) {
 
 	logger.Info("✅ Database connected successfully")
 
+	// Initialize CRON jobs for fridge expiry checks
+	cronChecker := cron.NewFridgeExpiryChecker(database.DB)
+	cronChecker.Start()
+	logger.Info("⏰ CRON jobs initialized - Daily fridge expiry checks at 08:00 UTC")
+
 	app := &App{
-		config: cfg,
-		db:     database.DB,
+		config:      cfg,
+		db:          database.DB,
+		cronChecker: cronChecker,
 	}
 
 	// Setup routes using modular DDD architecture
@@ -82,6 +90,12 @@ func (a *App) Run() error {
 	<-quit
 
 	logger.Info("🛑 Shutting down server...")
+
+	// Stop CRON jobs
+	if a.cronChecker != nil {
+		a.cronChecker.Stop()
+		logger.Info("⏰ CRON jobs stopped")
+	}
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
