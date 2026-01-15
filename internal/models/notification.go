@@ -27,7 +27,7 @@ const (
 
 // Notification - универсальное уведомление
 type Notification struct {
-	ID        string            `gorm:"primaryKey;column:id" json:"id"`
+	ID        string            `gorm:"primaryKey;type:uuid;default:gen_random_uuid();column:id" json:"id"`
 	UserID    string            `gorm:"column:user_id;not null;index" json:"userId"`
 	Type      NotificationType  `gorm:"column:type;not null" json:"type"`
 	Level     NotificationLevel `gorm:"column:level;not null" json:"level"`
