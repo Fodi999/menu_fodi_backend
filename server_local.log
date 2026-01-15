@@ -1,52 +1,37 @@
-2026-01-15T11:34:25.333+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
-2026-01-15T11:34:25.951+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
+2026-01-15T12:10:13.021+0100	[34mINFO[0m	logger/logger.go:60	🚀 Starting Chef Academy Backend	{"env": "dev"}
+2026-01-15T12:10:13.623+0100	[34mINFO[0m	logger/logger.go:60	✅ Database connected successfully
 🕐 CRON: Fridge expiry checker started (daily at 08:00 UTC)
-2026-01-15T11:34:25.951+0100	[34mINFO[0m	logger/logger.go:60	⏰ CRON jobs initialized - Daily fridge expiry checks at 08:00 UTC
-2026-01-15T11:34:25.951+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
-2026/01/15 11:34:25 ✅ EventBus initialized
-2026/01/15 11:34:25 📡 New subscriber for event: treasury_update (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: treasury_allocate (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: treasury_spend (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: token_balance_update (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: token_earn (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: token_spend (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: task_completed (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: task_reward_claimed (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: user_registered (total: 1)
-2026/01/15 11:34:25 📡 New subscriber for event: user_welcome_bonus (total: 1)
-2026/01/15 11:34:25 📡 Hub subscribed to 10 event types
-2026/01/15 11:34:25 📡 WebSocket module initialized
-2026/01/15 11:34:25 🚀 WebSocket Hub started
-2026/01/15 11:34:25 🔧 Registering history module routes...
-2026/01/15 11:34:25 ✅ History module routes registered:
-2026/01/15 11:34:25    GET /api/history - Event history
-2026/01/15 11:34:25    GET /api/history/stats - Statistics
-2026/01/15 11:34:25    GET /api/history/recent - Recent activity
-2026/01/15 11:34:25    GET /api/history/losses - Expired items analytics
-2026/01/15 11:34:25 🔌 Registering WebSocket routes...
-2026/01/15 11:34:25 ✅ WebSocket routes registered:
-2026/01/15 11:34:25    GET /ws - General WebSocket connection
-2026/01/15 11:34:25    GET /ws/treasury - Treasury updates (admin)
-2026/01/15 11:34:25    GET /ws/tokens/{userID} - User token updates
-2026/01/15 11:34:25    GET /ws/stats - WebSocket statistics
-2026-01-15T11:34:25.952+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
-2026/01/15 11:34:49 🔐 AuthMiddleware: GET /api/notifications/unread-count
-2026/01/15 11:34:49 📋 Auth header present: true, length: 264
-2026/01/15 11:34:49 🎫 Token extracted, length: 257
-2026/01/15 11:34:49 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 11:34:49 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 11:34:49 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/notifications/unread-count
-
-2026/01/15 11:34:50 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/notifications/service/notification_service.go:83 [33mSLOW SQL >= 200ms
-[0m[31;1m[279.499ms] [33m[rows:1][35m SELECT count(*) FROM "notifications" WHERE user_id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' AND read_at IS NULL[0m
-2026/01/15 11:34:50 [MacBook-Air-Dmitrij.local/GwWb0mJG0a-000001] "GET http://localhost:8080/api/notifications/unread-count HTTP/1.1" from [::1]:59325 - 200 11B in 280.338584ms
-2026/01/15 11:35:05 🔐 AuthMiddleware: GET /api/notifications
-2026/01/15 11:35:05 📋 Auth header present: true, length: 264
-2026/01/15 11:35:05 🎫 Token extracted, length: 257
-2026/01/15 11:35:05 ✅ JWT_SECRET loaded from environment (length: 64)
-2026/01/15 11:35:05 🔑 ValidateToken: Using JWT_SECRET from env (len=64)
-2026/01/15 11:35:05 ✅ Auth OK for user 7ec8aba4-8195-4be1-a9a8-067c30aae306: GET /api/notifications
-
-2026/01/15 11:35:05 [32m/Users/dmitrijfomin/Desktop/backend/internal/modules/notifications/service/notification_service.go:38 [33mSLOW SQL >= 200ms
-[0m[31;1m[304.124ms] [33m[rows:0][35m SELECT * FROM "notifications" WHERE user_id = '7ec8aba4-8195-4be1-a9a8-067c30aae306' ORDER BY created_at DESC LIMIT 100[0m
-2026/01/15 11:35:05 [MacBook-Air-Dmitrij.local/GwWb0mJG0a-000002] "GET http://localhost:8080/api/notifications?page=1&limit=20 HTTP/1.1" from [::1]:59388 - 200 11B in 304.743958ms
+2026-01-15T12:10:13.623+0100	[34mINFO[0m	logger/logger.go:60	⏰ CRON jobs initialized - Daily fridge expiry checks at 08:00 UTC
+2026-01-15T12:10:13.623+0100	[34mINFO[0m	logger/logger.go:60	📦 Using MODULAR routes (DDD architecture)
+2026/01/15 12:10:13 ✅ EventBus initialized
+2026/01/15 12:10:13 📡 New subscriber for event: treasury_update (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: treasury_allocate (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: treasury_spend (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: token_balance_update (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: token_earn (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: token_spend (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: task_completed (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: task_reward_claimed (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: user_registered (total: 1)
+2026/01/15 12:10:13 📡 New subscriber for event: user_welcome_bonus (total: 1)
+2026/01/15 12:10:13 📡 Hub subscribed to 10 event types
+2026/01/15 12:10:13 📡 WebSocket module initialized
+2026/01/15 12:10:13 🚀 WebSocket Hub started
+2026/01/15 12:10:13 🔧 Registering history module routes...
+2026/01/15 12:10:13 ✅ History module routes registered:
+2026/01/15 12:10:13    GET /api/history - Event history
+2026/01/15 12:10:13    GET /api/history/stats - Statistics
+2026/01/15 12:10:13    GET /api/history/recent - Recent activity
+2026/01/15 12:10:13    GET /api/history/losses - Expired items analytics
+2026/01/15 12:10:13 🔌 Registering WebSocket routes...
+2026/01/15 12:10:13 ✅ WebSocket routes registered:
+2026/01/15 12:10:13    GET /ws - General WebSocket connection
+2026/01/15 12:10:13    GET /ws/treasury - Treasury updates (admin)
+2026/01/15 12:10:13    GET /ws/tokens/{userID} - User token updates
+2026/01/15 12:10:13    GET /ws/stats - WebSocket statistics
+2026-01-15T12:10:13.624+0100	[34mINFO[0m	logger/logger.go:60	🌐 Server starting	{"port": "8080"}
+2026-01-15T12:10:13.624+0100	[31mFATAL[0m	logger/logger.go:88	Failed to start server	{"error": "listen tcp :8080: bind: address already in use"}
+github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger.Fatal
+	/Users/dmitrijfomin/Desktop/backend/internal/platform/logger/logger.go:88
+github.com/dmitrijfomin/menu-fodifood/backend/internal/app.(*App).Run.func1
+	/Users/dmitrijfomin/Desktop/backend/internal/app/server.go:83

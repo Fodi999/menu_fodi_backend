@@ -172,6 +172,13 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
+		status := models.GetFridgeItemStatus(daysLeft)
+
+		// ❌ НЕ отдаём expired продукты в основной список
+		if status == "expired" {
+			continue
+		}
+
 		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
@@ -184,7 +191,7 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 			ArrivedAt:  item.ArrivedAt,                                 // Дата поступления в холодильник
 			ExpiresAt:  item.ExpiresAt,                                 // Срок годности
 			DaysLeft:   daysLeft,
-			Status:     models.GetFridgeItemStatus(daysLeft),
+			Status:     status,
 		}
 
 		// Добавляем цену только если она есть (из кэша current_price_*)
@@ -254,6 +261,13 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
+		status := models.GetFridgeItemStatus(daysLeft)
+
+		// ❌ НЕ отдаём expired продукты
+		if status == "expired" {
+			continue
+		}
+
 		totalPrice := s.calculateTotalPrice(item.Quantity, item.CurrentPricePerUnit)
 
 		response := models.FridgeItemListResponse{
@@ -264,7 +278,7 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 			Unit:      item.Unit,
 			ArrivedAt: item.ArrivedAt, // Дата поступления
 			DaysLeft:  daysLeft,
-			Status:    models.GetFridgeItemStatus(daysLeft),
+			Status:    status,
 		}
 
 		// Добавляем цену только если она есть (из кэша current_price_*)

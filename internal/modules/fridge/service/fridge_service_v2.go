@@ -61,6 +61,7 @@ func (s *fridgeServiceV2) GetItems(userID string) ([]models.FridgeItem, error) {
 	}
 
 	// Обновляем статус и daysLeft для каждого продукта
+	freshItems := make([]models.FridgeItem, 0, len(items))
 	for i := range items {
 		result := EvaluateFridgeItem(&items[i])
 		items[i].Status = result.Status
@@ -72,13 +73,18 @@ func (s *fridgeServiceV2) GetItems(userID string) ([]models.FridgeItem, error) {
 				"status":    result.Status,
 				"days_left": result.DaysLeft,
 			})
+			// ❌ НЕ добавляем expired продукты в результат
+			continue
 		}
+
+		// ✅ Добавляем только fresh/ok продукты
+		freshItems = append(freshItems, items[i])
 	}
 
 	// Проверяем и создаем уведомления (1 раз в день)
 	go s.CheckAndNotifyExpiring(userID)
 
-	return items, nil
+	return freshItems, nil
 }
 
 // AddItem добавить продукт в холодильник
