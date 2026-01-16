@@ -3,6 +3,7 @@ package database
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"gorm.io/driver/postgres"
@@ -27,11 +28,33 @@ func Init(dsn string) error {
 			SingularTable: false,
 			NoLowerCase:   false,
 		},
+		// Отключаем prepared statements для предотвращения конфликтов в connection pool
+		PrepareStmt: false,
 	})
 
 	if err != nil {
 		return err
 	}
+
+	// Настраиваем connection pool для стабильной работы с PostgreSQL
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
+	}
+
+	// Максимум открытых соединений (для Neon Serverless рекомендуется 10-20)
+	sqlDB.SetMaxOpenConns(15)
+
+	// Максимум idle соединений
+	sqlDB.SetMaxIdleConns(5)
+
+	// Максимальное время жизни соединения (предотвращает "stale connections")
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+
+	// Максимальное время простоя соединения
+	sqlDB.SetConnMaxIdleTime(2 * time.Minute)
+
+	log.Println("✅ Database connection pool configured: maxOpen=15, maxIdle=5, maxLifetime=5m")
 
 	return nil
 }
