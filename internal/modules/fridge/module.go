@@ -30,7 +30,7 @@ func NewModule(db *gorm.DB) *Module {
 	svcV2 := service.NewFridgeServiceV2(db)
 
 	// Инициализируем handlers V1 и V2
-	handlers := fridgehttp.NewFridgeHandlers(svc)
+	handlers := fridgehttp.NewFridgeHandlers(svc, db) // Pass db for getUserLanguage()
 	handlersV2 := fridgehttp.NewFridgeHandlersV2(svcV2)
 
 	return &Module{

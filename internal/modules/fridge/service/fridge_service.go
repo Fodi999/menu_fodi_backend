@@ -103,7 +103,13 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 }
 
 // GetUserItems возвращает список продуктов пользователя
-func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResponse, error) {
+// lang: preferred language for ingredient names ("ru", "pl", "en")
+func (s *FridgeService) GetUserItems(userID string, lang string) ([]models.FridgeItemListResponse, error) {
+	// Default language if not provided
+	if lang == "" {
+		lang = "pl"
+	}
+
 	// Автоматически очищаем просроченные продукты перед возвратом списка
 	if err := s.cleanupExpiredItems(userID); err != nil {
 		logger.Warn("failed to cleanup expired items",
@@ -135,7 +141,7 @@ func (s *FridgeService) GetUserItems(userID string) ([]models.FridgeItemListResp
 
 		response := models.FridgeItemListResponse{
 			ID:         item.ID,
-			Name:       item.Ingredient.Name,
+			Name:       item.Ingredient.GetName(lang), // 🌍 Use localized name
 			Category:   item.Ingredient.Category, // Добавляем категорию для группировки
 			Quantity:   item.Quantity,
 			Unit:       item.Unit,

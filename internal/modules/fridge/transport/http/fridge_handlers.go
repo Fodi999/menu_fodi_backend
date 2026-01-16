@@ -12,16 +12,21 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // FridgeHandlers HTTP handlers для работы с холодильником
 type FridgeHandlers struct {
 	service *service.FridgeService
+	db      *gorm.DB
 }
 
 // NewFridgeHandlers создает новый экземпляр handlers
-func NewFridgeHandlers(service *service.FridgeService) *FridgeHandlers {
-	return &FridgeHandlers{service: service}
+func NewFridgeHandlers(service *service.FridgeService, db *gorm.DB) *FridgeHandlers {
+	return &FridgeHandlers{
+		service: service,
+		db:      db,
+	}
 }
 
 // AddItem добавляет продукт в холодильник
@@ -68,8 +73,11 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := userIDPtr.String()
 
+	// 🌍 Get user's preferred language from User.settings
+	userLang := h.getUserLanguage(r, userID)
+
 	// Получаем список продуктов
-	items, err := h.service.GetUserItems(userID)
+	items, err := h.service.GetUserItems(userID, userLang)
 	if err != nil {
 		logger.Error("failed to get fridge items",
 			zap.Error(err),
@@ -340,6 +348,27 @@ func (h *FridgeHandlers) AddMissingIngredients(w http.ResponseWriter, r *http.Re
 
 	// 4. Return result (NO TEXT, only data)
 	respondSuccess(w, result)
+}
+
+// getUserLanguage returns user's preferred language from User.settings
+// Priority: 1) User.settings.language (DB), 2) Query param, 3) Default "pl"
+func (h *FridgeHandlers) getUserLanguage(r *http.Request, userID string) string {
+	// 1. PRIMARY: Get from User.settings in database
+	var user models.User
+	if err := h.db.Select("settings").Where("id = ?", userID).First(&user).Error; err == nil {
+		lang := string(user.Settings.Language)
+		if lang != "" {
+			return lang // Will be "ru", "pl", or "en"
+		}
+	}
+
+	// 2. FALLBACK: Check query parameter (for testing)
+	if lang := r.URL.Query().Get("lang"); lang != "" {
+		return lang
+	}
+
+	// 3. DEFAULT: Polish
+	return "pl"
 }
 
 // Helper functions for consistent responses
