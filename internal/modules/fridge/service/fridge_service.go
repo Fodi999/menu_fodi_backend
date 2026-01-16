@@ -12,6 +12,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/fridge/dto"
 	notificationService "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/notifications/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -327,6 +328,7 @@ func (s *FridgeService) cleanupExpiredItems(userID string) error {
 		}
 
 		historyEvent := models.HistoryEvent{
+			ID:         uuid.NewString(), // Generate UUID for id field
 			UserID:     userID,
 			EventType:  models.EventTypeExpired,
 			SourceType: models.SourceTypeAuto,
