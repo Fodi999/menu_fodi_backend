@@ -150,9 +150,23 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 	fmt.Printf("🔍 Matching recipe: %s (canonicalName=%s, ingredients=%d)\n",
 		recipe.ID.String(), recipe.CanonicalName, len(recipe.Ingredients))
 
+	// CRITICAL: Skip recipes without ingredients (invalid data)
+	if len(recipe.Ingredients) == 0 {
+		fmt.Printf("  ⚠️  SKIPPED: Recipe has no ingredients (invalid data)\n\n")
+		match.CanMakeNow = false
+		match.MatchScore = 0
+		return match
+	}
+
 	for _, recipeIng := range recipe.Ingredients {
 		fmt.Printf("  → Ingredient: id=%s, quantity=%.2f %s, optional=%v\n",
 			recipeIng.IngredientID, recipeIng.Quantity, recipeIng.Unit, recipeIng.Optional)
+
+		// CRITICAL: Skip ingredients with invalid quantity (data quality issue)
+		if recipeIng.Quantity <= 0 {
+			fmt.Printf("    ⚠️  INVALID: quantity <= 0 (skipping this ingredient)\n")
+			continue
+		}
 
 		if recipeIng.Optional {
 			// Optional ingredients don't affect core match score
