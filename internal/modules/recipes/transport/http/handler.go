@@ -51,39 +51,24 @@ func NewRecipeHandler(
 	}
 }
 
-// getUserLanguage extracts language from Accept-Language header
-// Returns: "ru", "pl", or "en" (default)
+// getUserLanguage returns user's preferred language from User.settings
+// Priority: 1) User.settings.language (DB), 2) Query param (testing), 3) Default "pl"
+// Returns: "ru", "pl", or "en"
 func (h *RecipeHandler) getUserLanguage(r *http.Request) string {
-	// 1. Check Accept-Language header
-	acceptLang := r.Header.Get("Accept-Language")
-	if acceptLang != "" {
-		// Parse first language from "ru-RU,ru;q=0.9,en;q=0.8"
-		parts := strings.Split(acceptLang, ",")
-		if len(parts) > 0 {
-			lang := strings.TrimSpace(parts[0])
-			// Extract language code (before "-")
-			if idx := strings.Index(lang, "-"); idx > 0 {
-				lang = lang[:idx]
-			}
-			// Remove quality factor
-			if idx := strings.Index(lang, ";"); idx > 0 {
-				lang = lang[:idx]
-			}
-			lang = strings.ToLower(strings.TrimSpace(lang))
-
-			// Support only ru, pl, en
-			switch lang {
-			case "ru":
-				return "ru"
-			case "pl":
-				return "pl"
-			case "en":
-				return "en"
+	// 1. PRIMARY SOURCE: Get language from User.settings in database
+	userID, ok := r.Context().Value("userID").(string)
+	if ok && userID != "" {
+		var user models.User
+		if err := h.db.Select("settings").Where("id = ?", userID).First(&user).Error; err == nil {
+			// User found, use their language setting
+			lang := string(user.Settings.Language)
+			if lang != "" {
+				return lang // Will be "ru", "pl", or "en"
 			}
 		}
 	}
 
-	// 2. Check query parameter (for testing/override)
+	// 2. FALLBACK: Check query parameter (for testing/override)
 	if langParam := r.URL.Query().Get("lang"); langParam != "" {
 		switch strings.ToLower(langParam) {
 		case "ru":
@@ -95,8 +80,8 @@ func (h *RecipeHandler) getUserLanguage(r *http.Request) string {
 		}
 	}
 
-	// 3. Default to English
-	return "en"
+	// 3. DEFAULT: Polish (most users are Polish-speaking)
+	return "pl"
 }
 
 // MatchRecipes finds recipes matching user's fridge
