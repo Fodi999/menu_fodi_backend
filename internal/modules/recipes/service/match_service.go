@@ -1,8 +1,10 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"time"
 
@@ -472,22 +474,32 @@ func roundToTwoDecimals(value float64) float64 {
 	return math.Round(value*100) / 100
 }
 
-// GetBestRecommendation возвращает ОДИН лучший рецепт для фронтенда
-// Использует тот же алгоритм матчинга и сортировки (4-level ranking)
+// GetBestRecommendation возвращает ОДИН лучший рецепт для сценария "Что я могу приготовить СЕЙЧАС?"
+// RULES ENGINE v1: ЖЁСТКИЕ ПРАВИЛА БЕЗ КОМПРОМИССОВ
+// 
+// Алгоритм:
+// 1. Фильтр: ТОЛЬКО рецепты с coverage == 100% (canMakeNow == true)
+// 2. Сортировка: professional > ai → меньше времени → больше expiringSoon
+// 3. Выбор: TOP-1
+//
+// ❗ Никаких partial, никаких "почти", никаких компромиссов
+// ❗ Пользователь хочет готовить СЕЙЧАС - без докупок
 func (s *RecipeMatchService) GetBestRecommendation(
 	userID string,
 	limit int,
 	excludeRecipeIds []string,
 ) (*RecipeMatch, error) {
+	// ВАЖНО: limit здесь НЕ ограничивает количество результатов для пользователя (всегда 1)
+	// limit указывает, сколько ТОП-кандидатов рассматривать ПОСЛЕ фильтрации
 	if limit <= 0 {
-		limit = 5 // default: рассматриваем топ-5 кандидатов
+		limit = 20 // default: смотрим больше кандидатов для лучшего выбора
 	}
 
-	// 1. Используем существующий матчинг с минимальными фильтрами
+	// 1. Используем матчинг с ЖЁСТКИМИ фильтрами
 	filters := RecipeFilters{
-		MinScore:         0,                // Берем всё
-		OnlyCookable:     false,            // Показываем даже если чего-то не хватает
-		Limit:            limit,            // Ограничение на кандидатов
+		MinScore:         100,              // ТОЛЬКО 100% coverage (все обязательные ингредиенты есть)
+		OnlyCookable:     true,             // ТОЛЬКО рецепты, которые можно приготовить СЕЙЧАС
+		Limit:            limit * 2,        // Загружаем больше для лучшего выбора после фильтрации
 		ExcludeRecipeIds: excludeRecipeIds, // Исключаем уже показанные рецепты
 	}
 
@@ -497,14 +509,65 @@ func (s *RecipeMatchService) GetBestRecommendation(
 	}
 
 	if len(matches) == 0 {
-		return nil, fmt.Errorf("no recipes found in catalog")
+		return nil, fmt.Errorf("no recipes available with 100%% coverage")
 	}
 
-	// 2. Уже отсортировано в MatchRecipesWithFridge:
-	//    canCookNow DESC → score DESC → costToComplete ASC → timeMinutes ASC
+	// 2. Дополнительная сортировка с приоритетом professional источников
+	// Правила (в порядке приоритета):
+	// - canMakeNow == true (уже отфильтровано)
+	// - coverage == 100% (уже отфильтровано через MinScore)
+	// - source.type == "professional" > "ai" > "user"
+	// - меньше времени приготовления
+	// - больше expiring items (экономим продукты)
+	sort.SliceStable(matches, func(i, j int) bool {
+		// 1. Приоритет: professional > ai > user
+		sourceI := s.getSourcePriority(matches[i].Recipe)
+		sourceJ := s.getSourcePriority(matches[j].Recipe)
+		if sourceI != sourceJ {
+			return sourceI < sourceJ // меньшее значение = выше приоритет
+		}
+
+		// 2. Меньше времени приготовления
+		if matches[i].Recipe.TimeMinutes != matches[j].Recipe.TimeMinutes {
+			return matches[i].Recipe.TimeMinutes < matches[j].Recipe.TimeMinutes
+		}
+
+		// 3. Больше expiring items (waste prevention)
+		if matches[i].ExpiringItemsCount != matches[j].ExpiringItemsCount {
+			return matches[i].ExpiringItemsCount > matches[j].ExpiringItemsCount
+		}
+
+		// 4. Выше match score (опционально)
+		return matches[i].MatchScore > matches[j].MatchScore
+	})
 
 	// 3. Возвращаем первый (лучший) рецепт
 	return &matches[0], nil
+}
+
+// getSourcePriority возвращает приоритет источника рецепта (меньше = выше приоритет)
+func (s *RecipeMatchService) getSourcePriority(recipe models.RecipeCatalog) int {
+	// Parse source JSON
+	var source map[string]interface{}
+	if err := json.Unmarshal(recipe.Source, &source); err != nil {
+		return 999 // unknown source - lowest priority
+	}
+
+	sourceType, ok := source["type"].(string)
+	if !ok {
+		return 999
+	}
+
+	switch sourceType {
+	case "professional":
+		return 1 // HIGHEST priority
+	case "ai":
+		return 2
+	case "user":
+		return 3
+	default:
+		return 999 // unknown - lowest priority
+	}
 }
 
 // GetRecipeByID returns full recipe details by ID (with ingredients)
