@@ -695,13 +695,28 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 	for i, ing := range match.MatchedIngredients {
 		// Get localized ingredient name
 		ingredientName := ing.Name // Fallback to original name
+		var nameEN, namePL, nameRU string
+		
 		if ing.Ingredient != nil {
 			ingredientName = ing.Ingredient.GetName(lang)
+			// Include all translations for frontend
+			if ing.Ingredient.NameEN != nil {
+				nameEN = *ing.Ingredient.NameEN
+			}
+			if ing.Ingredient.NamePL != nil {
+				namePL = *ing.Ingredient.NamePL
+			}
+			if ing.Ingredient.NameRU != nil {
+				nameRU = *ing.Ingredient.NameRU
+			}
 		}
 
 		usedIngredients[i] = dto.IngredientMatch{
 			IngredientID:   ing.IngredientID,
 			Name:           ingredientName,
+			NameEN:         nameEN,
+			NamePL:         namePL,
+			NameRU:         nameRU,
 			Quantity:       ing.Required,
 			Unit:           ing.Unit,
 			Available:      ing.Available,
@@ -714,13 +729,28 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 	for i, ing := range match.MissingIngredients {
 		// Get localized ingredient name
 		ingredientName := ing.Name // Fallback to original name
+		var nameEN, namePL, nameRU string
+		
 		if ing.Ingredient != nil {
 			ingredientName = ing.Ingredient.GetName(lang)
+			// Include all translations for frontend
+			if ing.Ingredient.NameEN != nil {
+				nameEN = *ing.Ingredient.NameEN
+			}
+			if ing.Ingredient.NamePL != nil {
+				namePL = *ing.Ingredient.NamePL
+			}
+			if ing.Ingredient.NameRU != nil {
+				nameRU = *ing.Ingredient.NameRU
+			}
 		}
 
 		missingIngredients[i] = dto.IngredientMatch{
 			IngredientID:  ing.IngredientID,
 			Name:          ingredientName,
+			NameEN:        nameEN,
+			NamePL:        namePL,
+			NameRU:        nameRU,
 			Quantity:      ing.Required,
 			Unit:          ing.Unit,
 			Optional:      ing.Optional,
