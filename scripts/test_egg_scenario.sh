@@ -187,7 +187,7 @@ echo "6️⃣  AI-ассистент: «Что я могу приготовит�
 AI_RESPONSE=$(curl -s -X POST "$BASE_URL/api/recipes/recommendations" \
   -H "Authorization: Bearer $USER_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"mode":"fridge","limit":5}')
+  -d '{"mode":"fridge","limit":5,"excludeRecipeIds":[]}')
 
 echo ""
 echo "📊 AI Response:"

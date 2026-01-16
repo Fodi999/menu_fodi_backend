@@ -885,16 +885,20 @@ func (h *RecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Request
 		excludeMap[id] = true
 	}
 
-	// Add from session (previously shown in this browsing session)
-	if session != nil {
-		for _, id := range session.ExcludedRecipeIDs {
+	// IMPORTANT: Only add session/saved exclusions if request didn't specify any
+	// This allows E2E tests and fresh searches to work correctly
+	if len(req.ExcludeRecipeIds) == 0 {
+		// Add from session (previously shown in this browsing session)
+		if session != nil {
+			for _, id := range session.ExcludedRecipeIDs {
+				excludeMap[id] = true
+			}
+		}
+
+		// Add saved recipes (user already saved these, don't show again)
+		for _, id := range savedRecipeIDs {
 			excludeMap[id] = true
 		}
-	}
-
-	// Add saved recipes (user already saved these, don't show again)
-	for _, id := range savedRecipeIDs {
-		excludeMap[id] = true
 	}
 
 	// Convert map back to slice
