@@ -343,7 +343,7 @@ func (h *AdminHandlers) GetAdminDashboard(w http.ResponseWriter, r *http.Request
 	}
 
 	// Получаем профиль админа
-	profile, err := h.service.GetAdminProfile(claims.UserID)
+	profile, err := h.service.GetAdminProfile(claims.Subject)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch admin profile")
 		return
@@ -388,7 +388,7 @@ func (h *AdminHandlers) GetAdminProfile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	profile, err := h.service.GetAdminProfile(claims.UserID)
+	profile, err := h.service.GetAdminProfile(claims.Subject)
 	if err != nil {
 		if err.Error() == "admin not found" {
 			utils.RespondWithError(w, http.StatusNotFound, "Admin not found")

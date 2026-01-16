@@ -493,7 +493,7 @@ func (h *RecipeHandler) CookRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := claims.UserID
+	userID := claims.Subject
 
 	recipeID := chi.URLParam(r, "id")
 	if recipeID == "" {
@@ -1106,7 +1106,7 @@ func (h *RecipeHandler) SaveRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := claims.UserID
+	userID := claims.Subject
 
 	// Parse request body
 	var req dto.SaveRecipeRequest
@@ -1182,7 +1182,7 @@ func (h *RecipeHandler) GetSavedRecipes(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userID := claims.UserID
+	userID := claims.Subject
 
 	// Parse query filters
 	category := r.URL.Query().Get("category")

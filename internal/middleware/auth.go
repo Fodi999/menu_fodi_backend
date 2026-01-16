@@ -56,11 +56,11 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("✅ Auth OK for user %s: %s %s", claims.UserID, r.Method, r.URL.Path)
+		log.Printf("✅ Auth OK for user %s: %s %s", claims.Subject, r.Method, r.URL.Path)
 
 		// Добавляем данные пользователя в контекст
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
-		ctx = context.WithValue(ctx, "userID", claims.UserID) // Добавляем userID для удобства (string key для совместимости)
+		ctx = context.WithValue(ctx, "userID", claims.Subject) // Добавляем userID для удобства (string key для совместимости)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -95,12 +95,12 @@ func SuperAdminMiddleware(next http.Handler) http.Handler {
 		}
 
 		if claims.Role != models.RoleSuperAdmin {
-			log.Printf("❌ SuperAdmin required: User %s has role '%s'", claims.UserID, claims.Role)
+			log.Printf("❌ SuperAdmin required: User %s has role '%s'", claims.Subject, claims.Role)
 			utils.WriteError(w, http.StatusForbidden, "Super admin access required")
 			return
 		}
 
-		log.Printf("✅ SuperAdmin access granted for user %s", claims.UserID)
+		log.Printf("✅ SuperAdmin access granted for user %s", claims.Subject)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -142,8 +142,8 @@ func OptionalAuthMiddleware(next http.Handler) http.Handler {
 
 		// Valid token → add to context
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
-		ctx = context.WithValue(ctx, "userID", claims.UserID)
-		log.Printf("✅ OptionalAuth: User %s authenticated", claims.UserID)
+		ctx = context.WithValue(ctx, "userID", claims.Subject)
+		log.Printf("✅ OptionalAuth: User %s authenticated", claims.Subject)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -157,7 +157,7 @@ func GetUserID(r *http.Request) *uuid.UUID {
 	}
 
 	// Parse UserID string to UUID
-	userID, err := uuid.Parse(claims.UserID)
+	userID, err := uuid.Parse(claims.Subject)
 	if err != nil {
 		return nil
 	}
@@ -183,7 +183,7 @@ func RequireRole(role string) func(http.Handler) http.Handler {
 				return
 			}
 
-			log.Printf("✅ RequireRole(%s): Access granted for user %s", role, claims.UserID)
+			log.Printf("✅ RequireRole(%s): Access granted for user %s", role, claims.Subject)
 			next.ServeHTTP(w, r)
 		})
 	}

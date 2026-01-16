@@ -33,13 +33,13 @@ func (h *RecipeAdminHandlers) CreateDraft(w http.ResponseWriter, r *http.Request
 
 	// Get authenticated user
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
-	if !ok || claims.UserID == "" {
+	if !ok || claims.Subject == "" {
 		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
 
 	// Create draft recipe
-	recipe, err := h.service.CreateDraft(claims.UserID, &req)
+	recipe, err := h.service.CreateDraft(claims.Subject, &req)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create draft recipe")
 		return
@@ -160,12 +160,12 @@ func (h *RecipeAdminHandlers) Archive(w http.ResponseWriter, r *http.Request) {
 // GetDrafts - GET /api/admin/recipes/drafts
 func (h *RecipeAdminHandlers) GetDrafts(w http.ResponseWriter, r *http.Request) {
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
-	if !ok || claims.UserID == "" {
+	if !ok || claims.Subject == "" {
 		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
 
-	recipes, err := h.service.GetDrafts(claims.UserID)
+	recipes, err := h.service.GetDrafts(claims.Subject)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch drafts")
 		return

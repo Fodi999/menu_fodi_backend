@@ -11,10 +11,10 @@ import (
 
 // Claims структура для JWT токена
 type Claims struct {
-	UserID string `json:"userId"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
-	jwt.RegisteredClaims
+	Email   string `json:"email"`
+	Role    string `json:"role"`
+	HasRole bool   `json:"hasRole"`
+	jwt.RegisteredClaims // Contains Subject (sub), ExpiresAt (exp), IssuedAt (iat)
 }
 
 // JWTService handles JWT token generation and validation
@@ -43,10 +43,11 @@ func (s *JWTService) GenerateToken(userID, email, role string) (string, error) {
 	}
 
 	claims := &Claims{
-		UserID: userID,
-		Email:  email,
-		Role:   role,
+		Email:   email,
+		Role:    role,
+		HasRole: true,
 		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   userID, // 🔴 RFC 7519: sub field для user ID
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},

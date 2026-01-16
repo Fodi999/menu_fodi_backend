@@ -78,11 +78,11 @@ func (h *RecipeHandlers) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims, ok := r.Context().Value(middleware.UserContextKey).(*authservice.Claims)
-	if !ok || claims.UserID == "" {
+	if !ok || claims.Subject == "" {
 		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
-	authorID := claims.UserID
+	authorID := claims.Subject
 
 	if input.Title == "" {
 		utils.RespondWithError(w, http.StatusBadRequest, "Title is required")

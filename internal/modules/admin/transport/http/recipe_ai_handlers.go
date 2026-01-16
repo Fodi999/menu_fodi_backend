@@ -32,7 +32,7 @@ func (h *AdminHandlers) CreateRecipeWithAI(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userID := claims.UserID
+	userID := claims.Subject
 	if userID == "" {
 		utils.RespondWithError(w, http.StatusUnauthorized, "User ID is empty")
 		return
@@ -181,7 +181,7 @@ func (h *AdminHandlers) SaveEditedRecipe(w http.ResponseWriter, r *http.Request)
 		utils.RespondWithError(w, http.StatusUnauthorized, "User not authenticated")
 		return
 	}
-	userID := claims.UserID
+	userID := claims.Subject
 
 	// Парсим запрос
 	var req service.SaveEditedRecipeRequest

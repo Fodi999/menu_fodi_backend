@@ -139,7 +139,7 @@ func (s *AuthService) VerifyToken(req dto.VerifyTokenRequest) (*dto.VerifyTokenR
 	}
 
 	// Get user to verify it still exists
-	user, err := s.repo.FindByID(claims.UserID)
+	user, err := s.repo.FindByID(claims.Subject)
 	if err != nil {
 		return &dto.VerifyTokenResponse{Valid: false}, nil
 	}
