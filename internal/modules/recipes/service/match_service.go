@@ -146,7 +146,14 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 	matchedCount := 0
 	optionalMatchedCount := 0
 
+	// DEBUG: Log recipe matching attempt
+	fmt.Printf("🔍 Matching recipe: %s (canonicalName=%s, ingredients=%d)\n",
+		recipe.ID.String(), recipe.CanonicalName, len(recipe.Ingredients))
+
 	for _, recipeIng := range recipe.Ingredients {
+		fmt.Printf("  → Ingredient: id=%s, quantity=%.2f %s, optional=%v\n",
+			recipeIng.IngredientID, recipeIng.Quantity, recipeIng.Unit, recipeIng.Optional)
+
 		if recipeIng.Optional {
 			// Optional ingredients don't affect core match score
 			fridgeItem := s.findIngredientInFridge(recipeIng, fridgeMap)
@@ -173,6 +180,8 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 		if fridgeItem != nil && fridgeItem.Quantity >= recipeIng.Quantity {
 			// Ingredient available in sufficient quantity
 			matchedCount++
+			fmt.Printf("    ✅ MATCHED: found in fridge (available=%.2f %s, required=%.2f %s)\n",
+				fridgeItem.Quantity, fridgeItem.Unit, recipeIng.Quantity, recipeIng.Unit)
 
 			// Calculate value of used ingredient
 			ingredientValue := recipeIng.Quantity * fridgeItem.PricePerUnit
@@ -199,6 +208,13 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 			match.MatchedIngredients = append(match.MatchedIngredients, matched)
 		} else {
 			// Ingredient missing or insufficient
+			if fridgeItem != nil {
+				fmt.Printf("    ❌ INSUFFICIENT: found but not enough (available=%.2f, required=%.2f)\n",
+					fridgeItem.Quantity, recipeIng.Quantity)
+			} else {
+				fmt.Printf("    ❌ NOT FOUND: ingredient not in fridge\n")
+			}
+
 			pricePerUnit := 0.0
 			if recipeIng.Ingredient.DefaultPricePerUnit != nil {
 				pricePerUnit = *recipeIng.Ingredient.DefaultPricePerUnit
@@ -254,6 +270,10 @@ func (s *RecipeMatchService) calculateRecipeMatch(
 
 	// Determine if can make now
 	match.CanMakeNow = (matchedCount == requiredCount)
+
+	// DEBUG: Log final result
+	fmt.Printf("  📊 RESULT: score=%.2f, matched=%d/%d, canMakeNow=%v\n\n",
+		match.MatchScore, matchedCount, requiredCount, match.CanMakeNow)
 
 	return match
 }
