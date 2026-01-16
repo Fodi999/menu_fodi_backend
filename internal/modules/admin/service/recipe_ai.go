@@ -394,8 +394,9 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 	}
 
 	// Создаем Source JSONB (required field)
+	// Философия ChefOS: Админ утверждает → рецепт становится professional
 	sourceJSON, _ := json.Marshal(map[string]interface{}{
-		"type":      "ai",
+		"type":      "professional", // Админ взял ответственность
 		"generator": "groq-llama-3.3-70b",
 		"authorId":  authorID,
 		"timestamp": time.Now().Unix(),
@@ -559,8 +560,9 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	}()
 
 	// Создаём Source JSONB
+	// Философия ChefOS: Факт сохранения админом = professional
 	sourceJSON, _ := json.Marshal(map[string]interface{}{
-		"type":      "ai",
+		"type":      "professional", // Админ взял ответственность
 		"generator": "groq-llama-3.3-70b",
 		"authorId":  userID,
 		"timestamp": time.Now().Unix(),
