@@ -105,7 +105,7 @@ case "${1:-help}" in
   ingredient-search)
     QUERY="${2:-czosnek}"
     echo "🔍 Searching ingredients: $QUERY"
-    curl -s "$BASE_URL/api/ingredients/suggest?q=$QUERY&lang=pl" \
+    curl -s "$BASE_URL/api/admin/ingredients/suggest?q=$QUERY&lang=pl" \
       -H "Authorization: Bearer $USER_TOKEN" | jq '.data[0:3] | .[] | {id, name, namePL, category}'
     ;;
   

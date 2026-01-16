@@ -69,8 +69,8 @@ echo ""
 echo "3️⃣  Получаем ID ингредиентов..."
 
 # Яйца (Jajka)
-EGGS_RESPONSE=$(curl -s "$BASE_URL/api/ingredients/suggest?q=jaj&lang=pl" \
-  -H "Authorization: Bearer $USER_TOKEN")
+EGGS_RESPONSE=$(curl -s "$BASE_URL/api/admin/ingredients/suggest?q=jaj&lang=pl" \
+  -H "Authorization: Bearer $ADMIN_TOKEN")
 EGGS_ID=$(echo "$EGGS_RESPONSE" | jq -r '.data[0].id // empty')
 
 if [ -z "$EGGS_ID" ]; then
@@ -81,8 +81,8 @@ fi
 echo "   ✅ Eggs (Jajka): $EGGS_ID"
 
 # Масло (Olej)
-OIL_RESPONSE=$(curl -s "$BASE_URL/api/ingredients/suggest?q=olej&lang=pl" \
-  -H "Authorization: Bearer $USER_TOKEN")
+OIL_RESPONSE=$(curl -s "$BASE_URL/api/admin/ingredients/suggest?q=olej&lang=pl" \
+  -H "Authorization: Bearer $ADMIN_TOKEN")
 OIL_ID=$(echo "$OIL_RESPONSE" | jq -r '.data[0].id // empty')
 
 if [ -z "$OIL_ID" ]; then
@@ -92,9 +92,9 @@ if [ -z "$OIL_ID" ]; then
 fi
 echo "   ✅ Oil (Olej): $OIL_ID"
 
-# Соль (Sól)
-SALT_RESPONSE=$(curl -s "$BASE_URL/api/ingredients/suggest?q=sól&lang=pl" \
-  -H "Authorization: Bearer $USER_TOKEN")
+# Соль (Sól / Salt)
+SALT_RESPONSE=$(curl -s "$BASE_URL/api/admin/ingredients/suggest?q=salt&lang=pl" \
+  -H "Authorization: Bearer $ADMIN_TOKEN")
 SALT_ID=$(echo "$SALT_RESPONSE" | jq -r '.data[0].id // empty')
 
 if [ -z "$SALT_ID" ]; then
