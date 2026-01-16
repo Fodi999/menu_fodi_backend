@@ -116,13 +116,21 @@ FRIDGE_ITEMS=$(curl -s -X GET "$BASE_URL/api/fridge/items" \
   -H "Authorization: Bearer $USER_TOKEN")
 
 # Удаляем каждый item
-ITEMS_COUNT=$(echo "$FRIDGE_ITEMS" | jq -r '.data | length')
+ITEMS_COUNT=$(echo "$FRIDGE_ITEMS" | jq -r '.data.items | length')
 if [ "$ITEMS_COUNT" -gt 0 ]; then
   echo "   → Удаляем $ITEMS_COUNT items..."
-  echo "$FRIDGE_ITEMS" | jq -r '.data[].id' | while read ITEM_ID; do
-    curl -s -X DELETE "$BASE_URL/api/fridge/items/$ITEM_ID" \
-      -H "Authorization: Bearer $USER_TOKEN" > /dev/null
+  
+  # Извлекаем IDs в массив
+  ITEM_IDS=($(echo "$FRIDGE_ITEMS" | jq -r '.data.items[].id'))
+  
+  # Удаляем каждый item
+  for ITEM_ID in "${ITEM_IDS[@]}"; do
+    if [ -n "$ITEM_ID" ]; then
+      curl -s -X DELETE "$BASE_URL/api/fridge/items/$ITEM_ID" \
+        -H "Authorization: Bearer $USER_TOKEN" > /dev/null
+    fi
   done
+  
   echo "   ✅ Холодильник очищен"
 else
   echo "   ✅ Холодильник уже пуст"
