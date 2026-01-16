@@ -69,13 +69,10 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 	// Recipe listing with filters (public for browsing catalog)
 	r.Get("/recipes", m.catalogHandler.ListRecipes)
 
-	// TODO: Remove public access after testing - these should be protected
-	// Recipe matching (finds recipes based on fridge) - TEMPORARILY PUBLIC FOR TESTING
-	r.Get("/recipes/match", m.catalogHandler.MatchRecipes)
-	// Recipe available (categorizes recipes by cooking feasibility) - TEMPORARILY PUBLIC FOR TESTING
-	r.Get("/recipes/available", m.catalogHandler.GetAvailableRecipes)
-	// Recipe recommendation (returns 1 best recipe for UI) - TEMPORARILY PUBLIC FOR TESTING
-	r.Post("/recipes/recommendations", m.catalogHandler.GetRecommendation)
+	// Recipe matching and recommendations (require auth for fridge access)
+	r.With(authMiddleware).Get("/recipes/match", m.catalogHandler.MatchRecipes)
+	r.With(authMiddleware).Get("/recipes/available", m.catalogHandler.GetAvailableRecipes)
+	r.With(authMiddleware).Post("/recipes/recommendations", m.catalogHandler.GetRecommendation)
 
 	// Recipe detail by ID (public with optional auth for fridge matching)
 	// If user is authenticated, adds inFridge flags to ingredients
