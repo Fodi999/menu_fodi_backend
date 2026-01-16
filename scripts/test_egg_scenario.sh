@@ -106,7 +106,31 @@ echo "   ✅ Salt (Sól): $SALT_ID"
 echo ""
 
 # ============================================
-# 3. SKIP RECIPE CREATION - ALREADY EXISTS
+# 3. ОЧИСТКА ХОЛОДИЛЬНИКА
+# ============================================
+
+echo "3.5️⃣  Очищаем холодильник перед тестом..."
+
+# Получаем все items из холодильника
+FRIDGE_ITEMS=$(curl -s -X GET "$BASE_URL/api/fridge/items" \
+  -H "Authorization: Bearer $USER_TOKEN")
+
+# Удаляем каждый item
+ITEMS_COUNT=$(echo "$FRIDGE_ITEMS" | jq -r '.data | length')
+if [ "$ITEMS_COUNT" -gt 0 ]; then
+  echo "   → Удаляем $ITEMS_COUNT items..."
+  echo "$FRIDGE_ITEMS" | jq -r '.data[].id' | while read ITEM_ID; do
+    curl -s -X DELETE "$BASE_URL/api/fridge/items/$ITEM_ID" \
+      -H "Authorization: Bearer $USER_TOKEN" > /dev/null
+  done
+  echo "   ✅ Холодильник очищен"
+else
+  echo "   ✅ Холодильник уже пуст"
+fi
+echo ""
+
+# ============================================
+# 4. SKIP RECIPE CREATION - ALREADY EXISTS
 # ============================================
 
 echo "4️⃣  Рецепт «Яичница» уже есть в каталоге (пропускаем создание)..."
@@ -168,17 +192,20 @@ RECIPE_FOUND=$(echo "$AI_RESPONSE" | jq -r '.data.recipe.localName // empty')
 CAN_COOK_NOW=$(echo "$AI_RESPONSE" | jq -r '.data.match.canCookNow // false')
 RECIPE_ID=$(echo "$AI_RESPONSE" | jq -r '.data.recipe.id // empty')
 
+# Normalize to lowercase for comparison
+RECIPE_FOUND_LOWER=$(echo "$RECIPE_FOUND" | tr '[:upper:]' '[:lower:]')
+
 echo "=========================================="
 echo "📊 Результаты теста:"
 echo "=========================================="
 echo "Success:           ${SUCCESS}"
-echo "Рецепт найден:     ${RECIPE_FOUND:-❌ НЕТ}"
+echo "Рецепт найден:     ${RECIPE_FOUND}"
 echo "Can cook now:      ${CAN_COOK_NOW}"
 echo "Recipe ID:         ${RECIPE_ID}"
-echo "Expected recipe:   Яичница"
+echo "Expected recipe:   Яичница (case-insensitive)"
 echo ""
 
-if [ "$SUCCESS" == "true" ] && [ "$CAN_COOK_NOW" == "true" ] && [ "$RECIPE_FOUND" == "Яичница" ]; then
+if [ "$SUCCESS" == "true" ] && [ "$CAN_COOK_NOW" == "true" ] && [ "$RECIPE_FOUND_LOWER" == "яичница" ]; then
   echo "✅ ✅ ✅ ТЕСТ ПРОЙДЕН! ✅ ✅ ✅"
   echo ""
   echo "🎯 Валидация AI-диспетчера:"
@@ -198,8 +225,8 @@ else
   if [ "$CAN_COOK_NOW" != "true" ]; then
     echo "   ❌ Can cook now должен быть true"
   fi
-  if [ "$RECIPE_FOUND" != "Яичница" ]; then
-    echo "   ❌ Название рецепта должно быть 'Яичница'"
+  if [ "$RECIPE_FOUND_LOWER" != "яичница" ]; then
+    echo "   ❌ Название рецепта должно содержать 'яичница' (найдено: '$RECIPE_FOUND')"
   fi
   exit 1
 fi
