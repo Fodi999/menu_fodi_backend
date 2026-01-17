@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"gorm.io/gorm"
@@ -24,25 +25,25 @@ func NewRecipeMatchService(db *gorm.DB) *RecipeMatchService {
 // RecipeMatch - результат подбора рецепта
 type RecipeMatch struct {
 	RecipeID            string   `json:"recipeId"`
-	CanonicalName       string   `json:"canonicalName"`      // 2️⃣ Единый ключ (например: "scrambled_eggs")
+	CanonicalName       string   `json:"canonicalName"`      // 1️⃣ Единый ключ (например: "scrambled_eggs")
 	DisplayName         string   `json:"displayName"`        // Локализованное название
 	TotalIngredients    int      `json:"totalIngredients"`
 	MatchedCount        int      `json:"matchedCount"`
 	MatchRatio          float64  `json:"matchRatio"`
 	CanCookNow          bool     `json:"canCookNow"`
 	Scenario            string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
-	UserIngredients     []string `json:"userIngredients"`    // 1️⃣ Нормализованные названия (GetName)
-	MissingIngredients  []string `json:"missingIngredients"` // 3️⃣ Явное поле для будущих сценариев
+	Confidence          string   `json:"confidence"`         // 5️⃣ "EXACT_MATCH" | "HIGH" | "MEDIUM" | "LOW"
+	UserIngredients     []string `json:"userIngredients"`    // 2️⃣ Нормализованные названия (toLowerCase)
+	MissingIngredients  []string `json:"missingIngredients"` // 4️⃣ Недостающие ингредиенты
 	MissingCount        int      `json:"missingCount"`
 }
 
 // recipeMatchResult - внутренняя структура для SQL запроса
 type recipeMatchResult struct {
 	RecipeID      string
-	CanonicalName string
-	NameRu        string
-	NamePl        string
-	NameEn        string
+	CanonicalName string  // может быть NULL для user recipes
+	Title         string  // всегда есть
+	LocalName     string  // всегда есть
 	Total         int
 	Matched       int
 }
@@ -71,17 +72,16 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 	err = s.db.Raw(`
 		SELECT 
 			r.id AS recipe_id,
-			r."canonicalName" AS canonical_name,
-			r."name_ru" AS name_ru,
-			r."name_pl" AS name_pl,
-			r."name_en" AS name_en,
+			COALESCE(r."canonicalName", '') AS canonical_name,
+			r."title" AS title,
+			r."localName" AS local_name,
 			COUNT(ri.id) AS total,
 			COUNT(ri.id) FILTER (
 				WHERE ri."ingredientId" IN (?)
 			) AS matched
 		FROM "Recipe" r
 		JOIN "RecipeIngredient" ri ON r.id = ri."recipeId"
-		GROUP BY r.id, r."canonicalName", r."name_ru", r."name_pl", r."name_en"
+		GROUP BY r.id, r."canonicalName", r."title", r."localName"
 		HAVING COUNT(ri.id) > 0
 		ORDER BY 
 			COUNT(ri.id) FILTER (WHERE ri."ingredientId" IN (?)) DESC,
@@ -120,51 +120,91 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 		return nil, fmt.Errorf("failed to get ingredient names: %w", err)
 	}
 
-	// 1️⃣ Применить нормализацию через GetName(lang)
+	// 1️⃣ Применить нормализацию через GetName(lang) + ToLower
 	ingredientNames := make([]string, 0, len(ingredients))
 	for _, ing := range ingredients {
-		ingredientNames = append(ingredientNames, ing.GetName(lang))
+		// 2️⃣ Нормализация: toLowerCase для консистентности
+		ingredientNames = append(ingredientNames, normalizeIngredientName(ing.GetName(lang)))
+	}
+	
+	// 1️⃣ Генерировать каноническое имя, если его нет
+	canonicalName := best.CanonicalName
+	if canonicalName == "" {
+		// Для user recipes генерируем из localName
+		canonicalName = generateCanonicalName(best.LocalName)
 	}
 	
 	// 2️⃣ Локализовать название рецепта
 	displayName := localizeRecipeName(best, lang)
 	
-	// 3️⃣ Пока missingIngredients пустой (для будущих сценариев)
-	missingIngredients := []string{} // TODO: заполнить при scenario = "ALMOST_READY"
+	// 3️⃣ Получить недостающие ингредиенты (для ALMOST_READY сценария)
+	missingIngredients := []string{}
+	if !canCookNow && matchRatio >= 0.5 {
+		// TODO: получить реальные недостающие ингредиенты из RecipeIngredient
+		// Пока оставляем пустым
+	}
+	
+	// 5️⃣ Confidence как enum
+	confidence := calculateConfidence(matchRatio)
 
 	return &RecipeMatch{
 		RecipeID:           best.RecipeID,
-		CanonicalName:      best.CanonicalName,
+		CanonicalName:      canonicalName,
 		DisplayName:        displayName,
 		TotalIngredients:   best.Total,
 		MatchedCount:       best.Matched,
 		MatchRatio:         matchRatio,
 		CanCookNow:         canCookNow,
 		Scenario:           scenario,
+		Confidence:         confidence,
 		UserIngredients:    ingredientNames,
 		MissingIngredients: missingIngredients,
 		MissingCount:       best.Total - best.Matched,
 	}, nil
 }
 
+// 2️⃣ normalizeIngredientName - нормализация названия ингредиента
+func normalizeIngredientName(name string) string {
+	// Приводим к нижнему регистру для консистентности
+	// "Соль каменная" -> "соль каменная"
+	// "свежие яйца" -> "свежие яйца"
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+// 1️⃣ generateCanonicalName - генерация канонического имени из localName
+func generateCanonicalName(localName string) string {
+	// "Яичница" -> "scrambled_eggs" (упрощенная версия)
+	// TODO: использовать транслитерацию или slug generation
+	name := strings.ToLower(localName)
+	name = strings.ReplaceAll(name, " ", "_")
+	name = strings.ReplaceAll(name, "-", "_")
+	return name
+}
+
 // 2️⃣ localizeRecipeName - нормализация названия рецепта
 func localizeRecipeName(result recipeMatchResult, lang string) string {
-	switch lang {
-	case "ru":
-		if result.NameRu != "" {
-			return result.NameRu
-		}
-	case "pl":
-		if result.NamePl != "" {
-			return result.NamePl
-		}
-	case "en":
-		if result.NameEn != "" {
-			return result.NameEn
-		}
+	// В текущей БД нет мультиязычных полей для рецептов
+	// Используем title или localName
+	if result.Title != "" {
+		return result.Title
+	}
+	if result.LocalName != "" {
+		return result.LocalName
 	}
 	// Fallback: canonical name
 	return result.CanonicalName
+}
+
+// 5️⃣ calculateConfidence - confidence как enum (HIGH, MEDIUM, LOW)
+func calculateConfidence(matchRatio float64) string {
+	if matchRatio >= 0.9 {
+		return "EXACT_MATCH" // 90-100%
+	} else if matchRatio >= 0.7 {
+		return "HIGH" // 70-89%
+	} else if matchRatio >= 0.5 {
+		return "MEDIUM" // 50-69%
+	}
+	return "LOW" // < 50%
 }
 
 // AIContext - DTO для AI (пункт 3)

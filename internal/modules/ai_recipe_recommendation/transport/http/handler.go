@@ -40,13 +40,14 @@ type RecommendationData struct {
 // RecipeData - информация о рецепте
 type RecipeData struct {
 	ID                 string   `json:"id"`
-	CanonicalName      string   `json:"canonicalName"`      // 2️⃣ Единый ключ
+	CanonicalName      string   `json:"canonicalName"`      // 1️⃣ Единый ключ (например: "scrambled_eggs")
 	DisplayName        string   `json:"displayName"`        // Локализованное название
 	CanCookNow         bool     `json:"canCookNow"`
 	Scenario           string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
+	Confidence         string   `json:"confidence"`         // 5️⃣ "EXACT_MATCH" | "HIGH" | "MEDIUM" | "LOW"
 	MatchRatio         float64  `json:"matchRatio"`
-	Ingredients        []string `json:"ingredients"`        // 1️⃣ Нормализованные (GetName)
-	MissingIngredients []string `json:"missingIngredients"` // 3️⃣ Недостающие ингредиенты
+	Ingredients        []string `json:"ingredients"`        // 2️⃣ Нормализованные (toLowerCase)
+	MissingIngredients []string `json:"missingIngredients"` // 4️⃣ Недостающие ингредиенты
 }
 
 // GetRecommendation - GET /api/ai-recipe/recommendation
@@ -109,6 +110,7 @@ func (h *AIRecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Reque
 				DisplayName:        match.DisplayName,
 				CanCookNow:         match.CanCookNow,
 				Scenario:           match.Scenario,
+				Confidence:         match.Confidence,
 				MatchRatio:         match.MatchRatio,
 				Ingredients:        match.UserIngredients,
 				MissingIngredients: match.MissingIngredients,
