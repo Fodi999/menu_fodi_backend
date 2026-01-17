@@ -67,14 +67,14 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 			r."canonicalName" AS recipe_name,
 			COUNT(ri.id) AS total,
 			COUNT(ri.id) FILTER (
-				WHERE ri."ingredientId" = ANY(?)
+				WHERE ri."ingredientId" IN (?)
 			) AS matched
 		FROM "Recipe" r
 		JOIN "RecipeIngredient" ri ON r.id = ri."recipeId"
 		GROUP BY r.id, r."canonicalName"
 		HAVING COUNT(ri.id) > 0
 		ORDER BY 
-			COUNT(ri.id) FILTER (WHERE ri."ingredientId" = ANY(?)) DESC,
+			COUNT(ri.id) FILTER (WHERE ri."ingredientId" IN (?)) DESC,
 			COUNT(ri.id) ASC
 		LIMIT 1
 	`, userIngredientIDs, userIngredientIDs).Scan(&results).Error
@@ -95,7 +95,7 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 
 	// Получить названия ингредиентов на нужном языке
 	var ingredients []models.Ingredient
-	err = s.db.Where("id = ANY(?)", userIngredientIDs).Find(&ingredients).Error
+	err = s.db.Where("id IN (?)", userIngredientIDs).Find(&ingredients).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ingredient names: %w", err)
 	}
