@@ -1,7 +1,0 @@
-================================
-🧪 FULL RECIPE FLOW TEST
-================================
-
-Step 1: 🔑 Login as testai@fodi.app...
-❌ Login failed!
-Response: {"code":401,"message":"Invalid credentials","success":false}
