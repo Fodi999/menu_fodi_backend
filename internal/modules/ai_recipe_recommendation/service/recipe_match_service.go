@@ -23,14 +23,28 @@ func NewRecipeMatchService(db *gorm.DB) *RecipeMatchService {
 
 // RecipeMatch - результат подбора рецепта
 type RecipeMatch struct {
-	RecipeID         string   `json:"recipeId"`
-	RecipeName       string   `json:"recipeName"`
-	TotalIngredients int      `json:"totalIngredients"`
-	MatchedCount     int      `json:"matchedCount"`
-	MatchRatio       float64  `json:"matchRatio"`
-	CanCookNow       bool     `json:"canCookNow"`
-	UserIngredients  []string `json:"userIngredients"`    // Названия ингредиентов на нужном языке
-	MissingCount     int      `json:"missingCount"`
+	RecipeID            string   `json:"recipeId"`
+	CanonicalName       string   `json:"canonicalName"`      // 2️⃣ Единый ключ (например: "scrambled_eggs")
+	DisplayName         string   `json:"displayName"`        // Локализованное название
+	TotalIngredients    int      `json:"totalIngredients"`
+	MatchedCount        int      `json:"matchedCount"`
+	MatchRatio          float64  `json:"matchRatio"`
+	CanCookNow          bool     `json:"canCookNow"`
+	Scenario            string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
+	UserIngredients     []string `json:"userIngredients"`    // 1️⃣ Нормализованные названия (GetName)
+	MissingIngredients  []string `json:"missingIngredients"` // 3️⃣ Явное поле для будущих сценариев
+	MissingCount        int      `json:"missingCount"`
+}
+
+// recipeMatchResult - внутренняя структура для SQL запроса
+type recipeMatchResult struct {
+	RecipeID      string
+	CanonicalName string
+	NameRu        string
+	NamePl        string
+	NameEn        string
+	Total         int
+	Matched       int
 }
 
 // FindBestRecipe - BACKEND САМ ВЫБИРАЕТ ЛУЧШИЙ РЕЦЕПТ
@@ -53,25 +67,21 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 	}
 
 	// 2.2 Посчитать совпадения по каждому рецепту
-	type RecipeMatchResult struct {
-		RecipeID   string
-		RecipeName string
-		Total      int
-		Matched    int
-	}
-
-	var results []RecipeMatchResult
+	var results []recipeMatchResult
 	err = s.db.Raw(`
 		SELECT 
 			r.id AS recipe_id,
-			r."canonicalName" AS recipe_name,
+			r."canonicalName" AS canonical_name,
+			r."name_ru" AS name_ru,
+			r."name_pl" AS name_pl,
+			r."name_en" AS name_en,
 			COUNT(ri.id) AS total,
 			COUNT(ri.id) FILTER (
 				WHERE ri."ingredientId" IN (?)
 			) AS matched
 		FROM "Recipe" r
 		JOIN "RecipeIngredient" ri ON r.id = ri."recipeId"
-		GROUP BY r.id, r."canonicalName"
+		GROUP BY r.id, r."canonicalName", r."name_ru", r."name_pl", r."name_en"
 		HAVING COUNT(ri.id) > 0
 		ORDER BY 
 			COUNT(ri.id) FILTER (WHERE ri."ingredientId" IN (?)) DESC,
@@ -92,51 +102,97 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 	// 2.3 Правило (rules engine) - минимум 70% совпадения
 	matchRatio := float64(best.Matched) / float64(best.Total)
 	canCookNow := matchRatio >= 0.7
+	
+	// 5️⃣ Определить сценарий для UI
+	var scenario string
+	if canCookNow {
+		scenario = "CAN_COOK_NOW"
+	} else if matchRatio >= 0.5 {
+		scenario = "ALMOST_READY" // 50-69% - почти готово
+	} else {
+		scenario = "NEED_MORE" // < 50% - нужно больше
+	}
 
-	// Получить названия ингредиентов на нужном языке
+	// 1️⃣ Получить НОРМАЛИЗОВАННЫЕ названия ингредиентов (через GetName)
 	var ingredients []models.Ingredient
 	err = s.db.Where("id IN (?)", userIngredientIDs).Find(&ingredients).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ingredient names: %w", err)
 	}
 
+	// 1️⃣ Применить нормализацию через GetName(lang)
 	ingredientNames := make([]string, 0, len(ingredients))
 	for _, ing := range ingredients {
 		ingredientNames = append(ingredientNames, ing.GetName(lang))
 	}
+	
+	// 2️⃣ Локализовать название рецепта
+	displayName := localizeRecipeName(best, lang)
+	
+	// 3️⃣ Пока missingIngredients пустой (для будущих сценариев)
+	missingIngredients := []string{} // TODO: заполнить при scenario = "ALMOST_READY"
 
 	return &RecipeMatch{
-		RecipeID:         best.RecipeID,
-		RecipeName:       best.RecipeName,
-		TotalIngredients: best.Total,
-		MatchedCount:     best.Matched,
-		MatchRatio:       matchRatio,
-		CanCookNow:       canCookNow,
-		UserIngredients:  ingredientNames,
-		MissingCount:     best.Total - best.Matched,
+		RecipeID:           best.RecipeID,
+		CanonicalName:      best.CanonicalName,
+		DisplayName:        displayName,
+		TotalIngredients:   best.Total,
+		MatchedCount:       best.Matched,
+		MatchRatio:         matchRatio,
+		CanCookNow:         canCookNow,
+		Scenario:           scenario,
+		UserIngredients:    ingredientNames,
+		MissingIngredients: missingIngredients,
+		MissingCount:       best.Total - best.Matched,
 	}, nil
+}
+
+// 2️⃣ localizeRecipeName - нормализация названия рецепта
+func localizeRecipeName(result recipeMatchResult, lang string) string {
+	switch lang {
+	case "ru":
+		if result.NameRu != "" {
+			return result.NameRu
+		}
+	case "pl":
+		if result.NamePl != "" {
+			return result.NamePl
+		}
+	case "en":
+		if result.NameEn != "" {
+			return result.NameEn
+		}
+	}
+	// Fallback: canonical name
+	return result.CanonicalName
 }
 
 // AIContext - DTO для AI (пункт 3)
 // AI НЕ ВИДИТ БД. AI НЕ ДУМАЕТ. AI ПОЛУЧАЕТ ГОТОВЫЙ ФАКТ.
 type AIContext struct {
-	Language     string   `json:"language"`      // "Russian" | "Polish" | "English"
-	RecipeName   string   `json:"recipeName"`
-	Ingredients  []string `json:"ingredients"`   // локализованные названия
-	MatchRatio   float64  `json:"matchRatio"`    // 0.0 - 1.0
-	CanCookNow   bool     `json:"canCookNow"`    // true если >= 70%
-	MissingCount int      `json:"missingCount"`
+	Language           string   `json:"language"`           // "Russian" | "Polish" | "English"
+	CanonicalName      string   `json:"canonicalName"`      // 2️⃣ Единый ключ рецепта
+	DisplayName        string   `json:"displayName"`        // Локализованное название
+	Scenario           string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
+	Ingredients        []string `json:"ingredients"`        // 1️⃣ Нормализованные названия (GetName)
+	MissingIngredients []string `json:"missingIngredients"` // 3️⃣ Недостающие ингредиенты
+	MatchRatio         float64  `json:"matchRatio"`         // 0.0 - 1.0
+	CanCookNow         bool     `json:"canCookNow"`         // true если >= 70%
+	MissingCount       int      `json:"missingCount"`
 }
 
 // PrepareAIContext - подготовить контекст для AI (пункт 3)
 func PrepareAIContext(match *RecipeMatch, userLang string) *AIContext {
 	return &AIContext{
-		Language:     mapLanguageForAI(userLang),
-		RecipeName:   match.RecipeName,
-		Ingredients:  match.UserIngredients,
-		MatchRatio:   match.MatchRatio,
-		CanCookNow:   match.CanCookNow,
-		MissingCount: match.MissingCount,
+		Language:           mapLanguageForAI(userLang),
+		CanonicalName:      match.CanonicalName,
+		DisplayName:        match.DisplayName,
+		Scenario:           match.Scenario,
+		Ingredients:        match.UserIngredients,
+		MissingIngredients: match.MissingIngredients,
+		MatchRatio:         match.MatchRatio,
+		CanCookNow:         match.CanCookNow,
+		MissingCount:       match.MissingCount,
 	}
 }
 
@@ -178,21 +234,26 @@ Expected JSON format:
 }
 
 // BuildUserPrompt - user prompt с данными (пункт 5)
+// 4️⃣ AI НЕ ДОЛЖЕН повторять цифры - объяснять естественным языком
 func BuildUserPrompt(ctx *AIContext) string {
 	ingredientsJSON, _ := json.Marshal(ctx.Ingredients)
+	missingJSON, _ := json.Marshal(ctx.MissingIngredients)
 	
-	return fmt.Sprintf(`Recipe: %s
+	return fmt.Sprintf(`Recipe: %s (canonical: %s)
+Scenario: %s
 Ingredients available: %s
-Match ratio: %.2f
+Missing ingredients: %s
 Can cook now: %t
-Missing ingredients: %d
 
-Explain to the user why this recipe is recommended (or why they need more ingredients).`,
-		ctx.RecipeName,
+DO NOT repeat numeric ratios like "75%%" or "3 out of 4".
+Explain in natural %s language why this recipe is recommended (or why they need more ingredients).`,
+		ctx.DisplayName,
+		ctx.CanonicalName,
+		ctx.Scenario,
 		string(ingredientsJSON),
-		ctx.MatchRatio,
+		string(missingJSON),
 		ctx.CanCookNow,
-		ctx.MissingCount,
+		ctx.Language,
 	)
 }
 

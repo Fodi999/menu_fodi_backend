@@ -39,11 +39,14 @@ type RecommendationData struct {
 
 // RecipeData - информация о рецепте
 type RecipeData struct {
-	ID         string   `json:"id"`
-	Name       string   `json:"name"`
-	CanCookNow bool     `json:"canCookNow"`
-	MatchRatio float64  `json:"matchRatio"`
-	Ingredients []string `json:"ingredients"`
+	ID                 string   `json:"id"`
+	CanonicalName      string   `json:"canonicalName"`      // 2️⃣ Единый ключ
+	DisplayName        string   `json:"displayName"`        // Локализованное название
+	CanCookNow         bool     `json:"canCookNow"`
+	Scenario           string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
+	MatchRatio         float64  `json:"matchRatio"`
+	Ingredients        []string `json:"ingredients"`        // 1️⃣ Нормализованные (GetName)
+	MissingIngredients []string `json:"missingIngredients"` // 3️⃣ Недостающие ингредиенты
 }
 
 // GetRecommendation - GET /api/ai-recipe/recommendation
@@ -101,11 +104,14 @@ func (h *AIRecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Reque
 		Success: true,
 		Data: &RecommendationData{
 			Recipe: RecipeData{
-				ID:          match.RecipeID,
-				Name:        match.RecipeName,
-				CanCookNow:  match.CanCookNow,
-				MatchRatio:  match.MatchRatio,
-				Ingredients: match.UserIngredients,
+				ID:                 match.RecipeID,
+				CanonicalName:      match.CanonicalName,
+				DisplayName:        match.DisplayName,
+				CanCookNow:         match.CanCookNow,
+				Scenario:           match.Scenario,
+				MatchRatio:         match.MatchRatio,
+				Ingredients:        match.UserIngredients,
+				MissingIngredients: match.MissingIngredients,
 			},
 			AI: aiResponse,
 		},
@@ -152,30 +158,31 @@ func (h *AIRecipeHandler) generateTitle(lang string, canCook bool) string {
 }
 
 // generateReason - генерация объяснения (TODO: заменить на AI)
+// 4️⃣ Временно повторяет цифры, но в продакшене AI не должен их повторять
 func (h *AIRecipeHandler) generateReason(lang string, match *service.RecipeMatch) string {
 	if match.CanCookNow {
 		switch lang {
 		case "ru":
 			return fmt.Sprintf("У вас есть %d из %d необходимых ингредиентов для %s (%.0f%% совпадение).",
-				match.MatchedCount, match.TotalIngredients, match.RecipeName, match.MatchRatio*100)
+				match.MatchedCount, match.TotalIngredients, match.DisplayName, match.MatchRatio*100)
 		case "pl":
 			return fmt.Sprintf("Masz %d z %d potrzebnych składników dla %s (%.0f%% dopasowanie).",
-				match.MatchedCount, match.TotalIngredients, match.RecipeName, match.MatchRatio*100)
+				match.MatchedCount, match.TotalIngredients, match.DisplayName, match.MatchRatio*100)
 		default:
 			return fmt.Sprintf("You have %d of %d required ingredients for %s (%.0f%% match).",
-				match.MatchedCount, match.TotalIngredients, match.RecipeName, match.MatchRatio*100)
+				match.MatchedCount, match.TotalIngredients, match.DisplayName, match.MatchRatio*100)
 		}
 	}
 
 	switch lang {
 	case "ru":
 		return fmt.Sprintf("Вам не хватает %d ингредиентов для %s.",
-			match.MissingCount, match.RecipeName)
+			match.MissingCount, match.DisplayName)
 	case "pl":
 		return fmt.Sprintf("Brakuje Ci %d składników dla %s.",
-			match.MissingCount, match.RecipeName)
+			match.MissingCount, match.DisplayName)
 	default:
 		return fmt.Sprintf("You're missing %d ingredients for %s.",
-			match.MissingCount, match.RecipeName)
+			match.MissingCount, match.DisplayName)
 	}
 }
