@@ -9,6 +9,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin"
 	aimodule "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recommendations"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recipe_recommendation"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/budget"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/business"
@@ -82,6 +83,7 @@ func (a *App) setupModularRoutes() http.Handler {
 	fridgeModule := fridge.NewModule(a.db)
 	aiModule := aimodule.NewModule(a.db)
 	aiRecommendationsModule := ai_recommendations.NewModule(a.db) // ЭТАП 3 - AI Recommendations
+	aiRecipeRecommendationModule := ai_recipe_recommendation.NewModule(a.db) // NEW: Architecture 2025 - Backend decides, AI explains
 	marketplaceModule := marketplace.NewModule(a.db)
 	// academyModule := academy.NewModule(a.db) // DISABLED: Not used in MVP
 	healthModule := health.NewModule(a.db)
@@ -138,6 +140,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register AI Recommendations module routes (ЭТАП 3 - Decision Engine)
 		aiRecommendationsModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register AI Recipe Recommendation module (Architecture 2025: Backend decides, AI explains)
+		aiRecipeRecommendationModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register marketplace module routes
 		marketplaceModule.RegisterRoutes(r, middleware.AuthMiddleware)
