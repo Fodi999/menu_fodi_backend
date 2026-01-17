@@ -93,7 +93,7 @@ func (h *AIRecipeHandler) GetRecommendation(w http.ResponseWriter, r *http.Reque
 		Title:           h.generateTitle(userLang, match.CanCookNow),
 		Reason:          h.generateReason(userLang, match),
 		IngredientsUsed: match.UserIngredients,
-		Confidence:      match.MatchRatio,
+		// 3️⃣ Confidence убран из AI - он ТОЛЬКО в recipe
 	}
 
 	_ = systemPrompt // TODO: использовать в OpenAI API
@@ -160,31 +160,25 @@ func (h *AIRecipeHandler) generateTitle(lang string, canCook bool) string {
 }
 
 // generateReason - генерация объяснения (TODO: заменить на AI)
-// 4️⃣ Временно повторяет цифры, но в продакшене AI не должен их повторять
+// 2️⃣ Mock БЕЗ повторения цифр (естественный язык)
 func (h *AIRecipeHandler) generateReason(lang string, match *service.RecipeMatch) string {
 	if match.CanCookNow {
 		switch lang {
 		case "ru":
-			return fmt.Sprintf("У вас есть %d из %d необходимых ингредиентов для %s (%.0f%% совпадение).",
-				match.MatchedCount, match.TotalIngredients, match.DisplayName, match.MatchRatio*100)
+			return "У вас есть все необходимые ингредиенты для приготовления этого блюда."
 		case "pl":
-			return fmt.Sprintf("Masz %d z %d potrzebnych składników dla %s (%.0f%% dopasowanie).",
-				match.MatchedCount, match.TotalIngredients, match.DisplayName, match.MatchRatio*100)
+			return "Masz wszystkie niezbędne składniki do przygotowania tego dania."
 		default:
-			return fmt.Sprintf("You have %d of %d required ingredients for %s (%.0f%% match).",
-				match.MatchedCount, match.TotalIngredients, match.DisplayName, match.MatchRatio*100)
+			return "You have all the necessary ingredients to prepare this dish."
 		}
 	}
 
 	switch lang {
 	case "ru":
-		return fmt.Sprintf("Вам не хватает %d ингредиентов для %s.",
-			match.MissingCount, match.DisplayName)
+		return fmt.Sprintf("Вам не хватает нескольких ингредиентов для приготовления %s.", match.DisplayName)
 	case "pl":
-		return fmt.Sprintf("Brakuje Ci %d składników dla %s.",
-			match.MissingCount, match.DisplayName)
+		return fmt.Sprintf("Brakuje Ci kilku składników do przygotowania %s.", match.DisplayName)
 	default:
-		return fmt.Sprintf("You're missing %d ingredients for %s.",
-			match.MissingCount, match.DisplayName)
+		return fmt.Sprintf("You're missing a few ingredients for %s.", match.DisplayName)
 	}
 }

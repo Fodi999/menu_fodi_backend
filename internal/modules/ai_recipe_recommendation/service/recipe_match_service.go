@@ -127,14 +127,15 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 		ingredientNames = append(ingredientNames, normalizeIngredientName(ing.GetName(lang)))
 	}
 	
-	// 1️⃣ Генерировать каноническое имя, если его нет
-	canonicalName := best.CanonicalName
-	if canonicalName == "" {
-		// Для user recipes генерируем из localName
-		canonicalName = generateCanonicalName(best.LocalName)
+	// 1️⃣ ВСЕГДА генерировать правильный canonical name (английский slug)
+	// Canonical name НИКОГДА не берётся из БД напрямую (может быть локализован)
+	canonicalName := generateCanonicalName(best.LocalName)
+	if canonicalName == "" || canonicalName == best.LocalName {
+		// Если не нашли в мапе - попробуем title
+		canonicalName = generateCanonicalName(best.Title)
 	}
 	
-	// 2️⃣ Локализовать название рецепта
+	// 2️⃣ Локализовать название рецепта (displayName)
 	displayName := localizeRecipeName(best, lang)
 	
 	// 3️⃣ Получить недостающие ингредиенты (для ALMOST_READY сценария)
@@ -171,14 +172,42 @@ func normalizeIngredientName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }
 
-// 1️⃣ generateCanonicalName - генерация канонического имени из localName
+// 1️⃣ generateCanonicalName - генерация канонического имени
+// Canonical name НИКОГДА не локализуется (всегда английский slug)
 func generateCanonicalName(localName string) string {
-	// "Яичница" -> "scrambled_eggs" (упрощенная версия)
-	// TODO: использовать транслитерацию или slug generation
-	name := strings.ToLower(localName)
-	name = strings.ReplaceAll(name, " ", "_")
-	name = strings.ReplaceAll(name, "-", "_")
-	return name
+	// Мапа для распространённых рецептов (ru/pl -> en)
+	knownRecipes := map[string]string{
+		"яичница":        "scrambled_eggs",
+		"jajecznica":     "scrambled_eggs",
+		"омлет":          "omelette",
+		"omlet":          "omelette",
+		"борщ":           "borscht",
+		"barszcz":        "borscht",
+		"блины":          "pancakes",
+		"naleśniki":      "pancakes",
+		"пельмени":       "dumplings",
+		"pierogi":        "dumplings",
+		"салат оливье":   "olivier_salad",
+		"сырники":        "syrniki",
+		"голубцы":        "cabbage_rolls",
+		"gołąbki":        "cabbage_rolls",
+		"щи":             "cabbage_soup",
+		"вареники":       "varenyky",
+		"котлеты":        "cutlets",
+		"kotlety":        "cutlets",
+	}
+	
+	normalized := strings.ToLower(strings.TrimSpace(localName))
+	
+	// Проверка известных рецептов
+	if canonical, exists := knownRecipes[normalized]; exists {
+		return canonical
+	}
+	
+	// Fallback: простой slug (не идеально, но работает)
+	slug := strings.ReplaceAll(normalized, " ", "_")
+	slug = strings.ReplaceAll(slug, "-", "_")
+	return slug
 }
 
 // 2️⃣ localizeRecipeName - нормализация названия рецепта
@@ -260,16 +289,16 @@ CRITICAL RULES:
 - Do NOT mix languages.
 - Do NOT invent ingredients.
 - Do NOT suggest other recipes.
-- Explain ONLY the provided recipe.
+- Do NOT repeat numeric values or percentages (backend already provides them).
+- Explain ONLY the provided recipe in natural language.
 - Be concise and clear.
 - Return ONLY valid JSON.
 
 Expected JSON format:
 {
   "title": "string",
-  "reason": "string",
-  "ingredientsUsed": ["string"],
-  "confidence": 0.0-1.0
+  "reason": "string (natural language, NO numbers)",
+  "ingredientsUsed": ["string"]
 }`, language)
 }
 
@@ -298,9 +327,9 @@ Explain in natural %s language why this recipe is recommended (or why they need 
 }
 
 // AIResponse - ожидаемый ответ AI (пункт 6)
+// 3️⃣ Confidence ТОЛЬКО в recipe, НЕ в AI response
 type AIResponse struct {
 	Title           string   `json:"title"`
-	Reason          string   `json:"reason"`
+	Reason          string   `json:"reason"`           // Естественный язык БЕЗ цифр
 	IngredientsUsed []string `json:"ingredientsUsed"`
-	Confidence      float64  `json:"confidence"`
 }
