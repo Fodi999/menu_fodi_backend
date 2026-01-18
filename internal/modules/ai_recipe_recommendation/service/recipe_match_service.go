@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -129,10 +130,10 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 	
 	// 1️⃣ ВСЕГДА генерировать правильный canonical name (английский slug)
 	// Canonical name НИКОГДА не берётся из БД напрямую (может быть локализован)
-	canonicalName := generateCanonicalName(best.LocalName)
+	canonicalName := utils.GenerateCanonicalName(best.LocalName)
 	if canonicalName == "" || canonicalName == best.LocalName {
 		// Если не нашли в мапе - попробуем title
-		canonicalName = generateCanonicalName(best.Title)
+		canonicalName = utils.GenerateCanonicalName(best.Title)
 	}
 	
 	// 2️⃣ Локализовать название рецепта (displayName)
@@ -170,44 +171,6 @@ func normalizeIngredientName(name string) string {
 	// "Соль каменная" -> "соль каменная"
 	// "свежие яйца" -> "свежие яйца"
 	return strings.ToLower(strings.TrimSpace(name))
-}
-
-// 1️⃣ generateCanonicalName - генерация канонического имени
-// Canonical name НИКОГДА не локализуется (всегда английский slug)
-func generateCanonicalName(localName string) string {
-	// Мапа для распространённых рецептов (ru/pl -> en)
-	knownRecipes := map[string]string{
-		"яичница":        "scrambled_eggs",
-		"jajecznica":     "scrambled_eggs",
-		"омлет":          "omelette",
-		"omlet":          "omelette",
-		"борщ":           "borscht",
-		"barszcz":        "borscht",
-		"блины":          "pancakes",
-		"naleśniki":      "pancakes",
-		"пельмени":       "dumplings",
-		"pierogi":        "dumplings",
-		"салат оливье":   "olivier_salad",
-		"сырники":        "syrniki",
-		"голубцы":        "cabbage_rolls",
-		"gołąbki":        "cabbage_rolls",
-		"щи":             "cabbage_soup",
-		"вареники":       "varenyky",
-		"котлеты":        "cutlets",
-		"kotlety":        "cutlets",
-	}
-	
-	normalized := strings.ToLower(strings.TrimSpace(localName))
-	
-	// Проверка известных рецептов
-	if canonical, exists := knownRecipes[normalized]; exists {
-		return canonical
-	}
-	
-	// Fallback: простой slug (не идеально, но работает)
-	slug := strings.ReplaceAll(normalized, " ", "_")
-	slug = strings.ReplaceAll(slug, "-", "_")
-	return slug
 }
 
 // 2️⃣ localizeRecipeName - нормализация названия рецепта

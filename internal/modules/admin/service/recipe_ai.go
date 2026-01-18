@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -384,8 +385,8 @@ func validateAIResponse(response *AIRecipeResponse, originalTitle string, origin
 
 // saveRecipeToDB сохраняет рецепт в нормализованные таблицы
 func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIRecipeResponse, authorID string) (*models.RecipeCatalog, error) {
-	// Генерируем canonical name из title
-	canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
+	// Генерируем canonical name из title (English slug)
+	canonicalName := utils.GenerateCanonicalName(req.Title)
 
 	// Проверка на дубликаты (using GORM field name, not SQL column)
 	var existing models.RecipeCatalog
@@ -541,8 +542,8 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	fmt.Printf("💾 Saving edited recipe: '%s' (lang=%s, %d ingredients, %d steps)\n",
 		req.Title, req.Language, len(req.Ingredients), len(req.Steps))
 
-	// Генерируем canonical name
-	canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
+	// Генерируем canonical name (English slug)
+	canonicalName := utils.GenerateCanonicalName(req.Title)
 
 	// Проверка на дубликаты
 	var existing models.RecipeCatalog
@@ -731,8 +732,7 @@ func (s *adminService) UpdateRecipe(recipeID string, req UpdateRecipeRequest) (*
 
 	// 2. Обновляем основные поля
 	recipe.Title = req.Title
-	canonicalName := strings.ToLower(strings.ReplaceAll(req.Title, " ", "_"))
-	recipe.CanonicalName = canonicalName
+	recipe.CanonicalName = utils.GenerateCanonicalName(req.Title)
 	recipe.Difficulty = req.Difficulty
 	recipe.TimeMinutes = req.TimeMinutes
 	recipe.Servings = req.Servings
