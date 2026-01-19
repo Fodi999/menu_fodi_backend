@@ -14,6 +14,7 @@ type Recipe struct {
 	Title         string  `json:"title" gorm:"column:title;type:varchar(255);not null"`
 	Description   string  `json:"description" gorm:"column:description;type:text"`
 	ImageUrl      string  `json:"imageUrl" gorm:"column:imageUrl;type:text"`
+	ImagePublicId string  `json:"imagePublicId,omitempty" gorm:"column:imagePublicId;type:text"` // Cloudinary public ID
 
 	// Recipe Metadata (shared with catalog recipes)
 	Country     string         `json:"country" gorm:"column:country;type:varchar(100);not null"`

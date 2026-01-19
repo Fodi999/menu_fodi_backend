@@ -102,5 +102,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Post("/recipes/save", m.handlers.SaveEditedRecipe)          // POST /api/admin/recipes/save - сохранить отредактированный рецепт
 		r.Put("/recipes/{id}", m.handlers.UpdateRecipe)               // PUT /api/admin/recipes/{id} - обновить существующий рецепт
 		r.Delete("/recipes/{id}", m.handlers.DeleteRecipe)            // DELETE /api/admin/recipes/{id} - удалить рецепт
+
+		// Recipe Image Management (Cloudinary)
+		r.Post("/recipes/{id}/image", m.handlers.UploadRecipeImage)   // POST /api/admin/recipes/{id}/image - загрузить изображение
+		r.Delete("/recipes/{id}/image", m.handlers.DeleteRecipeImage) // DELETE /api/admin/recipes/{id}/image - удалить изображение
 	})
 }
