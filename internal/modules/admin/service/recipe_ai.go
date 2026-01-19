@@ -500,15 +500,16 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 
 // SaveEditedRecipeRequest - структура для сохранения отредактированного рецепта
 type SaveEditedRecipeRequest struct {
-	Title       string             `json:"title"`        // Отредактированное название
-	Language    string             `json:"language"`     // Язык рецепта
-	Description string             `json:"description"`  // Отредактированное описание
-	Servings    int                `json:"servings"`     // Количество порций
-	TimeMinutes int                `json:"time_minutes"` // Время приготовления
-	Difficulty  string             `json:"difficulty"`   // easy, medium, hard
-	Calories    int                `json:"calories"`     // Калории
-	Ingredients []EditedIngredient `json:"ingredients"`  // Отредактированные ингредиенты
-	Steps       []EditedStep       `json:"steps"`        // Отредактированные шаги
+	RecipeID    *string            `json:"recipeId,omitempty"` // UUID рецепта (если редактирование существующего)
+	Title       string             `json:"title"`              // Отредактированное название
+	Language    string             `json:"language"`           // Язык рецепта
+	Description string             `json:"description"`        // Отредактированное описание
+	Servings    int                `json:"servings"`           // Количество порций
+	TimeMinutes int                `json:"time_minutes"`       // Время приготовления
+	Difficulty  string             `json:"difficulty"`         // easy, medium, hard
+	Calories    int                `json:"calories"`           // Калории
+	Ingredients []EditedIngredient `json:"ingredients"`        // Отредактированные ингредиенты
+	Steps       []EditedStep       `json:"steps"`              // Отредактированные шаги
 }
 
 // EditedIngredient - отредактированный ингредиент
@@ -545,9 +546,16 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	// Генерируем canonical name (English slug)
 	canonicalName := utils.GenerateCanonicalName(req.Title)
 
-	// Проверка на дубликаты
+	// Проверка на дубликаты (исключая текущий рецепт при редактировании)
 	var existing models.RecipeCatalog
-	if err := s.db.Where("\"canonicalName\" = ?", canonicalName).First(&existing).Error; err == nil {
+	query := s.db.Where("\"canonicalName\" = ?", canonicalName)
+	
+	// Если это редактирование (есть RecipeID), исключаем текущий рецепт из проверки
+	if req.RecipeID != nil && *req.RecipeID != "" {
+		query = query.Where("id != ?", *req.RecipeID)
+	}
+	
+	if err := query.First(&existing).Error; err == nil {
 		return nil, fmt.Errorf("recipe with similar name already exists: %s", canonicalName)
 	}
 
