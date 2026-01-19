@@ -1012,6 +1012,28 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 
 	fmt.Printf("💾 Edited recipe saved: %s [%s]\n", recipe.Title, recipe.ID)
 
+	// 🌐 АВТОПЕРЕВОД на 2 других языка (через background worker queue)
+	// Если рецепт новый (не редактирование), запускаем автоперевод
+	if req.RecipeID == nil {
+		// Подготавливаем steps для автоперевода
+		aiSteps := make([]RecipeStepAI, len(req.Steps))
+		for i, step := range req.Steps {
+			aiSteps[i] = RecipeStepAI{
+				Order: step.Order,
+				Text:  step.Text,
+				Time:  step.Time,
+			}
+		}
+		
+		s.enqueueTranslation(
+			recipe.ID.String(),
+			req.Language,
+			recipe.Title,
+			req.Description,
+			aiSteps,
+		)
+	}
+
 	return recipe, nil
 }
 
