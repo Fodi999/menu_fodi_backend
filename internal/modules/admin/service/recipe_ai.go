@@ -547,7 +547,176 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 	fmt.Printf("💾 Recipe saved: %s [%s] with %d ingredients, %d steps\n",
 		recipe.Title, recipe.ID, len(req.Ingredients), len(aiResponse.Steps))
 
+	// 🌐 АВТОПЕРЕВОД на 2 других языка (асинхронно, без блокировки)
+	// Запускаем в горутине чтобы не блокировать ответ пользователю
+	go s.autoTranslateRecipe(recipe.ID, aiResponse.Language, normalizedTitle, normalizedDescription, aiResponse.Steps)
+
 	return recipe, nil
+}
+
+// autoTranslateRecipe автоматически переводит рецепт на 2 других языка
+// Запускается в горутине (асинхронно)
+func (s *adminService) autoTranslateRecipe(recipeID uuid.UUID, originalLang, title, description string, steps []RecipeStepAI) {
+	fmt.Printf("🌐 Starting auto-translation for recipe %s (from %s)\n", recipeID, originalLang)
+
+	// Подготавливаем шаги для перевода
+	stepTexts := make([]string, len(steps))
+	for i, step := range steps {
+		stepTexts[i] = step.Text
+	}
+
+	// Вызываем AI для перевода напрямую
+	translation, err := s.translateRecipeViaAI(title, description, stepTexts)
+	if err != nil {
+		fmt.Printf("❌ Auto-translation failed for recipe %s: %v\n", recipeID, err)
+		return
+	}
+
+	// Обновляем рецепт в базе (только translation поля)
+	var recipe models.RecipeCatalog
+	if err := s.db.First(&recipe, "id = ?", recipeID).Error; err != nil {
+		fmt.Printf("❌ Recipe not found for translation: %s\n", recipeID)
+		return
+	}
+
+	// Сохраняем переводы в зависимости от оригинального языка
+	switch originalLang {
+	case "ru":
+		// Оригинал русский - переводим на PL и EN
+		recipe.NamePl = &translation.NamePL
+		recipe.NameEn = &translation.NameEN
+		recipe.DescriptionPl = &translation.DescriptionPL
+		recipe.DescriptionEn = &translation.DescriptionEN
+		
+		// Steps в JSONB
+		stepsPL, _ := json.Marshal(convertStringsToSteps(translation.StepsPL))
+		stepsEN, _ := json.Marshal(convertStringsToSteps(translation.StepsEN))
+		recipe.StepsPl = stepsPL
+		recipe.StepsEn = stepsEN
+
+	case "pl":
+		// Оригинал польский - переводим на EN и RU
+		recipe.NameEn = &translation.NameEN
+		recipe.NameRu = &translation.NameRU
+		recipe.DescriptionEn = &translation.DescriptionEN
+		recipe.DescriptionRu = &translation.DescriptionRU
+		
+		stepsEN, _ := json.Marshal(convertStringsToSteps(translation.StepsEN))
+		stepsRU, _ := json.Marshal(convertStringsToSteps(translation.StepsRU))
+		recipe.StepsEn = stepsEN
+		recipe.StepsRu = stepsRU
+
+	default: // "en"
+		// Оригинал английский - переводим на PL и RU
+		recipe.NamePl = &translation.NamePL
+		recipe.NameRu = &translation.NameRU
+		recipe.DescriptionPl = &translation.DescriptionPL
+		recipe.DescriptionRu = &translation.DescriptionRU
+		
+		stepsPL, _ := json.Marshal(convertStringsToSteps(translation.StepsPL))
+		stepsRU, _ := json.Marshal(convertStringsToSteps(translation.StepsRU))
+		recipe.StepsPl = stepsPL
+		recipe.StepsRu = stepsRU
+	}
+
+	// Сохраняем обновления
+	if err := s.db.Save(&recipe).Error; err != nil {
+		fmt.Printf("❌ Failed to save translations for recipe %s: %v\n", recipeID, err)
+		return
+	}
+
+	fmt.Printf("✅ Auto-translation completed for recipe %s\n", recipeID)
+}
+
+// translateRecipeViaAI вызывает AI для перевода рецепта на 3 языка
+func (s *adminService) translateRecipeViaAI(name, description string, steps []string) (*RecipeTranslation, error) {
+	// Build steps text
+	stepsText := ""
+	if len(steps) > 0 {
+		stepsText = strings.Join(steps, "\n")
+	}
+
+	// Create AI prompt for translation
+	prompt := fmt.Sprintf(`You are a professional culinary translator. Translate the following recipe to Polish (PL), English (EN), and Russian (RU).
+
+RECIPE NAME:
+%s
+
+DESCRIPTION:
+%s
+
+STEPS:
+%s
+
+Return ONLY valid JSON in this exact format (no markdown, no comments):
+{
+  "name_pl": "translated name in Polish",
+  "name_en": "translated name in English", 
+  "name_ru": "translated name in Russian",
+  "description_pl": "translated description in Polish",
+  "description_en": "translated description in English",
+  "description_ru": "translated description in Russian",
+  "steps_pl": ["step 1 in Polish", "step 2 in Polish"],
+  "steps_en": ["step 1 in English", "step 2 in English"],
+  "steps_ru": ["step 1 in Russian", "step 2 in Russian"]
+}
+
+CRITICAL RULES:
+1. Return ONLY valid JSON (no markdown blocks)
+2. Keep culinary terminology accurate
+3. Preserve all cooking details
+4. Maintain professional tone
+5. If original is empty, return empty string
+6. Number of steps must match in all languages
+
+Return the JSON now:`, name, description, stepsText)
+
+	// Call AI
+	response, err := s.groqClient.SimpleChat("", prompt)
+	if err != nil {
+		return nil, fmt.Errorf("AI translation failed: %w", err)
+	}
+
+	// Parse JSON response
+	response = strings.TrimSpace(response)
+	// Remove markdown code blocks if present
+	response = strings.TrimPrefix(response, "```json")
+	response = strings.TrimPrefix(response, "```")
+	response = strings.TrimSuffix(response, "```")
+	response = strings.TrimSpace(response)
+
+	var translation RecipeTranslation
+	if err := json.Unmarshal([]byte(response), &translation); err != nil {
+		return nil, fmt.Errorf("failed to parse AI translation response: %w", err)
+	}
+
+	return &translation, nil
+}
+
+// RecipeTranslation represents translated recipe fields
+type RecipeTranslation struct {
+	NamePL        string   `json:"name_pl"`
+	NameEN        string   `json:"name_en"`
+	NameRU        string   `json:"name_ru"`
+	DescriptionPL string   `json:"description_pl"`
+	DescriptionEN string   `json:"description_en"`
+	DescriptionRU string   `json:"description_ru"`
+	StepsPL       []string `json:"steps_pl"`
+	StepsEN       []string `json:"steps_en"`
+	StepsRU       []string `json:"steps_ru"`
+}
+
+// convertStringsToSteps конвертирует []string в []RecipeStepAI для JSONB
+func convertStringsToSteps(texts []string) []RecipeStepAI {
+	steps := make([]RecipeStepAI, len(texts))
+	for i, text := range texts {
+		steps[i] = RecipeStepAI{
+			Order: i + 1,
+			Text:  text,
+			Time:  0, // Время неизвестно
+		}
+	}
+	return steps
 }
 
 // ===========================
