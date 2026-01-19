@@ -382,7 +382,7 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 	// Format response
 	recipesData := make([]map[string]interface{}, len(recipes))
 	for i, recipe := range recipes {
-		recipesData[i] = map[string]interface{}{
+		recipeData := map[string]interface{}{
 			"id":            recipe.ID.String(),
 			"canonicalName": recipe.CanonicalName,
 			"localName":     recipe.LocalName,
@@ -392,6 +392,13 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 			"timeMinutes":   recipe.TimeMinutes,
 			"servings":      recipe.Servings,
 		}
+		
+		// Add imageUrl if present
+		if recipe.ImageUrl != "" {
+			recipeData["imageUrl"] = recipe.ImageUrl
+		}
+		
+		recipesData[i] = recipeData
 	}
 
 	w.WriteHeader(http.StatusOK)
