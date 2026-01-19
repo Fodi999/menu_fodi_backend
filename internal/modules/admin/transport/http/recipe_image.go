@@ -80,10 +80,14 @@ func (h *AdminHandlers) UploadRecipeImage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Update recipe in database
-	recipe.ImageUrl = uploadResult.SecureURL
-	recipe.ImagePublicId = uploadResult.PublicID
-	if err := h.service.DB().Save(&recipe).Error; err != nil {
+	// Update ONLY image fields in database (avoid FK constraint issues)
+	// Using Updates() instead of Save() to update specific fields only
+	updates := map[string]interface{}{
+		"imageUrl":      uploadResult.SecureURL,
+		"imagePublicId": uploadResult.PublicID,
+	}
+	
+	if err := h.service.DB().Model(&models.Recipe{}).Where("id = ?", recipeID).Updates(updates).Error; err != nil {
 		// CRITICAL: Transactional integrity - cleanup uploaded image
 		// Cloudinary upload succeeded but DB save failed
 		// Must delete orphaned image to prevent storage bloat
@@ -91,7 +95,7 @@ func (h *AdminHandlers) UploadRecipeImage(w http.ResponseWriter, r *http.Request
 			// Log cleanup failure but don't expose to user
 			fmt.Printf("CRITICAL: Failed to cleanup orphaned image after DB save failure. PublicID: %s, Error: %v\n", uploadResult.PublicID, cleanupErr)
 		}
-		utils.WriteError(w, http.StatusInternalServerError, "Failed to save image URL to database")
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to save image URL to database: %v", err))
 		return
 	}
 
@@ -150,11 +154,14 @@ func (h *AdminHandlers) DeleteRecipeImage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Update recipe in database
-	recipe.ImageUrl = ""
-	recipe.ImagePublicId = ""
-	if err := h.service.DB().Save(&recipe).Error; err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, "Failed to update recipe")
+	// Update ONLY image fields in database (avoid FK constraint issues)
+	updates := map[string]interface{}{
+		"imageUrl":      "",
+		"imagePublicId": "",
+	}
+	
+	if err := h.service.DB().Model(&models.Recipe{}).Where("id = ?", recipeID).Updates(updates).Error; err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to update recipe: %v", err))
 		return
 	}
 
