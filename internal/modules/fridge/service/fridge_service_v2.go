@@ -55,13 +55,17 @@ type AddFridgeItemRequest struct {
 func (r *AddFridgeItemRequest) GetPriceTotal() float64 {
 	// Приоритет: PriceInput > PriceTotal
 	if r.PriceInput != nil && r.PriceInput.Value > 0 {
-		// Если PriceInput.Per совпадает с Unit, используем value напрямую
-		// Иначе это цена за единицу, умножаем на количество
+		// PriceInput.Per совпадает с Unit = это ОБЩАЯ цена за весь товар
+		// Например: {value: 4.4, per: "ml"} для 1000ml = 4.4 PLN за всё
 		if r.PriceInput.Per == r.Unit {
 			return r.PriceInput.Value
 		}
-		// Цена указана за единицу (например, "78.44 PLN за 1g")
-		// Пересчитываем на общее количество
+		// PriceInput.Per == "total" или "item" = тоже общая цена
+		if r.PriceInput.Per == "total" || r.PriceInput.Per == "item" {
+			return r.PriceInput.Value
+		}
+		// Иначе считаем что это цена за 1 единицу, умножаем
+		// (маловероятный случай, но оставим для совместимости)
 		return r.PriceInput.Value * r.Quantity
 	}
 	// Fallback на старый формат

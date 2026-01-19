@@ -80,6 +80,11 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 	if req.PriceInput != nil {
 		normalized, err := s.normalizePrice(req.PriceInput.Value, req.PriceInput.Per, ingredient.Unit)
 		if err != nil {
+			logger.Error("failed to normalize price",
+				zap.Float64("value", req.PriceInput.Value),
+				zap.String("per", req.PriceInput.Per),
+				zap.String("unit", ingredient.Unit),
+				zap.Error(err))
 			return nil, fmt.Errorf("invalid price input: %w", err)
 		}
 
@@ -91,8 +96,13 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		}
 
 		if err := s.AddPrice(userID, item.ID, priceReq); err != nil {
-			// Не фейлим весь запрос из-за цены, просто логируем
-			fmt.Printf("warning: failed to add initial price: %v\n", err)
+			// Логируем ошибку с деталями
+			logger.Error("failed to add initial price",
+				zap.String("user_id", userID),
+				zap.String("item_id", item.ID),
+				zap.Float64("normalized", normalized),
+				zap.Error(err))
+			// НЕ фейлим весь запрос из-за цены - продукт уже создан
 		}
 	}
 
@@ -399,15 +409,29 @@ func (s *FridgeService) normalizePrice(value float64, per string, unit string) (
 		// 2.50 PLN / l → 0.0025 PLN / ml
 		return value / 1000, nil
 
-	case "szt":
-		if unit != "szt" {
-			return 0, fmt.Errorf("unit mismatch: price per szt requires unit szt, got %s", unit)
+	case "g":
+		if unit != "g" {
+			return 0, fmt.Errorf("unit mismatch: price per g requires unit g, got %s", unit)
 		}
-		// 1.00 PLN / szt → 1.00 PLN / szt (без изменений)
+		// 0.0032 PLN / g → 0.0032 PLN / g (без изменений)
+		return value, nil
+
+	case "ml":
+		if unit != "ml" {
+			return 0, fmt.Errorf("unit mismatch: price per ml requires unit ml, got %s", unit)
+		}
+		// 0.0025 PLN / ml → 0.0025 PLN / ml (без изменений)
+		return value, nil
+
+	case "pcs", "szt":
+		if unit != "pcs" && unit != "szt" {
+			return 0, fmt.Errorf("unit mismatch: price per pcs requires unit pcs, got %s", unit)
+		}
+		// 1.00 PLN / pcs → 1.00 PLN / pcs (без изменений)
 		return value, nil
 
 	default:
-		return 0, fmt.Errorf("unknown price unit: %s (supported: kg, l, szt)", per)
+		return 0, fmt.Errorf("unknown price unit: %s (supported: kg, l, g, ml, szt, pcs)", per)
 	}
 }
 
