@@ -606,44 +606,34 @@ func (s *adminService) processTranslation(ctx context.Context, job TranslationJo
 		return fmt.Errorf("recipe not found for translation: %w", err)
 	}
 
-	// Сохраняем переводы в зависимости от оригинального языка
-	switch job.Language {
-	case "ru":
-		// Оригинал русский - переводим на PL и EN
-		recipe.NamePl = &translation.NamePL
-		recipe.NameEn = &translation.NameEN
-		recipe.DescriptionPl = &translation.DescriptionPL
-		recipe.DescriptionEn = &translation.DescriptionEN
-		
-		// Steps в JSONB
-		stepsPL, _ := json.Marshal(convertStringsToSteps(translation.StepsPL))
-		stepsEN, _ := json.Marshal(convertStringsToSteps(translation.StepsEN))
-		recipe.StepsPl = stepsPL
-		recipe.StepsEn = stepsEN
-
-	case "pl":
-		// Оригинал польский - переводим на EN и RU
-		recipe.NameEn = &translation.NameEN
-		recipe.NameRu = &translation.NameRU
-		recipe.DescriptionEn = &translation.DescriptionEN
-		recipe.DescriptionRu = &translation.DescriptionRU
-		
-		stepsEN, _ := json.Marshal(convertStringsToSteps(translation.StepsEN))
-		stepsRU, _ := json.Marshal(convertStringsToSteps(translation.StepsRU))
-		recipe.StepsEn = stepsEN
-		recipe.StepsRu = stepsRU
-
-	default: // "en"
-		// Оригинал английский - переводим на PL и RU
-		recipe.NamePl = &translation.NamePL
-		recipe.NameRu = &translation.NameRU
-		recipe.DescriptionPl = &translation.DescriptionPL
-		recipe.DescriptionRu = &translation.DescriptionRU
-		
-		stepsPL, _ := json.Marshal(convertStringsToSteps(translation.StepsPL))
-		stepsRU, _ := json.Marshal(convertStringsToSteps(translation.StepsRU))
-		recipe.StepsPl = stepsPL
-		recipe.StepsRu = stepsRU
+	// ВСЕГДА заполняем все 3 языка (name_pl, name_en, name_ru)
+	// независимо от оригинального языка
+	recipe.NamePl = &translation.NamePL
+	recipe.NameEn = &translation.NameEN
+	recipe.NameRu = &translation.NameRU
+	
+	recipe.DescriptionPl = &translation.DescriptionPL
+	recipe.DescriptionEn = &translation.DescriptionEN
+	recipe.DescriptionRu = &translation.DescriptionRU
+	
+	// Steps в JSONB для всех языков
+	stepsPL, _ := json.Marshal(convertStringsToSteps(translation.StepsPL))
+	stepsEN, _ := json.Marshal(convertStringsToSteps(translation.StepsEN))
+	stepsRU, _ := json.Marshal(convertStringsToSteps(translation.StepsRU))
+	
+	recipe.StepsPl = stepsPL
+	recipe.StepsEn = stepsEN
+	recipe.StepsRu = stepsRU
+	
+	// Fallback: если какой-то язык не заполнен AI, копируем из title
+	if recipe.NameRu == nil || *recipe.NameRu == "" {
+		recipe.NameRu = &recipe.Title
+	}
+	if recipe.NamePl == nil || *recipe.NamePl == "" {
+		recipe.NamePl = &recipe.Title
+	}
+	if recipe.NameEn == nil || *recipe.NameEn == "" {
+		recipe.NameEn = &recipe.Title
 	}
 
 	// Сохраняем обновления
