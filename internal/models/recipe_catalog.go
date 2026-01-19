@@ -34,6 +34,10 @@ type RecipeCatalog struct {
 	PortionWeightGrams *int           `gorm:"column:portionWeightGrams" json:"portionWeightGrams,omitempty"` // Total weight of one serving in grams
 	Steps              datatypes.JSON `gorm:"type:jsonb;not null;default:'[]'" json:"steps"`                 // [{"step":1,"instruction":"..."}] - DEPRECATED: use Steps* fields
 
+	// Cloudinary image fields
+	ImageUrl      string `gorm:"column:imageUrl;type:text" json:"imageUrl,omitempty"`
+	ImagePublicId string `gorm:"column:imagePublicId;type:text" json:"imagePublicId,omitempty"`
+
 	// Multilingual steps (cooking instructions)
 	StepsPl datatypes.JSON `gorm:"column:steps_pl;type:jsonb" json:"stepsPl,omitempty"`
 	StepsEn datatypes.JSON `gorm:"column:steps_en;type:jsonb" json:"stepsEn,omitempty"`
