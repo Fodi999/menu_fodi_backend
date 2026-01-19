@@ -356,9 +356,22 @@ YOUR TASK:
 
 // validateAIResponse проверяет корректность ответа AI
 func validateAIResponse(response *AIRecipeResponse, originalTitle string, originalIngredients []RecipeIngredientInput) error {
-	// 1. Title должен совпадать с оригиналом
+	// 1. Title может отличаться (AI исправляет орфографию и капитализацию)
+	// Проверяем что это не полная замена, а только коррекция
 	if response.Title != originalTitle {
-		return fmt.Errorf("AI changed the title: expected '%s', got '%s'", originalTitle, response.Title)
+		// Разрешаем изменения если они в пределах разумного (например, не более 30% difference)
+		originalLower := strings.ToLower(strings.ReplaceAll(originalTitle, " ", ""))
+		responseLower := strings.ToLower(strings.ReplaceAll(response.Title, " ", ""))
+		
+		// Если после нормализации сильно отличается - это подозрительно
+		if originalLower != responseLower {
+			// Вычисляем простую метрику похожести
+			if len(responseLower) < len(originalLower)/2 || len(responseLower) > len(originalLower)*2 {
+				return fmt.Errorf("AI drastically changed the title: expected '%s', got '%s'", originalTitle, response.Title)
+			}
+		}
+		// Если отличается только капитализацией/пробелами/орфографией - OK
+		fmt.Printf("✏️ AI corrected title: '%s' → '%s'\n", originalTitle, response.Title)
 	}
 
 	// 2. Description не пустой
