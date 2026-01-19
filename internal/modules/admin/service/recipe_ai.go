@@ -167,7 +167,16 @@ func (s *adminService) PreviewRecipeWithAI(req CreateRecipeAIRequest) (*AIRecipe
 		return nil, fmt.Errorf("AI generation failed: %w", err)
 	}
 
-	fmt.Printf("🔍 Recipe preview generated: %s (%d steps)\n", req.Title, len(aiResponse.Steps))
+	// 🔥 BACKEND НОРМАЛИЗАЦИЯ - гарантия качества (даже в preview)
+	aiResponse.Title = utils.CapitalizeTitle(aiResponse.Title)
+	aiResponse.Description = utils.CleanRecipeText(aiResponse.Description)
+	
+	// Нормализуем шаги
+	for i := range aiResponse.Steps {
+		aiResponse.Steps[i].Text = utils.CleanRecipeText(aiResponse.Steps[i].Text)
+	}
+
+	fmt.Printf("🔍 Recipe preview generated: %s (%d steps)\n", aiResponse.Title, len(aiResponse.Steps))
 	return aiResponse, nil
 }
 
@@ -219,11 +228,27 @@ func (s *adminService) enrichIngredientsForAI(inputs []RecipeIngredientInput, la
 
 // generateRecipeViaAI вызывает Groq AI для структурирования рецепта
 func (s *adminService) generateRecipeViaAI(context AIRecipePromptContext) (*AIRecipeResponse, error) {
-	// SYSTEM PROMPT: Строгие правила для сохранения данных пользователя
-	systemPrompt := fmt.Sprintf(`You are a professional chef and food technologist.
+	// SYSTEM PROMPT: Строгие правила для сохранения данных + исправление качества текста
+	systemPrompt := fmt.Sprintf(`You are a professional chef, food technologist, and food editor.
 
-CRITICAL RULES - MUST FOLLOW STRICTLY:
-1. DO NOT change the recipe title provided by the user
+CRITICAL TEXT QUALITY RULES (MANDATORY):
+1. Fix ALL spelling mistakes in recipe title, description, and steps
+   - Example: "яишница" → "яичница", "egs" → "eggs", "tomatoe" → "tomato"
+2. Recipe title MUST start with a capital letter
+3. Each step MUST start with a capital letter
+4. Description MUST start with a capital letter
+5. Use correct culinary terminology in %s language
+6. NEVER preserve typos or incorrect casing from user input
+7. DO NOT use emojis in recipe text
+8. Remove extra whitespace
+
+USER INPUT MAY CONTAIN:
+- Spelling mistakes (you MUST correct them)
+- Lowercase letters (you MUST capitalize appropriately)
+- Incorrect casing (you MUST fix it)
+
+CRITICAL DATA PRESERVATION RULES:
+1. DO NOT change ingredient quantities or units
 2. DO NOT invent, add, or remove any ingredients
 3. Use ONLY the ingredients provided with their EXACT amounts and units
 4. Return the recipe in the language specified: %s
@@ -249,43 +274,50 @@ IMPORTANT:
 
 STRICT JSON SCHEMA (return ONLY this structure):
 {
-  "title": "string - EXACT title from user input",
+  "title": "string - CORRECTED title with proper spelling and capitalization",
   "language": "string - %s",
-  "description": "string - 1-2 sentence description in %s",
+  "description": "string - 1-2 sentence description in %s (capitalized, no typos)",
   "servings": number,
   "time_minutes": number,
   "difficulty": "easy|medium|hard",
   "calories": number,
   "steps": [
-    {"order": number, "text": "string in %s", "time": number}
+    {"order": number, "text": "string in %s (capitalized, no typos)", "time": number}
   ],
   "ingredients": [
     {
       "ingredientId": "uuid from input",
-      "name": "string - ingredient name in %s",
+      "name": "string - ingredient name in %s (corrected spelling)",
       "amount": number - EXACT from input,
       "unit": "string - EXACT from input"
     }
   ]
 }
 
-Remember: You are structuring existing data, NOT creating a new recipe. Preserve all user input.`,
-		context.Language, context.Language, context.Language, context.Language, context.Language, context.Language)
+Remember: You are a professional editor. Fix spelling and casing, preserve quantities.`,
+		context.Language, context.Language, context.Language, context.Language, context.Language, context.Language, context.Language)
 
 	// USER PROMPT: Передаем данные для структурирования
 	ingredientsJSON, _ := json.Marshal(context.Ingredients)
-	userPrompt := fmt.Sprintf(`Structure this recipe data:
+	userPrompt := fmt.Sprintf(`⚠️ IMPORTANT: The user input below may contain spelling mistakes and lowercase letters. You MUST correct them.
 
-Title: %s
+Original title (may have typos):
+"%s"
+
 Language: %s
 
 Ingredients (preserve IDs and amounts exactly):
 %s
 
-Raw Cooking Instructions:
+Raw Cooking Instructions (may have typos):
 %s
 
-Return ONLY JSON. No markdown, no explanations.`, context.Title, context.Language, string(ingredientsJSON), context.RawCookingText)
+YOUR TASK:
+1. Fix spelling mistakes in title and instructions
+2. Capitalize title, description, and each step
+3. Structure the data according to JSON schema
+4. Return ONLY JSON (no markdown, no explanations)`,
+		context.Title, context.Language, string(ingredientsJSON), context.RawCookingText)
 
 	fmt.Printf("🤖 Calling AI for recipe: %s\n", context.Title)
 	fmt.Printf("📋 Ingredients count: %d\n", len(context.Ingredients))
@@ -385,8 +417,19 @@ func validateAIResponse(response *AIRecipeResponse, originalTitle string, origin
 
 // saveRecipeToDB сохраняет рецепт в нормализованные таблицы
 func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIRecipeResponse, authorID string) (*models.RecipeCatalog, error) {
-	// Генерируем canonical name из title (English slug)
-	canonicalName := utils.GenerateCanonicalName(req.Title)
+	// 🔥 BACKEND НОРМАЛИЗАЦИЯ - гарантия качества (даже если AI ошибся)
+	// Этот код - источник истины, не доверяем AI на 100%
+	normalizedTitle := utils.CapitalizeTitle(aiResponse.Title)
+	normalizedDescription := utils.CleanRecipeText(aiResponse.Description)
+	
+	// Нормализуем шаги (капитализация, очистка)
+	for i := range aiResponse.Steps {
+		aiResponse.Steps[i].Text = utils.CleanRecipeText(aiResponse.Steps[i].Text)
+	}
+	
+	// Генерируем canonical name из normalized title (English slug)
+	// КРИТИЧНО: canonical name БЕЗ опечаток и кириллицы
+	canonicalName := utils.GenerateCanonicalName(normalizedTitle)
 
 	// Проверка на дубликаты (using GORM field name, not SQL column)
 	var existing models.RecipeCatalog
@@ -407,23 +450,23 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 	recipe := &models.RecipeCatalog{
 		ID:            uuid.New(),
 		CanonicalName: canonicalName,
-		Title:         aiResponse.Title, // Используем title из AI (должен совпадать с req.Title)
-		Country:       "pl",             // Default, можно добавить в запрос
-		Category:      "main",           // Default, можно добавить в запрос
+		Title:         normalizedTitle,  // 🔥 Нормализованный title (Яичница, не яишница)
+		Country:       "pl",              // Default, можно добавить в запрос
+		Category:      "main",            // Default, можно добавить в запрос
 		Difficulty:    aiResponse.Difficulty,
 		TimeMinutes:   aiResponse.TimeMinutes,
 		Servings:      aiResponse.Servings,
 		Source:        datatypes.JSON(sourceJSON),
 	}
 
-	// Сохраняем description (в зависимости от языка)
+	// Сохраняем description (нормализованный, в зависимости от языка)
 	switch aiResponse.Language {
 	case "pl":
-		recipe.DescriptionPl = &aiResponse.Description
+		recipe.DescriptionPl = &normalizedDescription
 	case "ru":
-		recipe.DescriptionRu = &aiResponse.Description
+		recipe.DescriptionRu = &normalizedDescription
 	default: // "en"
-		recipe.DescriptionEn = &aiResponse.Description
+		recipe.DescriptionEn = &normalizedDescription
 	}
 
 	// Начинаем транзакцию
