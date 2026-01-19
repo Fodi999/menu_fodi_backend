@@ -9,7 +9,7 @@ Backend: "Creating NEW recipe with NEW UUID..."
 Database: ERROR duplicate key "canonicalName" ❌
 ```
 
-## ✅ Solution (2 commits)
+## ✅ Solution (3 commits)
 
 ### Commit 1: `afc8906` - Duplicate Check Fix
 - Added `RecipeID *string` field to `SaveEditedRecipeRequest`
@@ -24,6 +24,12 @@ if req.RecipeID != nil && *req.RecipeID != "" {
 - Added `isEditMode` detection: `recipeId != nil && recipeId != ""`
 - **EDIT MODE**: Load existing → update fields → `Updates(map)`
 - **CREATE MODE**: New UUID → `Create()` → `Save()`
+
+### Commit 3: `50b8dd8` - Column Name Fix
+- Fixed delete old ingredients query
+- **Problem**: `WHERE recipe_id = ?` → ERROR: column does not exist
+- **Solution**: `WHERE "recipeId" = ?` (use camelCase with quotes)
+- **Reason**: Database column is `recipeId`, not `recipe_id`
 
 ## 🔧 Technical Changes
 
@@ -166,12 +172,53 @@ INSERT INTO "Recipe" (...) VALUES (...) RETURNING id;     -- Insert new
 
 ## ✅ Status
 
-- **Commits:** `afc8906` + `ac5d7d4`
+- **Commits:** `afc8906` + `ac5d7d4` + `50b8dd8`
 - **Deployed:** Production (Koyeb auto-deploy)
-- **Tested:** Waiting for frontend verification
+- **Tested:** Waiting for Koyeb deployment + frontend verification
 - **Priority:** Critical (editing was completely broken)
 
-## 🔗 Related Docs
+---
+
+## ⚠️ Common Issues
+
+### 1. "column recipe_id does not exist"
+**Error:**
+```
+ERROR: column "recipe_id" does not exist (SQLSTATE 42703)
+DELETE FROM "CatalogIngredient" WHERE recipe_id = '...'
+```
+
+**Fix:** Use camelCase with quotes
+```go
+// ❌ WRONG
+tx.Where("recipe_id = ?", id)
+
+// ✅ CORRECT  
+tx.Where("\"recipeId\" = ?", id)
+```
+
+### 2. "duplicate key violates unique constraint"
+**Error:**
+```
+ERROR: duplicate key value violates unique constraint "Recipe_canonicalName_unique"
+INSERT INTO "Recipe" (...)
+```
+
+**Fix:** Ensure `isEditMode` logic works - load existing recipe, don't create new
+
+### 3. Frontend not sending recipeId
+**Symptom:** Edit always creates new recipe
+
+**Fix:** Frontend must send `recipeId` in request body:
+```typescript
+body: JSON.stringify({
+  recipeId: "4aa22783-45cc-4fc4-8800-4340a5c93ce9",  // ✅ Required!
+  title: "...",
+  // ...
+})
+```
+
+---
 
 - Full explanation: `docs/RECIPE_EDIT_DUPLICATE_FIX.md`
 - Image upload guide: `docs/CLOUDINARY_IMAGE_UPLOAD_GUIDE.md`

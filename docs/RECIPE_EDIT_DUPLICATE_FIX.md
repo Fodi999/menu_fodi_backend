@@ -363,11 +363,37 @@ tx.Model(recipe).Updates(map[string]interface{}{
 
 ## 📝 Commits
 
+- **Column name fix:** `50b8dd8` - "Fix column name in delete old ingredients query"
 - **Main fix (CREATE/UPDATE):** `ac5d7d4` - "Fix SaveEditedRecipe - properly handle create vs update modes"
 - **Duplicate check fix:** `afc8906` - "Fix recipe edit duplicate check - allow same name when editing"
 - **Related (image URL):** 
   - `6324d6b` - Add imageUrl to admin RecipeResponse
   - `43a1fa2` - Add imageUrl to RecipeCatalog model
+
+---
+
+## ⚠️ Troubleshooting
+
+### Issue: "column recipe_id does not exist"
+
+**Symptom:**
+```
+ERROR: column "recipe_id" does not exist (SQLSTATE 42703)
+DELETE FROM "CatalogIngredient" WHERE recipe_id = '...'
+```
+
+**Cause:** Database column uses camelCase (`recipeId`), not snake_case (`recipe_id`)
+
+**Solution:** Use quoted column name
+```go
+// ❌ WRONG
+tx.Where("recipe_id = ?", recipe.ID).Delete(&models.CatalogIngredient{})
+
+// ✅ CORRECT
+tx.Where("\"recipeId\" = ?", recipe.ID).Delete(&models.CatalogIngredient{})
+```
+
+**Fixed in:** Commit `50b8dd8`
 
 ---
 

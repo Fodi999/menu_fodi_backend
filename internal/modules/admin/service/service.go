@@ -11,6 +11,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
+	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -1051,20 +1052,25 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		return nil, fmt.Errorf("INGREDIENT_ALREADY_EXISTS: %s (id: %s)", classification.NormalizedValue, existing.ID)
 	}
 
-	// 3️⃣ Создание ингредиента
+	// 3️⃣ Создание ингредиента с капитализацией названий
 	id := uuid.New().String()
 	normalized := strings.ToLower(classification.NormalizedValue)
 
+	// 🔠 Применяем капитализацию для всех отображаемых названий
+	namePL := utils.Capitalize(classification.NamePL)
+	nameEN := utils.Capitalize(classification.NameEN)
+	nameRU := utils.Capitalize(classification.NameRU)
+
 	ingredient := &models.Ingredient{
 		ID:              id,
-		Name:            classification.NameEN, // Legacy - английское название
-		NamePL:          &classification.NamePL,
-		NameEN:          &classification.NameEN,
-		NameRU:          &classification.NameRU,
-		NormalizedValue: &normalized,
-		Unit:            classification.Unit,
-		Category:        classification.Category,
-		NutritionGroup:  classification.NutritionGroup,
+		Name:            nameEN, // Legacy - английское название с капитализацией
+		NamePL:          &namePL,
+		NameEN:          &nameEN,
+		NameRU:          &nameRU,
+		NormalizedValue: &normalized, // 🔑 Всегда lowercase
+		Unit:            classification.Unit,            // lowercase
+		Category:        classification.Category,        // lowercase
+		NutritionGroup:  classification.NutritionGroup,  // lowercase
 		AutoTranslated:  true,
 	}
 
@@ -1073,8 +1079,8 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		return nil, fmt.Errorf("failed to save to database: %w", err)
 	}
 
-	fmt.Printf("💾 Ingredient created: %s [%s] category=%s nutrition_group=%s unit=%s\n",
-		classification.NameEN, id, classification.Category, classification.NutritionGroup, classification.Unit)
+	fmt.Printf("💾 Ingredient created: %s [%s] (PL: %s, RU: %s) category=%s nutrition_group=%s unit=%s\n",
+		nameEN, id, namePL, nameRU, classification.Category, classification.NutritionGroup, classification.Unit)
 
 	return ingredient, nil
 }
