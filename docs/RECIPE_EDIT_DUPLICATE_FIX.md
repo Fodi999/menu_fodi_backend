@@ -1,102 +1,165 @@
-# Исправление: Редактирование рецепта с тем же названием
+# Исправление: Редактирование рецепта - CREATE vs UPDATE
 
 ## 🐛 Проблема
 
-При редактировании рецепта пользователь получал ошибку **409 Conflict** даже если менял только содержимое (ингредиенты, шаги, фото), оставляя название неизменным:
+При редактировании рецепта пользователь получал ошибку **500 Internal Server Error** с duplicate key constraint:
 
 ```
-POST /api/admin/recipes/save 409 (Conflict)
-{
-  "success": false,
-  "code": "RECIPE_NAME_EXISTS",
-  "message": "Рецепт с таким названием уже существует"
-}
+POST /api/admin/recipes/save 500 (Internal Server Error)
+
+Backend log:
+ERROR: duplicate key value violates unique constraint "Recipe_canonicalName_unique" (SQLSTATE 23505)
+INSERT INTO "Recipe" ("canonicalName", ...) VALUES ('яйца_жареные_на_масле', ...)
 ```
 
-### Причина
+### Корневая причина
 
-Функция `SaveEditedRecipe` проверяла уникальность `canonicalName` во всей таблице, но **не исключала текущий редактируемый рецепт** из проверки. Результат: рецепт находил сам себя и выдавал ложное срабатывание.
+Функция `SaveEditedRecipe` **всегда создавала новый рецепт** (INSERT), даже когда frontend передавал `recipeId` для редактирования существующего:
 
 ```go
 // ❌ БЫЛО (неправильно)
-var existing models.RecipeCatalog
-if err := s.db.Where("\"canonicalName\" = ?", canonicalName).First(&existing).Error; err == nil {
-    return nil, fmt.Errorf("recipe with similar name already exists: %s", canonicalName)
+recipe := &models.RecipeCatalog{
+    ID:            uuid.New(),  // ❌ Всегда новый UUID!
+    CanonicalName: canonicalName,
+    Title:         req.Title,
+    // ...
 }
-// Проблема: находит сам редактируемый рецепт!
+
+// ❌ Всегда INSERT
+if err := tx.Create(recipe).Error; err != nil {
+    return nil, fmt.Errorf("failed to create recipe: %w", err)
+}
 ```
+
+**Последовательность ошибки:**
+1. Проверка дубликатов проходила успешно ✅ (мы исключали текущий рецепт)
+2. Но дальше код **игнорировал RecipeID** и создавал новый UUID
+3. Попытка INSERT с существующим `canonicalName` → **UNIQUE constraint violation** ❌
 
 ---
 
 ## ✅ Решение
 
-### 1. Добавлено поле `RecipeID` в запрос
+### Добавлена логика определения режима работы
 
-**Файл:** `internal/modules/admin/service/recipe_ai.go`
-
-```go
-type SaveEditedRecipeRequest struct {
-    RecipeID    *string            `json:"recipeId,omitempty"` // ✅ НОВОЕ: UUID рецепта
-    Title       string             `json:"title"`
-    Language    string             `json:"language"`
-    Description string             `json:"description"`
-    Servings    int                `json:"servings"`
-    TimeMinutes int                `json:"time_minutes"`
-    Difficulty  string             `json:"difficulty"`
-    Calories    int                `json:"calories"`
-    Ingredients []EditedIngredient `json:"ingredients"`
-    Steps       []EditedStep       `json:"steps"`
-}
-```
-
-- **Тип:** `*string` (указатель) - опциональное поле
-- **Назначение:** Если присутствует - это редактирование, если `nil` - создание нового рецепта
-
-### 2. Исправлена логика проверки дубликатов
+**Файл:** `internal/modules/admin/service/recipe_ai.go` (строки 590-750)
 
 ```go
 // ✅ СТАЛО (правильно)
-var existing models.RecipeCatalog
-query := s.db.Where("\"canonicalName\" = ?", canonicalName)
+var recipe *models.RecipeCatalog
+isEditMode := req.RecipeID != nil && *req.RecipeID != ""
 
-// Если это редактирование (есть RecipeID), исключаем текущий рецепт
-if req.RecipeID != nil && *req.RecipeID != "" {
-    query = query.Where("id != ?", *req.RecipeID)
-}
+if isEditMode {
+    // РЕЖИМ РЕДАКТИРОВАНИЯ
+    recipeID, err := uuid.Parse(*req.RecipeID)
+    if err != nil {
+        return nil, fmt.Errorf("invalid recipe ID: %w", err)
+    }
 
-if err := query.First(&existing).Error; err == nil {
-    return nil, fmt.Errorf("recipe with similar name already exists: %s", canonicalName)
+    // Загружаем существующий рецепт
+    recipe = &models.RecipeCatalog{}
+    if err := tx.First(recipe, "id = ?", recipeID).Error; err != nil {
+        return nil, fmt.Errorf("recipe not found: %w", err)
+    }
+
+    fmt.Printf("📝 Editing existing recipe: ID=%s\n", recipe.ID)
+
+    // Обновляем поля
+    recipe.CanonicalName = canonicalName
+    recipe.Title = req.Title
+    recipe.Difficulty = req.Difficulty
+    // ...
+
+    // Удаляем старые ингредиенты (создадим новые)
+    if err := tx.Where("recipe_id = ?", recipe.ID).Delete(&models.CatalogIngredient{}).Error; err != nil {
+        return nil, fmt.Errorf("failed to delete old ingredients: %w", err)
+    }
+
+} else {
+    // РЕЖИМ СОЗДАНИЯ
+    recipe = &models.RecipeCatalog{
+        ID:            uuid.New(),  // ✅ Новый UUID только для создания
+        CanonicalName: canonicalName,
+        Title:         req.Title,
+        // ...
+    }
+
+    fmt.Printf("✨ Creating new recipe: ID=%s\n", recipe.ID)
+
+    // INSERT нового рецепта
+    if err := tx.Create(recipe).Error; err != nil {
+        return nil, fmt.Errorf("failed to create recipe: %w", err)
+    }
 }
 ```
 
-**Логика:**
-1. Ищем рецепт с таким же `canonicalName`
-2. **Если `RecipeID` присутствует** → исключаем его из поиска (`id != recipeID`)
-3. Если найден **другой** рецепт с таким названием → ошибка
-4. Если ничего не найдено или найден только сам редактируемый рецепт → OK ✅
+### Разные методы сохранения для разных режимов
+
+```go
+// Финальное сохранение
+if isEditMode {
+    // ✅ Для редактирования: Updates с явным указанием полей
+    updates := map[string]interface{}{
+        "canonicalName":     recipe.CanonicalName,
+        "title":             recipe.Title,
+        "difficulty":        recipe.Difficulty,
+        "timeMinutes":       recipe.TimeMinutes,
+        "servings":          recipe.Servings,
+        "country":           recipe.Country,
+        "source":            recipe.Source,
+        "nutritionProfile":  recipe.NutritionProfile,
+    }
+
+    // Локализованные поля
+    if req.Language == "ru" {
+        updates["description_ru"] = recipe.DescriptionRu
+        updates["steps_ru"] = recipe.StepsRu
+    }
+    // ...
+
+    if err := tx.Model(recipe).Updates(updates).Error; err != nil {
+        return nil, fmt.Errorf("failed to update recipe: %w", err)
+    }
+
+    fmt.Printf("✅ Recipe updated: ID=%s\n", recipe.ID)
+
+} else {
+    // ✅ Для создания: Save
+    if err := tx.Save(recipe).Error; err != nil {
+        return nil, fmt.Errorf("failed to save recipe: %w", err)
+    }
+
+    fmt.Printf("✅ Recipe saved: ID=%s\n", recipe.ID)
+}
+```
+
+**Ключевые отличия:**
+- **EDIT**: `First()` → изменение полей → `Updates()` с явной картой
+- **CREATE**: `uuid.New()` → `Create()` → `Save()`
+- **EDIT**: Удаляем старые ингредиенты перед созданием новых
+- **CREATE**: Просто создаем ингредиенты
 
 ---
 
 ## 🧪 Тестирование
 
-### Сценарий 1: Редактирование с тем же названием ✅
+### Сценарий 1: Редактирование существующего рецепта ✅
 
 **До исправления:**
 ```bash
 # Запрос
 POST /api/admin/recipes/save
 {
+  "recipeId": "4aa22783-45cc-4fc4-8800-4340a5c93ce9",
   "title": "яйца жареные на масле",
   "ingredients": [...измененные...],
   "steps": [...измененные...]
 }
 
-# Ответ: ❌ 409 Conflict
-{
-  "success": false,
-  "code": "RECIPE_NAME_EXISTS",
-  "message": "Рецепт с таким названием уже существует"
-}
+# Ответ: ❌ 500 Internal Server Error
+Backend log:
+ERROR: duplicate key value violates unique constraint "Recipe_canonicalName_unique"
+INSERT INTO "Recipe" ("canonicalName", ...) VALUES ('яйца_жареные_на_масле', ...)
 ```
 
 **После исправления:**
@@ -104,23 +167,47 @@ POST /api/admin/recipes/save
 # Запрос
 POST /api/admin/recipes/save
 {
-  "recipeId": "4aa22783-45cc-4fc4-8800-4340a5c93ce9",  // ✅ НОВОЕ
+  "recipeId": "4aa22783-45cc-4fc4-8800-4340a5c93ce9",  // ✅ Используется для UPDATE
   "title": "яйца жареные на масле",
   "ingredients": [...измененные...],
   "steps": [...измененные...]
 }
 
 # Ответ: ✅ 200 OK
+Backend log:
+📝 Editing existing recipe: ID=4aa22783-45cc-4fc4-8800-4340a5c93ce9
+✅ Recipe updated: ID=4aa22783-45cc-4fc4-8800-4340a5c93ce9
 {
   "success": true,
-  "data": { рецепт обновлён }
+  "data": { ...обновленный рецепт... }
 }
 ```
 
-### Сценарий 2: Создание нового рецепта с существующим названием ❌
+### Сценарий 2: Создание нового рецепта ✅
 
 ```bash
 # Запрос (без recipeId - создание нового)
+POST /api/admin/recipes/save
+{
+  "title": "новый рецепт блинов",
+  "ingredients": [...],
+  "steps": [...]
+}
+
+# Ответ: ✅ 200 OK
+Backend log:
+✨ Creating new recipe: ID=<новый-uuid>
+✅ Recipe saved: ID=<новый-uuid>
+{
+  "success": true,
+  "data": { ...новый рецепт... }
+}
+```
+
+### Сценарий 3: Попытка создать дубликат ❌
+
+```bash
+# Запрос (без recipeId, но название уже существует)
 POST /api/admin/recipes/save
 {
   "title": "яйца жареные на масле",  // название уже существует
@@ -136,7 +223,7 @@ POST /api/admin/recipes/save
 }
 ```
 
-### Сценарий 3: Редактирование с изменением названия на уникальное ✅
+### Сценарий 4: Редактирование с изменением названия ✅
 
 ```bash
 # Запрос
@@ -149,6 +236,9 @@ POST /api/admin/recipes/save
 }
 
 # Ответ: ✅ 200 OK
+Backend log:
+📝 Editing existing recipe: ID=4aa22783-45cc-4fc4-8800-4340a5c93ce9
+✅ Recipe updated: ID=4aa22783-45cc-4fc4-8800-4340a5c93ce9
 ```
 
 ---
@@ -203,14 +293,63 @@ const createRecipe = async (recipeData: RecipeCreateData) => {
 
 ## 🎯 Итоги
 
+### Проблема ❌
+- Backend **всегда создавал новый рецепт** (INSERT), даже при передаче `recipeId`
+- Игнорировал существующий UUID, генерировал новый
+- Результат: Duplicate key constraint на `canonicalName`
+- Редактирование рецепта **полностью не работало**
+
+### Решение ✅
+- Добавлена логика **определения режима**: `isEditMode = recipeId != nil && recipeId != ""`
+- **EDIT MODE**: Загружаем существующий рецепт → обновляем поля → `Updates()`
+- **CREATE MODE**: Новый UUID → создаем рецепт → `Create()` + `Save()`
+- Проверка дубликатов теперь корректно исключает текущий рецепт при редактировании
+
 ### До исправления ❌
-- Редактирование рецепта с тем же названием → **409 Conflict**
-- Пользователь не мог сохранить изменения без смены названия
+```
+Frontend: "Edit recipe with recipeId=123"
+Backend: "Okay, creating NEW recipe with NEW uuid..."
+Database: "ERROR: canonicalName already exists!"
+```
 
 ### После исправления ✅
-- Редактирование рецепта с тем же названием → **200 OK**
-- Проверка уникальности работает корректно (исключает текущий рецепт)
-- Создание нового рецепта с существующим названием → **409 Conflict** (как и должно быть)
+```
+Frontend: "Edit recipe with recipeId=123"
+Backend: "Loading recipe 123, updating fields..."
+Database: "UPDATE successful!"
+```
+
+---
+
+## 🔧 Технические детали
+
+### Два режима работы
+
+| Аспект | CREATE MODE | EDIT MODE |
+|--------|-------------|-----------|
+| **Триггер** | `recipeId == nil` | `recipeId != nil` |
+| **UUID** | `uuid.New()` | Из `req.RecipeID` |
+| **Загрузка** | - | `tx.First(recipe, id)` |
+| **Рецепт** | `tx.Create(recipe)` | Обновление полей |
+| **Ингредиенты** | `tx.Create(ing)` | `tx.Delete()` → `tx.Create()` |
+| **Финал** | `tx.Save(recipe)` | `tx.Model().Updates(map)` |
+| **Лог** | `✨ Creating new recipe` | `📝 Editing existing recipe` |
+
+### Почему Updates() а не Save()?
+
+```go
+// ❌ ПЛОХО: Save() может вызвать проблемы с FK
+tx.Save(recipe)
+
+// ✅ ХОРОШО: Updates() с явной картой полей
+tx.Model(recipe).Updates(map[string]interface{}{
+    "canonicalName": recipe.CanonicalName,
+    "title":         recipe.Title,
+    // ... только нужные поля
+})
+```
+
+**Причина:** `Save()` обновляет все поля, включая ассоциации, что может вызвать FK constraint violations.
 
 ---
 
@@ -224,13 +363,14 @@ const createRecipe = async (recipeData: RecipeCreateData) => {
 
 ## 📝 Commits
 
-- **Main fix:** `afc8906` - "Fix recipe edit duplicate check - allow same name when editing"
-- **Related:** 
-  - `6324d6b` - Previous image URL fixes
-  - `43a1fa2` - Added imageUrl to RecipeCatalog model
+- **Main fix (CREATE/UPDATE):** `ac5d7d4` - "Fix SaveEditedRecipe - properly handle create vs update modes"
+- **Duplicate check fix:** `afc8906` - "Fix recipe edit duplicate check - allow same name when editing"
+- **Related (image URL):** 
+  - `6324d6b` - Add imageUrl to admin RecipeResponse
+  - `43a1fa2` - Add imageUrl to RecipeCatalog model
 
 ---
 
 **Status:** ✅ Fixed and deployed to production  
 **Date:** 2026-01-19  
-**Priority:** High (blocking recipe editing)
+**Priority:** Critical (recipe editing was completely broken)
