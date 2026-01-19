@@ -8,6 +8,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/recipes_admin/dto"
+	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -55,27 +56,72 @@ func (s *RecipeAdminService) CreateDraft(authorID string, req *dto.CreateRecipeR
 		servings = 1 // Default servings
 	}
 
+	// Нормализация текста (исправление опечаток, капитализация)
+	localName := utils.CleanRecipeText(req.LocalName)
+	title := utils.CapitalizeTitle(req.LocalName)
+	description := utils.CleanRecipeText(req.Description)
+
+	// Генерация канонического имени (slug для URL)
+	var canonicalName string
+	if req.CanonicalName != nil && *req.CanonicalName != "" {
+		canonicalName = *req.CanonicalName
+	} else {
+		// Автоматическая генерация: "Яичница глазунья" → "yaichnitsa_glazunya"
+		canonicalName = utils.GenerateCanonicalName(localName)
+	}
+
 	// Multi-language support - copy from request if provided
 	var stepsPLJSON, stepsENJSON, stepsRUJSON datatypes.JSON
 	if req.StepsPL != nil && len(*req.StepsPL) > 0 {
-		stepsPLBytes, _ := json.Marshal(*req.StepsPL)
+		// Нормализуем шаги (капитализация)
+		normalizedSteps := utils.CapitalizeSteps(*req.StepsPL)
+		stepsPLBytes, _ := json.Marshal(normalizedSteps)
 		stepsPLJSON = datatypes.JSON(stepsPLBytes)
 	}
 	if req.StepsEN != nil && len(*req.StepsEN) > 0 {
-		stepsENBytes, _ := json.Marshal(*req.StepsEN)
+		normalizedSteps := utils.CapitalizeSteps(*req.StepsEN)
+		stepsENBytes, _ := json.Marshal(normalizedSteps)
 		stepsENJSON = datatypes.JSON(stepsENBytes)
 	}
 	if req.StepsRU != nil && len(*req.StepsRU) > 0 {
-		stepsRUBytes, _ := json.Marshal(*req.StepsRU)
+		normalizedSteps := utils.CapitalizeSteps(*req.StepsRU)
+		stepsRUBytes, _ := json.Marshal(normalizedSteps)
 		stepsRUJSON = datatypes.JSON(stepsRUBytes)
+	}
+
+	// Нормализуем переводы названий и описаний
+	var namePL, nameEN, nameRU, descPL, descEN, descRU *string
+	if req.NamePL != nil {
+		cleaned := utils.CleanRecipeText(*req.NamePL)
+		namePL = &cleaned
+	}
+	if req.NameEN != nil {
+		cleaned := utils.CleanRecipeText(*req.NameEN)
+		nameEN = &cleaned
+	}
+	if req.NameRU != nil {
+		cleaned := utils.CleanRecipeText(*req.NameRU)
+		nameRU = &cleaned
+	}
+	if req.DescriptionPL != nil {
+		cleaned := utils.CleanRecipeText(*req.DescriptionPL)
+		descPL = &cleaned
+	}
+	if req.DescriptionEN != nil {
+		cleaned := utils.CleanRecipeText(*req.DescriptionEN)
+		descEN = &cleaned
+	}
+	if req.DescriptionRU != nil {
+		cleaned := utils.CleanRecipeText(*req.DescriptionRU)
+		descRU = &cleaned
 	}
 
 	recipe := &models.Recipe{
 		ID:            uuid.New().String(),
-		LocalName:     req.LocalName,                               // Required: display name
-		Title:         req.LocalName,                               // Sync title with localName
-		CanonicalName: req.CanonicalName,                           // Optional: slug
-		Description:   req.Description,                             // Optional
+		LocalName:     localName,                                   // Нормализованное имя
+		Title:         title,                                       // Капитализированный заголовок
+		CanonicalName: &canonicalName,                              // Slug (yaichnitsa_glazunya)
+		Description:   description,                                 // Нормализованное описание
 		ImageUrl:      req.ImageUrl,                                // Optional
 		Country:       country,                                     // Default: PL
 		Category:      req.Category,                                // Required
@@ -96,13 +142,13 @@ func (s *RecipeAdminService) CreateDraft(authorID string, req *dto.CreateRecipeR
 		TokensEarned:  0,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-		// Multi-language fields (from request)
-		NamePL:        req.NamePL,
-		NameEN:        req.NameEN,
-		NameRU:        req.NameRU,
-		DescriptionPL: req.DescriptionPL,
-		DescriptionEN: req.DescriptionEN,
-		DescriptionRU: req.DescriptionRU,
+		// Multi-language fields (нормализованные)
+		NamePL:        namePL,
+		NameEN:        nameEN,
+		NameRU:        nameRU,
+		DescriptionPL: descPL,
+		DescriptionEN: descEN,
+		DescriptionRU: descRU,
 		StepsPL:       stepsPLJSON,
 		StepsEN:       stepsENJSON,
 		StepsRU:       stepsRUJSON,

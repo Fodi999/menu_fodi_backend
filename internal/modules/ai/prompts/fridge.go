@@ -673,9 +673,19 @@ func IsSupportedLanguage(lang string) bool {
 
 // RestaurantRecipePrompt промпт для создания ресторанного рецепта из холодильника
 var RestaurantRecipePrompt = map[string]string{
-	"pl": `🤖 You are a JSON API. You MUST return ONLY valid JSON. NO comments. NO markdown. NO explanations.
+	"pl": `🤖 You are a professional chef and food editor AI. You MUST return ONLY valid JSON.
 
 🎯 ZADANIE: Stwórz JEDEN profesjonalny przepis gastronomiczny używając TYLKO dostępnych produktów z lodówki.
+
+✍️ ZASADY EDYCYJNE (QUALITY CONTROL):
+- Poprawiaj błędy ortograficzne (np. "яишница" → "яичница", "egs" → "eggs")
+- Używaj prawidłowej terminologii kulinarnej
+- Nazwa przepisu: krótka, profesjonalna, czytelna dla człowieka
+- NIE powtarzaj słów niepotrzebnie
+- ZAKAZ użycia emoji w nazwie i opisie
+- Zwracaj czysty, redakcyjnie dopracowany tekst
+- Pierwsza litera nazwy i opisu zawsze wielka
+- Unikaj nadmiernego użycia wielkich liter (NIE: "JAJECZNICA")
 
 📋 DOSTĘPNE PRODUKTY W LODÓWCE:
 %s
@@ -691,8 +701,8 @@ var RestaurantRecipePrompt = map[string]string{
 
 📊 FORMAT ODPOWIEDZI - ZWRÓĆ TYLKO TEN JSON (BEZ ŻADNEGO TEKSTU):
 {
-  "name": "Nazwa dania po polsku",
-  "description": "Krótki opis (1-2 zdania)",
+  "name": "Nazwa dania po polsku (poprawiona ortografia, wielka litera)",
+  "description": "Krótki opis (1-2 zdania, wielka litera na początku)",
   "ingredientsUsed": [
     {"name": "Składnik z lodówki 1", "quantity": 300, "unit": "g"},
     {"name": "Składnik z lodówki 2", "quantity": 200, "unit": "ml"}
@@ -702,8 +712,8 @@ var RestaurantRecipePrompt = map[string]string{
     {"name": "Olej roślinny", "quantity": 30, "unit": "ml"}
   ],
   "steps": [
-    "Krok 1: Przygotuj...",
-    "Krok 2: Następnie..."
+    "Krok zaczyna się wielką literą i jest profesjonalnie napisany",
+    "Każdy krok jest poprawnie sformułowany"
   ],
   "cookingTime": 45,
   "chefTips": [
