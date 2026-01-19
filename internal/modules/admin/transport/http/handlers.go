@@ -75,6 +75,8 @@ type RecipeResponse struct {
 	TimeMinutes        int         `json:"timeMinutes"`
 	Servings           int         `json:"servings"`
 	PortionWeightGrams int         `json:"portionWeightGrams"`
+	ImageUrl           string      `json:"imageUrl,omitempty"`      // Cloudinary image URL
+	ImagePublicId      string      `json:"imagePublicId,omitempty"` // Cloudinary public ID
 	StepsPl            interface{} `json:"stepsPl"`
 	StepsEn            interface{} `json:"stepsEn"`
 	StepsRu            interface{} `json:"stepsRu"`
@@ -124,6 +126,10 @@ func ToRecipeResponse(r *models.RecipeCatalog) RecipeResponse {
 	if r.PortionWeightGrams != nil {
 		resp.PortionWeightGrams = *r.PortionWeightGrams
 	}
+
+	// Cloudinary image fields
+	resp.ImageUrl = r.ImageUrl
+	resp.ImagePublicId = r.ImagePublicId
 
 	// JSONB поля
 	if len(r.StepsPl) > 0 {
