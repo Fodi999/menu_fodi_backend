@@ -35,13 +35,37 @@ func NewFridgeServiceV2(db *gorm.DB) FridgeServiceV2 {
 	}
 }
 
+// PriceInput структура для цены с единицей измерения (альтернативный формат)
+type PriceInput struct {
+	Value float64 `json:"value"` // Цена
+	Per   string  `json:"per"`   // Единица измерения (g, ml, pcs)
+}
+
 // AddFridgeItemRequest запрос на добавление продукта
 type AddFridgeItemRequest struct {
-	IngredientID string     `json:"ingredientId" binding:"required"`
-	Quantity     float64    `json:"quantity" binding:"required,gt=0"`
-	Unit         string     `json:"unit" binding:"required"`
-	ExpiresAt    *time.Time `json:"expiresAt"`
-	PriceTotal   float64    `json:"priceTotal"`
+	IngredientID string      `json:"ingredientId" binding:"required"`
+	Quantity     float64     `json:"quantity" binding:"required,gt=0"`
+	Unit         string      `json:"unit" binding:"required"`
+	ExpiresAt    *time.Time  `json:"expiresAt"`
+	PriceTotal   float64     `json:"priceTotal"`       // Формат 1: прямая цена (legacy)
+	PriceInput   *PriceInput `json:"priceInput"`       // Формат 2: цена с единицей (новый)
+}
+
+// GetPriceTotal возвращает итоговую цену, поддерживая оба формата
+func (r *AddFridgeItemRequest) GetPriceTotal() float64 {
+	// Приоритет: PriceInput > PriceTotal
+	if r.PriceInput != nil && r.PriceInput.Value > 0 {
+		// Если PriceInput.Per совпадает с Unit, используем value напрямую
+		// Иначе это цена за единицу, умножаем на количество
+		if r.PriceInput.Per == r.Unit {
+			return r.PriceInput.Value
+		}
+		// Цена указана за единицу (например, "78.44 PLN за 1g")
+		// Пересчитываем на общее количество
+		return r.PriceInput.Value * r.Quantity
+	}
+	// Fallback на старый формат
+	return r.PriceTotal
 }
 
 // UpdateFridgeItemRequest запрос на обновление продукта
@@ -106,7 +130,7 @@ func (s *fridgeServiceV2) AddItem(userID string, req AddFridgeItemRequest) (*mod
 		Quantity:     req.Quantity,
 		Unit:         req.Unit,
 		ExpiresAt:    req.ExpiresAt,
-		PriceTotal:   req.PriceTotal,
+		PriceTotal:   req.GetPriceTotal(), // Поддержка обоих форматов
 		Status:       models.FridgeItemStatusFresh,
 	}
 
