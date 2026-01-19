@@ -62,11 +62,14 @@ func (h *AdminHandlers) UploadRecipeImage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Delete old image if exists
-	if recipe.ImagePublicId != "" {
-		if err := cldClient.DeleteImage(r.Context(), recipe.ImagePublicId); err != nil {
-			// Log error but don't fail the upload
-			fmt.Printf("Warning: Failed to delete old image: %v\n", err)
+	// Delete old image if exists (before uploading new one)
+	// Note: We don't fail the request if old image deletion fails
+	// because the new image will overwrite it via Overwrite:true in UploadParams
+	oldImagePublicId := recipe.ImagePublicId
+	if oldImagePublicId != "" {
+		if err := cldClient.DeleteImage(r.Context(), oldImagePublicId); err != nil {
+			// Log warning but continue - Cloudinary will overwrite
+			fmt.Printf("WARNING: Failed to delete old image (will be overwritten): PublicID=%s, Error=%v\n", oldImagePublicId, err)
 		}
 	}
 
@@ -81,9 +84,14 @@ func (h *AdminHandlers) UploadRecipeImage(w http.ResponseWriter, r *http.Request
 	recipe.ImageUrl = uploadResult.SecureURL
 	recipe.ImagePublicId = uploadResult.PublicID
 	if err := h.service.DB().Save(&recipe).Error; err != nil {
-		// Attempt to cleanup uploaded image
-		_ = cldClient.DeleteImage(r.Context(), uploadResult.PublicID)
-		utils.WriteError(w, http.StatusInternalServerError, "Failed to save image URL")
+		// CRITICAL: Transactional integrity - cleanup uploaded image
+		// Cloudinary upload succeeded but DB save failed
+		// Must delete orphaned image to prevent storage bloat
+		if cleanupErr := cldClient.DeleteImage(r.Context(), uploadResult.PublicID); cleanupErr != nil {
+			// Log cleanup failure but don't expose to user
+			fmt.Printf("CRITICAL: Failed to cleanup orphaned image after DB save failure. PublicID: %s, Error: %v\n", uploadResult.PublicID, cleanupErr)
+		}
+		utils.WriteError(w, http.StatusInternalServerError, "Failed to save image URL to database")
 		return
 	}
 
