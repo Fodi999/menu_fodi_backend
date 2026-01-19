@@ -615,7 +615,7 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 		recipe.Source = datatypes.JSON(sourceJSON)
 
 		// Удаляем старые ингредиенты (будем создавать заново)
-		if err := tx.Where("recipe_id = ?", recipe.ID).Delete(&models.CatalogIngredient{}).Error; err != nil {
+		if err := tx.Where("\"recipeId\" = ?", recipe.ID).Delete(&models.CatalogIngredient{}).Error; err != nil {
 			tx.Rollback()
 			return nil, fmt.Errorf("failed to delete old ingredients: %w", err)
 		}
