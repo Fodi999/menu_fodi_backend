@@ -585,17 +585,61 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 		country = "us"
 	}
 
-	// 1. Создаём Recipe
-	recipe := &models.RecipeCatalog{
-		ID:            uuid.New(),
-		CanonicalName: canonicalName,
-		Title:         req.Title,
-		Category:      "main", // default
-		Difficulty:    req.Difficulty,
-		TimeMinutes:   req.TimeMinutes,
-		Servings:      req.Servings,
-		Country:       country,
-		Source:        datatypes.JSON(sourceJSON),
+	// 1. Определяем режим: создание нового или обновление существующего
+	var recipe *models.RecipeCatalog
+	isEditMode := req.RecipeID != nil && *req.RecipeID != ""
+
+	if isEditMode {
+		// Режим редактирования - загружаем существующий рецепт
+		recipeID, err := uuid.Parse(*req.RecipeID)
+		if err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("invalid recipe ID: %w", err)
+		}
+
+		recipe = &models.RecipeCatalog{}
+		if err := tx.First(recipe, "id = ?", recipeID).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("recipe not found: %w", err)
+		}
+
+		fmt.Printf("📝 Editing existing recipe: ID=%s\n", recipe.ID)
+
+		// Обновляем поля
+		recipe.CanonicalName = canonicalName
+		recipe.Title = req.Title
+		recipe.Difficulty = req.Difficulty
+		recipe.TimeMinutes = req.TimeMinutes
+		recipe.Servings = req.Servings
+		recipe.Country = country
+		recipe.Source = datatypes.JSON(sourceJSON)
+
+		// Удаляем старые ингредиенты (будем создавать заново)
+		if err := tx.Where("recipe_id = ?", recipe.ID).Delete(&models.CatalogIngredient{}).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to delete old ingredients: %w", err)
+		}
+	} else {
+		// Режим создания - создаем новый рецепт
+		recipe = &models.RecipeCatalog{
+			ID:            uuid.New(),
+			CanonicalName: canonicalName,
+			Title:         req.Title,
+			Category:      "main", // default
+			Difficulty:    req.Difficulty,
+			TimeMinutes:   req.TimeMinutes,
+			Servings:      req.Servings,
+			Country:       country,
+			Source:        datatypes.JSON(sourceJSON),
+		}
+
+		fmt.Printf("✨ Creating new recipe: ID=%s\n", recipe.ID)
+
+		// Создаем новый рецепт
+		if err := tx.Create(recipe).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to create recipe: %w", err)
+		}
 	}
 
 	// Устанавливаем локализованное описание
@@ -606,14 +650,6 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	} else {
 		recipe.DescriptionEn = &req.Description
 	}
-
-	// Сохраняем Recipe
-	if err := tx.Create(recipe).Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to create recipe: %w", err)
-	}
-
-	fmt.Printf("✅ Recipe created: ID=%s\n", recipe.ID)
 
 	// 2. Создаём CatalogIngredients
 	for _, ing := range req.Ingredients {
@@ -675,10 +711,46 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	})
 	recipe.NutritionProfile = datatypes.JSON(nutritionJSON)
 
-	// Обновляем рецепт
-	if err := tx.Save(recipe).Error; err != nil {
-		tx.Rollback()
-		return nil, fmt.Errorf("failed to update recipe: %w", err)
+	// Сохраняем или обновляем рецепт
+	if isEditMode {
+		// Для редактирования используем Updates с явным указанием полей
+		updates := map[string]interface{}{
+			"canonicalName":     recipe.CanonicalName,
+			"title":             recipe.Title,
+			"difficulty":        recipe.Difficulty,
+			"timeMinutes":       recipe.TimeMinutes,
+			"servings":          recipe.Servings,
+			"country":           recipe.Country,
+			"source":            recipe.Source,
+			"nutritionProfile":  recipe.NutritionProfile,
+		}
+
+		// Добавляем локализованные поля
+		if req.Language == "ru" {
+			updates["description_ru"] = recipe.DescriptionRu
+			updates["steps_ru"] = recipe.StepsRu
+		} else if req.Language == "pl" {
+			updates["description_pl"] = recipe.DescriptionPl
+			updates["steps_pl"] = recipe.StepsPl
+		} else {
+			updates["description_en"] = recipe.DescriptionEn
+			updates["steps_en"] = recipe.StepsEn
+		}
+
+		if err := tx.Model(recipe).Updates(updates).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to update recipe: %w", err)
+		}
+
+		fmt.Printf("✅ Recipe updated: ID=%s\n", recipe.ID)
+	} else {
+		// Для нового рецепта используем Save
+		if err := tx.Save(recipe).Error; err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("failed to save recipe: %w", err)
+		}
+
+		fmt.Printf("✅ Recipe saved: ID=%s\n", recipe.ID)
 	}
 
 	// Коммит транзакции
