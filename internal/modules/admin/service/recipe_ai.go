@@ -1,14 +1,17 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -547,40 +550,64 @@ func (s *adminService) saveRecipeToDB(req CreateRecipeAIRequest, aiResponse *AIR
 	fmt.Printf("💾 Recipe saved: %s [%s] with %d ingredients, %d steps\n",
 		recipe.Title, recipe.ID, len(req.Ingredients), len(aiResponse.Steps))
 
-	// 🌐 АВТОПЕРЕВОД на 2 других языка (асинхронно, без блокировки)
-	// Запускаем в горутине чтобы не блокировать ответ пользователю
-	go s.autoTranslateRecipe(recipe.ID, aiResponse.Language, normalizedTitle, normalizedDescription, aiResponse.Steps)
+	// 🌐 АВТОПЕРЕВОД на 2 других языка (через background worker queue)
+	// Добавляем задание в очередь (НЕ горутину!)
+	s.enqueueTranslation(
+		recipe.ID.String(),
+		aiResponse.Language,
+		normalizedTitle,
+		normalizedDescription,
+		aiResponse.Steps,
+	)
 
 	return recipe, nil
 }
 
-// autoTranslateRecipe автоматически переводит рецепт на 2 других языка
-// Запускается в горутине (асинхронно)
-func (s *adminService) autoTranslateRecipe(recipeID uuid.UUID, originalLang, title, description string, steps []RecipeStepAI) {
-	fmt.Printf("🌐 Starting auto-translation for recipe %s (from %s)\n", recipeID, originalLang)
+// processTranslation обрабатывает перевод рецепта на 2 других языка
+// Вызывается из background worker (с context.Background())
+func (s *adminService) processTranslation(ctx context.Context, job TranslationJob) error {
+	// Защита от паник в worker
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Log.Error("PANIC in processTranslation", zap.Any("panic", r))
+		}
+	}()
+
+	logger.Log.Info("processing translation",
+		zap.String("recipe_id", job.RecipeID),
+		zap.String("language", job.Language),
+		zap.String("title", job.Title),
+	)
 
 	// Подготавливаем шаги для перевода
-	stepTexts := make([]string, len(steps))
-	for i, step := range steps {
+	stepTexts := make([]string, len(job.Steps))
+	for i, step := range job.Steps {
 		stepTexts[i] = step.Text
 	}
+	logger.Log.Info("prepared steps for translation", zap.Int("count", len(stepTexts)))
 
 	// Вызываем AI для перевода напрямую
-	translation, err := s.translateRecipeViaAI(title, description, stepTexts)
+	logger.Log.Info("calling AI translation service")
+	translation, err := s.translateRecipeViaAI(job.Title, job.Description, stepTexts)
 	if err != nil {
-		fmt.Printf("❌ Auto-translation failed for recipe %s: %v\n", recipeID, err)
-		return
+		return fmt.Errorf("AI translation failed: %w", err)
+	}
+	logger.Log.Info("AI translation completed")
+
+	// Парсим UUID
+	recipeID, err := uuid.Parse(job.RecipeID)
+	if err != nil {
+		return fmt.Errorf("invalid recipe ID: %w", err)
 	}
 
 	// Обновляем рецепт в базе (только translation поля)
 	var recipe models.RecipeCatalog
 	if err := s.db.First(&recipe, "id = ?", recipeID).Error; err != nil {
-		fmt.Printf("❌ Recipe not found for translation: %s\n", recipeID)
-		return
+		return fmt.Errorf("recipe not found for translation: %w", err)
 	}
 
 	// Сохраняем переводы в зависимости от оригинального языка
-	switch originalLang {
+	switch job.Language {
 	case "ru":
 		// Оригинал русский - переводим на PL и EN
 		recipe.NamePl = &translation.NamePL
@@ -621,11 +648,11 @@ func (s *adminService) autoTranslateRecipe(recipeID uuid.UUID, originalLang, tit
 
 	// Сохраняем обновления
 	if err := s.db.Save(&recipe).Error; err != nil {
-		fmt.Printf("❌ Failed to save translations for recipe %s: %v\n", recipeID, err)
-		return
+		return fmt.Errorf("failed to save translations: %w", err)
 	}
 
-	fmt.Printf("✅ Auto-translation completed for recipe %s\n", recipeID)
+	logger.Log.Info("translation saved to database", zap.String("recipe_id", job.RecipeID))
+	return nil
 }
 
 // translateRecipeViaAI вызывает AI для перевода рецепта на 3 языка

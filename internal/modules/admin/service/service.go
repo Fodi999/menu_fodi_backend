@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,8 +12,10 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_core"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -138,16 +141,32 @@ type AdminService interface {
 
 // adminService реализация интерфейса AdminService
 type adminService struct {
-	db         *gorm.DB
-	groqClient *ai_core.GroqClient
+	db                *gorm.DB
+	groqClient        *ai_core.GroqClient
+	translationQueue  chan TranslationJob
+}
+
+// TranslationJob represents a recipe translation task
+type TranslationJob struct {
+	RecipeID    string
+	Language    string
+	Title       string
+	Description string
+	Steps       []RecipeStepAI
 }
 
 // NewAdminService создаёт новый экземпляр сервиса администратора
 func NewAdminService() AdminService {
-	return &adminService{
-		db:         database.GetDB(),
-		groqClient: ai_core.NewGroqClient(),
+	service := &adminService{
+		db:               database.GetDB(),
+		groqClient:       ai_core.NewGroqClient(),
+		translationQueue: make(chan TranslationJob, 100),
 	}
+	
+	// Запускаем background worker для переводов
+	service.startTranslationWorker()
+	
+	return service
 }
 
 // DB возвращает инстанс базы данных (для прямых запросов в хендлерах)
@@ -1239,4 +1258,48 @@ Suggest a clarification or return "null" if not needed.`, input, existing)
 
 	fmt.Printf("💡 AI Hint: '%s' + %v → '%s'\n", input, existing, cleaned)
 	return &cleaned, nil
+}
+
+// ===========================
+// Translation Background Worker
+// ===========================
+
+// startTranslationWorker запускает фоновый worker для переводов рецептов
+func (s *adminService) startTranslationWorker() {
+	go func() {
+		logger.Log.Info("🌐 Translation worker started")
+		
+		for job := range s.translationQueue {
+			logger.Log.Info("worker starting auto-translation",
+				zap.String("recipe_id", job.RecipeID),
+				zap.String("language", job.Language),
+			)
+			
+			if err := s.processTranslation(context.Background(), job); err != nil {
+				logger.Log.Error("auto-translation failed",
+					zap.Error(err),
+					zap.String("recipe_id", job.RecipeID),
+				)
+			} else {
+				logger.Log.Info("auto-translation completed",
+					zap.String("recipe_id", job.RecipeID),
+				)
+			}
+		}
+	}()
+}
+
+// enqueueTranslation добавляет задание на перевод в очередь (НЕ горутину!)
+func (s *adminService) enqueueTranslation(recipeID, language, title, description string, steps []RecipeStepAI) {
+	s.translationQueue <- TranslationJob{
+		RecipeID:    recipeID,
+		Language:    language,
+		Title:       title,
+		Description: description,
+		Steps:       steps,
+	}
+	logger.Log.Info("translation job enqueued",
+		zap.String("recipe_id", recipeID),
+		zap.String("language", language),
+	)
 }
