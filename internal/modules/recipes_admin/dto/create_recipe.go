@@ -17,6 +17,17 @@ type CreateRecipeRequest struct {
 	Servings      int     `json:"servings,omitempty"`    // Default: 1
 	PortionWeight *int    `json:"portionWeight,omitempty"`
 
+	// Multi-language support (ОПЦИОНАЛЬНО - если не заполнено, будет автоперевод через AI)
+	NamePL        *string   `json:"namePl,omitempty"`
+	NameEN        *string   `json:"nameEn,omitempty"`
+	NameRU        *string   `json:"nameRu,omitempty"`
+	DescriptionPL *string   `json:"descriptionPl,omitempty"`
+	DescriptionEN *string   `json:"descriptionEn,omitempty"`
+	DescriptionRU *string   `json:"descriptionRu,omitempty"`
+	StepsPL       *[]string `json:"stepsPl,omitempty"`
+	StepsEN       *[]string `json:"stepsEn,omitempty"`
+	StepsRU       *[]string `json:"stepsRu,omitempty"`
+
 	// Nutrition (опционально)
 	GrossWeight *int     `json:"grossWeight,omitempty"`
 	NetWeight   *int     `json:"netWeight,omitempty"`

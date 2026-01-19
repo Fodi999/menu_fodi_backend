@@ -18,7 +18,7 @@ import (
 var (
 	// Регулярка для удаления всего кроме букв, цифр и пробелов
 	regexNonAlphaNum = regexp.MustCompile(`[^a-zа-я0-9\s]`)
-	
+
 	// Регулярка для схлопывания множественных пробелов
 	regexMultiSpace = regexp.MustCompile(`\s+`)
 )
@@ -72,23 +72,24 @@ func NormalizeName(name string) string {
 // - максимум 100 символов
 //
 // Примеры:
-//   "Лук репчатый" → "лук-репчатый"
-//   "Onion" → "onion"
-//   "Pierś z kurczaka" → "piers-z-kurczaka"
+//
+//	"Лук репчатый" → "лук-репчатый"
+//	"Onion" → "onion"
+//	"Pierś z kurczaka" → "piers-z-kurczaka"
 func GenerateCanonicalKey(name string) string {
 	normalized := NormalizeName(name)
-	
+
 	// Заменяем пробелы на дефисы
 	key := strings.ReplaceAll(normalized, " ", "-")
-	
+
 	// Ограничиваем длину
 	if len(key) > 100 {
 		key = key[:100]
 	}
-	
+
 	// Убираем trailing дефисы
 	key = strings.TrimRight(key, "-")
-	
+
 	return key
 }
 
@@ -125,18 +126,18 @@ func ExtractBaseWord(name string) string {
 func SimilarityScore(name1, name2 string) float64 {
 	n1 := NormalizeName(name1)
 	n2 := NormalizeName(name2)
-	
+
 	if n1 == n2 {
 		return 1.0
 	}
-	
+
 	distance := levenshteinDistance(n1, n2)
 	maxLen := max(len(n1), len(n2))
-	
+
 	if maxLen == 0 {
 		return 1.0
 	}
-	
+
 	return 1.0 - float64(distance)/float64(maxLen)
 }
 

@@ -27,13 +27,13 @@ func NewNotificationService(db *gorm.DB) NotificationService {
 // GetNotifications получить уведомления пользователя
 func (s *notificationService) GetNotifications(userID string, unreadOnly bool) ([]models.Notification, error) {
 	var notifications []models.Notification
-	
+
 	query := s.db.Where("user_id = ?", userID)
-	
+
 	if unreadOnly {
 		query = query.Where("read_at IS NULL")
 	}
-	
+
 	err := query.Order("created_at DESC").
 		Limit(100). // Последние 100 уведомлений
 		Find(&notifications).Error
@@ -78,7 +78,7 @@ func (s *notificationService) MarkAllAsRead(userID string) error {
 // GetUnreadCount получить количество непрочитанных уведомлений
 func (s *notificationService) GetUnreadCount(userID string) (int64, error) {
 	var count int64
-	
+
 	err := s.db.Model(&models.Notification{}).
 		Where("user_id = ? AND read_at IS NULL", userID).
 		Count(&count).Error

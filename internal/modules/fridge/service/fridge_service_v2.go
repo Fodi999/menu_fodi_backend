@@ -18,7 +18,7 @@ type FridgeServiceV2 interface {
 	UpdateItem(itemID string, userID string, req UpdateFridgeItemRequest) (*models.FridgeItem, error)
 	DeleteItem(itemID string, userID string) error
 	DiscardItem(itemID string, userID string) error
-	
+
 	// Auto-checks
 	CheckAndNotifyExpiring(userID string) error
 }
@@ -46,15 +46,15 @@ type AddFridgeItemRequest struct {
 
 // UpdateFridgeItemRequest запрос на обновление продукта
 type UpdateFridgeItemRequest struct {
-	Quantity  *float64   `json:"quantity" binding:"omitempty,gt=0"`
-	ExpiresAt *time.Time `json:"expiresAt"`
-	PriceTotal *float64  `json:"priceTotal"`
+	Quantity   *float64   `json:"quantity" binding:"omitempty,gt=0"`
+	ExpiresAt  *time.Time `json:"expiresAt"`
+	PriceTotal *float64   `json:"priceTotal"`
 }
 
 // GetItems получить все продукты пользователя с автопроверкой
 func (s *fridgeServiceV2) GetItems(userID string) ([]models.FridgeItem, error) {
 	var items []models.FridgeItem
-	
+
 	err := s.db.Preload("Ingredient").
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
@@ -133,7 +133,7 @@ func (s *fridgeServiceV2) AddItem(userID string, req AddFridgeItemRequest) (*mod
 // UpdateItem обновить продукт
 func (s *fridgeServiceV2) UpdateItem(itemID string, userID string, req UpdateFridgeItemRequest) (*models.FridgeItem, error) {
 	var item models.FridgeItem
-	
+
 	if err := s.db.Where("id = ? AND user_id = ?", itemID, userID).First(&item).Error; err != nil {
 		return nil, fmt.Errorf("fridge item not found: %w", err)
 	}
@@ -185,7 +185,7 @@ func (s *fridgeServiceV2) DeleteItem(itemID string, userID string) error {
 
 	// 2. Удаляем продукт
 	result := s.db.Where("id = ? AND user_id = ?", itemID, userID).Delete(&models.FridgeItem{})
-	
+
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete fridge item: %w", result.Error)
 	}
@@ -203,7 +203,7 @@ func (s *fridgeServiceV2) DeleteItem(itemID string, userID string) error {
 // DiscardItem выбросить продукт (мягкое удаление)
 func (s *fridgeServiceV2) DiscardItem(itemID string, userID string) error {
 	var item models.FridgeItem
-	
+
 	// 1. Получаем продукт с данными ингредиента
 	if err := s.db.Where("id = ? AND user_id = ?", itemID, userID).
 		Preload("Ingredient").

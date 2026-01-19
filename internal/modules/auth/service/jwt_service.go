@@ -11,10 +11,10 @@ import (
 
 // Claims структура для JWT токена
 type Claims struct {
-	Email   string `json:"email"`
-	Role    string `json:"role"`
-	HasRole bool   `json:"hasRole"`
-	jwt.RegisteredClaims // Contains Subject (sub), ExpiresAt (exp), IssuedAt (iat)
+	Email                string `json:"email"`
+	Role                 string `json:"role"`
+	HasRole              bool   `json:"hasRole"`
+	jwt.RegisteredClaims        // Contains Subject (sub), ExpiresAt (exp), IssuedAt (iat)
 }
 
 // JWTService handles JWT token generation and validation

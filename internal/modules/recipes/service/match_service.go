@@ -510,7 +510,7 @@ func roundToTwoDecimals(value float64) float64 {
 
 // GetBestRecommendation возвращает ОДИН лучший рецепт для сценария "Что я могу приготовить СЕЙЧАС?"
 // RULES ENGINE v1: ЖЁСТКИЕ ПРАВИЛА БЕЗ КОМПРОМИССОВ
-// 
+//
 // Алгоритм:
 // 1. Фильтр: ТОЛЬКО рецепты с coverage == 100% (canMakeNow == true)
 // 2. Сортировка: professional > ai → меньше времени → больше expiringSoon

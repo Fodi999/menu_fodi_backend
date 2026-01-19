@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -14,14 +15,26 @@ import (
 
 // RecipeAdminService - Admin service для управления рецептами
 type RecipeAdminService struct {
-	db *gorm.DB
+	db        *gorm.DB
+	aiService AITranslator // Interface for AI translation
+}
+
+// AITranslator interface for recipe translation
+type AITranslator interface {
+	TranslateRecipeField(fieldType, text, sourceLang string) (pl, en, ru string, err error)
 }
 
 // NewRecipeAdminService - Constructor
 func NewRecipeAdminService() *RecipeAdminService {
 	return &RecipeAdminService{
-		db: database.GetDB(),
+		db:        database.GetDB(),
+		aiService: nil, // AI service will be injected later if needed
 	}
+}
+
+// SetAIService sets the AI translation service
+func (s *RecipeAdminService) SetAIService(ai AITranslator) {
+	s.aiService = ai
 }
 
 // CreateDraft - Создать draft рецепт (минимальная валидация)
@@ -40,6 +53,21 @@ func (s *RecipeAdminService) CreateDraft(authorID string, req *dto.CreateRecipeR
 	servings := req.Servings
 	if servings == 0 {
 		servings = 1 // Default servings
+	}
+
+	// Multi-language support - copy from request if provided
+	var stepsPLJSON, stepsENJSON, stepsRUJSON datatypes.JSON
+	if req.StepsPL != nil && len(*req.StepsPL) > 0 {
+		stepsPLBytes, _ := json.Marshal(*req.StepsPL)
+		stepsPLJSON = datatypes.JSON(stepsPLBytes)
+	}
+	if req.StepsEN != nil && len(*req.StepsEN) > 0 {
+		stepsENBytes, _ := json.Marshal(*req.StepsEN)
+		stepsENJSON = datatypes.JSON(stepsENBytes)
+	}
+	if req.StepsRU != nil && len(*req.StepsRU) > 0 {
+		stepsRUBytes, _ := json.Marshal(*req.StepsRU)
+		stepsRUJSON = datatypes.JSON(stepsRUBytes)
 	}
 
 	recipe := &models.Recipe{
@@ -68,6 +96,16 @@ func (s *RecipeAdminService) CreateDraft(authorID string, req *dto.CreateRecipeR
 		TokensEarned:  0,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
+		// Multi-language fields (from request)
+		NamePL:        req.NamePL,
+		NameEN:        req.NameEN,
+		NameRU:        req.NameRU,
+		DescriptionPL: req.DescriptionPL,
+		DescriptionEN: req.DescriptionEN,
+		DescriptionRU: req.DescriptionRU,
+		StepsPL:       stepsPLJSON,
+		StepsEN:       stepsENJSON,
+		StepsRU:       stepsRUJSON,
 	}
 
 	if err := s.db.Create(recipe).Error; err != nil {
@@ -220,6 +258,10 @@ func (s *RecipeAdminService) Publish(recipeID string, req *dto.PublishRecipeRequ
 	// TODO: Save ingredients and steps to RecipeCatalog table or related tables
 	// This depends on your ingredients/steps storage strategy
 
+	// 7. АВТОМАТИЧЕСКИЙ ПЕРЕВОД на 3 языка (PL/EN/RU) если переводы отсутствуют
+	translationWarnings := s.ensureTranslations(&recipe)
+	warnings = append(warnings, translationWarnings...)
+
 	// Обновляем status
 	if err := s.db.Model(&recipe).Updates(map[string]interface{}{
 		"status":    "published",
@@ -251,4 +293,78 @@ func (s *RecipeAdminService) GetDrafts(authorID string) ([]models.Recipe, error)
 // Helper
 func intPtr(val int) *int {
 	return &val
+}
+
+// ensureTranslations проверяет наличие переводов рецепта на все 3 языка
+// Если переводы отсутствуют, пытается создать их через AI
+// Возвращает список предупреждений
+func (s *RecipeAdminService) ensureTranslations(recipe *models.Recipe) []string {
+	warnings := []string{}
+
+	// Проверяем наличие базовых переводов названия
+	needsTranslation := recipe.NamePL == nil || *recipe.NamePL == "" ||
+		recipe.NameEN == nil || *recipe.NameEN == "" ||
+		recipe.NameRU == nil || *recipe.NameRU == ""
+
+	if !needsTranslation {
+		// Переводы уже есть
+		return warnings
+	}
+
+	// Пытаемся перевести через AI
+	if s.aiService == nil {
+		warnings = append(warnings, "AI translation service not available - recipe published without translations")
+		return warnings
+	}
+
+	// Определяем исходный язык и текст для перевода
+	sourceLang := "unknown"
+	sourceTitle := recipe.Title
+	if sourceTitle == "" {
+		sourceTitle = recipe.LocalName
+	}
+
+	// Переводим название
+	if sourceTitle != "" {
+		plName, enName, ruName, err := s.aiService.TranslateRecipeField("recipe name", sourceTitle, sourceLang)
+		if err != nil {
+			warnings = append(warnings, "Failed to auto-translate recipe name: "+err.Error())
+		} else {
+			recipe.NamePL = &plName
+			recipe.NameEN = &enName
+			recipe.NameRU = &ruName
+
+			// Сохраняем переводы названия
+			s.db.Model(recipe).Updates(map[string]interface{}{
+				"name_pl": plName,
+				"name_en": enName,
+				"name_ru": ruName,
+			})
+		}
+	}
+
+	// Переводим описание, если оно есть
+	if recipe.Description != "" {
+		plDesc, enDesc, ruDesc, err := s.aiService.TranslateRecipeField("recipe description", recipe.Description, sourceLang)
+		if err != nil {
+			warnings = append(warnings, "Failed to auto-translate description: "+err.Error())
+		} else {
+			recipe.DescriptionPL = &plDesc
+			recipe.DescriptionEN = &enDesc
+			recipe.DescriptionRU = &ruDesc
+
+			// Сохраняем переводы описания
+			s.db.Model(recipe).Updates(map[string]interface{}{
+				"description_pl": plDesc,
+				"description_en": enDesc,
+				"description_ru": ruDesc,
+			})
+		}
+	}
+
+	if len(warnings) == 0 {
+		warnings = append(warnings, "Recipe auto-translated to PL/EN/RU")
+	}
+
+	return warnings
 }

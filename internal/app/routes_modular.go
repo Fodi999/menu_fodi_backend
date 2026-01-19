@@ -8,6 +8,7 @@ import (
 	// "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/academy" // DISABLED: Not used in MVP
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/admin"
 	aimodule "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai"
+
 	// OLD: "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recommendations" // REMOVED: Replaced by ai_recipe_recommendation (Architecture 2025)
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recipe_recommendation"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth"

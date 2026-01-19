@@ -8,12 +8,12 @@ import (
 type NotificationType string
 
 const (
-	NotificationTypeSystem  NotificationType = "system"
-	NotificationTypeOrder   NotificationType = "order"
-	NotificationTypeUser    NotificationType = "user"
-	NotificationTypeFridge  NotificationType = "fridge"
-	NotificationTypeAI      NotificationType = "ai"
-	NotificationTypeBackup  NotificationType = "backup"
+	NotificationTypeSystem NotificationType = "system"
+	NotificationTypeOrder  NotificationType = "order"
+	NotificationTypeUser   NotificationType = "user"
+	NotificationTypeFridge NotificationType = "fridge"
+	NotificationTypeAI     NotificationType = "ai"
+	NotificationTypeBackup NotificationType = "backup"
 )
 
 // NotificationLevel уровень важности

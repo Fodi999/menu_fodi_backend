@@ -20,7 +20,7 @@ func NewNotificationHandlers(svc service.NotificationService) *NotificationHandl
 // GetNotifications GET /api/notifications - получить уведомления
 func (h *NotificationHandlers) GetNotifications(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
-	
+
 	unreadOnlyStr := r.URL.Query().Get("unreadOnly")
 	unreadOnly, _ := strconv.ParseBool(unreadOnlyStr)
 

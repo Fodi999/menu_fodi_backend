@@ -1067,10 +1067,10 @@ func (s *adminService) CreateIngredientWithAI(inputName, userID string) (*models
 		NamePL:          &namePL,
 		NameEN:          &nameEN,
 		NameRU:          &nameRU,
-		NormalizedValue: &normalized, // 🔑 Всегда lowercase
-		Unit:            classification.Unit,            // lowercase
-		Category:        classification.Category,        // lowercase
-		NutritionGroup:  classification.NutritionGroup,  // lowercase
+		NormalizedValue: &normalized,                   // 🔑 Всегда lowercase
+		Unit:            classification.Unit,           // lowercase
+		Category:        classification.Category,       // lowercase
+		NutritionGroup:  classification.NutritionGroup, // lowercase
 		AutoTranslated:  true,
 	}
 

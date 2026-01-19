@@ -549,12 +549,12 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	// Проверка на дубликаты (исключая текущий рецепт при редактировании)
 	var existing models.RecipeCatalog
 	query := s.db.Where("\"canonicalName\" = ?", canonicalName)
-	
+
 	// Если это редактирование (есть RecipeID), исключаем текущий рецепт из проверки
 	if req.RecipeID != nil && *req.RecipeID != "" {
 		query = query.Where("id != ?", *req.RecipeID)
 	}
-	
+
 	if err := query.First(&existing).Error; err == nil {
 		return nil, fmt.Errorf("recipe with similar name already exists: %s", canonicalName)
 	}
@@ -715,14 +715,14 @@ func (s *adminService) SaveEditedRecipe(req SaveEditedRecipeRequest, userID stri
 	if isEditMode {
 		// Для редактирования используем Updates с явным указанием полей
 		updates := map[string]interface{}{
-			"canonicalName":     recipe.CanonicalName,
-			"title":             recipe.Title,
-			"difficulty":        recipe.Difficulty,
-			"timeMinutes":       recipe.TimeMinutes,
-			"servings":          recipe.Servings,
-			"country":           recipe.Country,
-			"source":            recipe.Source,
-			"nutritionProfile":  recipe.NutritionProfile,
+			"canonicalName":    recipe.CanonicalName,
+			"title":            recipe.Title,
+			"difficulty":       recipe.Difficulty,
+			"timeMinutes":      recipe.TimeMinutes,
+			"servings":         recipe.Servings,
+			"country":          recipe.Country,
+			"source":           recipe.Source,
+			"nutritionProfile": recipe.NutritionProfile,
 		}
 
 		// Добавляем локализованные поля

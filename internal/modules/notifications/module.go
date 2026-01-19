@@ -1,4 +1,3 @@
-
 package notifications
 
 import (

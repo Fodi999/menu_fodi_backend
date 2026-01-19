@@ -16,6 +16,17 @@ type Recipe struct {
 	ImageUrl      string  `json:"imageUrl" gorm:"column:imageUrl;type:text"`
 	ImagePublicId string  `json:"imagePublicId,omitempty" gorm:"column:imagePublicId;type:text"` // Cloudinary public ID
 
+	// Multi-language support (PL/EN/RU)
+	NamePL        *string        `json:"namePl,omitempty" gorm:"column:name_pl;type:varchar(255)"`
+	NameEN        *string        `json:"nameEn,omitempty" gorm:"column:name_en;type:varchar(255)"`
+	NameRU        *string        `json:"nameRu,omitempty" gorm:"column:name_ru;type:varchar(255)"`
+	DescriptionPL *string        `json:"descriptionPl,omitempty" gorm:"column:description_pl;type:text"`
+	DescriptionEN *string        `json:"descriptionEn,omitempty" gorm:"column:description_en;type:text"`
+	DescriptionRU *string        `json:"descriptionRu,omitempty" gorm:"column:description_ru;type:text"`
+	StepsPL       datatypes.JSON `json:"stepsPl,omitempty" gorm:"column:steps_pl;type:jsonb"`
+	StepsEN       datatypes.JSON `json:"stepsEn,omitempty" gorm:"column:steps_en;type:jsonb"`
+	StepsRU       datatypes.JSON `json:"stepsRu,omitempty" gorm:"column:steps_ru;type:jsonb"`
+
 	// Recipe Metadata (shared with catalog recipes)
 	Country     string         `json:"country" gorm:"column:country;type:varchar(100);not null"`
 	Category    string         `json:"category" gorm:"column:category;type:varchar(50);not null"`

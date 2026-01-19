@@ -845,7 +845,7 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 	orderParam := r.URL.Query().Get("order") // asc, desc
 
 	// 🚨 КРИТ!!! Логируем СРАЗУ чтобы видеть что хендлер вызывается
-	log.Printf("🚨🚨🚨 [GetAllIngredients] START - category='%s', search='%s', sort='%s', order='%s'", 
+	log.Printf("🚨🚨🚨 [GetAllIngredients] START - category='%s', search='%s', sort='%s', order='%s'",
 		categoryFilter, searchQuery, sortParam, orderParam)
 
 	// Парсим пагинацию
@@ -886,7 +886,7 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 	// Получаем общее количество (для мета-информации)
 	var total int64
 	query := h.service.DB().Model(&models.Ingredient{})
-	
+
 	if categoryFilter != "" && categoryFilter != "all" {
 		query = query.Where("category = ?", categoryFilter)
 	}
@@ -897,7 +897,7 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 			searchPattern, searchPattern, searchPattern, searchPattern,
 		)
 	}
-	
+
 	if err := query.Count(&total).Error; err != nil {
 		log.Printf("❌ Failed to count ingredients: %v", err)
 		total = int64(len(ingredients)) // fallback
@@ -905,7 +905,7 @@ func (h *AdminHandlers) GetAllIngredients(w http.ResponseWriter, r *http.Request
 
 	totalPages := int((total + int64(limit) - 1) / int64(limit))
 
-	log.Printf("✅ [GetAllIngredients] Returning %d items (page %d of %d, total=%d)", 
+	log.Printf("✅ [GetAllIngredients] Returning %d items (page %d of %d, total=%d)",
 		len(ingredients), page, totalPages, total)
 
 	// Формат совместимый с фронтендом (data + meta)

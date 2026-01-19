@@ -41,13 +41,13 @@ const (
 
 // IngredientAlias - алиас продукта (языковые варианты, синонимы, опечатки)
 type IngredientAlias struct {
-	ID                     string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	CanonicalIngredientID  string    `gorm:"column:canonicalIngredientId;type:uuid;not null;index" json:"canonicalIngredientId"`
-	Name                   string    `gorm:"column:name;type:varchar(255);not null" json:"name"`                      // "лук", "Onion", "цибуля"
-	NormalizedName         string    `gorm:"column:normalizedName;type:varchar(255);not null;uniqueIndex" json:"-"`   // "лук", "onion", "цибуля"
-	Language               *string   `gorm:"column:language;type:varchar(10);index" json:"language,omitempty"`        // pl, en, ru, uk
-	AliasType              string    `gorm:"column:aliasType;type:varchar(50);default:'synonym'" json:"aliasType"`    // primary, translation, synonym, typo
-	CreatedAt              time.Time `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
+	ID                    string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	CanonicalIngredientID string    `gorm:"column:canonicalIngredientId;type:uuid;not null;index" json:"canonicalIngredientId"`
+	Name                  string    `gorm:"column:name;type:varchar(255);not null" json:"name"`                    // "лук", "Onion", "цибуля"
+	NormalizedName        string    `gorm:"column:normalizedName;type:varchar(255);not null;uniqueIndex" json:"-"` // "лук", "onion", "цибуля"
+	Language              *string   `gorm:"column:language;type:varchar(10);index" json:"language,omitempty"`      // pl, en, ru, uk
+	AliasType             string    `gorm:"column:aliasType;type:varchar(50);default:'synonym'" json:"aliasType"`  // primary, translation, synonym, typo
+	CreatedAt             time.Time `gorm:"column:createdAt;not null;default:now()" json:"createdAt"`
 
 	// Связь
 	CanonicalIngredient *CanonicalIngredient `gorm:"foreignKey:CanonicalIngredientID" json:"canonicalIngredient,omitempty"`
@@ -96,12 +96,12 @@ type IngredientAliasSimple struct {
 
 // IngredientSearchResult - результат поиска для автокомплита
 type IngredientSearchResult struct {
-	ID            string  `json:"id"`
-	CanonicalKey  string  `json:"canonicalKey"`
-	DisplayName   string  `json:"displayName"` // Название на запрошенном языке
-	Category      string  `json:"category"`
-	Unit          string  `json:"unit"`
-	MatchedAlias  string  `json:"matchedAlias,omitempty"` // Какой алиас совпал с поиском
+	ID           string `json:"id"`
+	CanonicalKey string `json:"canonicalKey"`
+	DisplayName  string `json:"displayName"` // Название на запрошенном языке
+	Category     string `json:"category"`
+	Unit         string `json:"unit"`
+	MatchedAlias string `json:"matchedAlias,omitempty"` // Какой алиас совпал с поиском
 }
 
 // ============================================================================

@@ -143,7 +143,7 @@ func (s *FridgeService) GetUserItems(userID string, lang string) ([]models.Fridg
 		response := models.FridgeItemListResponse{
 			ID:         item.ID,
 			Name:       item.Ingredient.GetName(lang), // 🌍 Use localized name
-			Category:   item.Ingredient.Category, // Добавляем категорию для группировки
+			Category:   item.Ingredient.Category,      // Добавляем категорию для группировки
 			Quantity:   item.Quantity,
 			Unit:       item.Unit,
 			Ingredient: models.NewIngredientBasicInfo(item.Ingredient), // 🌍 Full multilingual data
@@ -743,10 +743,10 @@ func (s *FridgeService) createItemAddedNotification(userID string, item *models.
 
 	// Форматируем количество
 	quantityStr := fmt.Sprintf("%.1f %s", item.Quantity, item.Unit)
-	
+
 	// Формируем сообщение
 	message := fmt.Sprintf("%s добавлен в холодильник (%s)", ingredientName, quantityStr)
-	
+
 	// Формируем meta информацию
 	metaJSON, _ := json.Marshal(map[string]interface{}{
 		"fridgeItemId": item.ID,

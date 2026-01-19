@@ -86,7 +86,7 @@ func (h *AdminHandlers) UploadRecipeImage(w http.ResponseWriter, r *http.Request
 		"imageUrl":      uploadResult.SecureURL,
 		"imagePublicId": uploadResult.PublicID,
 	}
-	
+
 	if err := h.service.DB().Model(&models.Recipe{}).Where("id = ?", recipeID).Updates(updates).Error; err != nil {
 		// CRITICAL: Transactional integrity - cleanup uploaded image
 		// Cloudinary upload succeeded but DB save failed
@@ -159,7 +159,7 @@ func (h *AdminHandlers) DeleteRecipeImage(w http.ResponseWriter, r *http.Request
 		"imageUrl":      "",
 		"imagePublicId": "",
 	}
-	
+
 	if err := h.service.DB().Model(&models.Recipe{}).Where("id = ?", recipeID).Updates(updates).Error; err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Sprintf("Failed to update recipe: %v", err))
 		return

@@ -19,7 +19,7 @@ type FridgeExpiryChecker struct {
 // NewFridgeExpiryChecker создает новый экземпляр CRON задачи
 func NewFridgeExpiryChecker(db *gorm.DB) *FridgeExpiryChecker {
 	c := cron.New(cron.WithLocation(time.UTC))
-	
+
 	return &FridgeExpiryChecker{
 		cron: c,
 		db:   db,
@@ -30,14 +30,14 @@ func NewFridgeExpiryChecker(db *gorm.DB) *FridgeExpiryChecker {
 func (f *FridgeExpiryChecker) Start() error {
 	// Запуск каждый день в 08:00 UTC (11:00 по Москве, 09:00 по Варшаве)
 	_, err := f.cron.AddFunc("0 8 * * *", f.checkAllUsers)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to add cron job: %w", err)
 	}
 
 	f.cron.Start()
 	fmt.Println("🕐 CRON: Fridge expiry checker started (daily at 08:00 UTC)")
-	
+
 	return nil
 }
 

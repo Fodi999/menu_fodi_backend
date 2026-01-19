@@ -392,12 +392,12 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 			"timeMinutes":   recipe.TimeMinutes,
 			"servings":      recipe.Servings,
 		}
-		
+
 		// Add imageUrl if present
 		if recipe.ImageUrl != "" {
 			recipeData["imageUrl"] = recipe.ImageUrl
 		}
-		
+
 		recipesData[i] = recipeData
 	}
 
@@ -703,7 +703,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 		// Get localized ingredient name
 		ingredientName := ing.Name // Fallback to original name
 		var nameEN, namePL, nameRU string
-		
+
 		if ing.Ingredient != nil {
 			ingredientName = ing.Ingredient.GetName(lang)
 			// Include all translations for frontend
@@ -737,7 +737,7 @@ func convertToRecipeMatchItem(match service.RecipeMatch, lang string) dto.Recipe
 		// Get localized ingredient name
 		ingredientName := ing.Name // Fallback to original name
 		var nameEN, namePL, nameRU string
-		
+
 		if ing.Ingredient != nil {
 			ingredientName = ing.Ingredient.GetName(lang)
 			// Include all translations for frontend

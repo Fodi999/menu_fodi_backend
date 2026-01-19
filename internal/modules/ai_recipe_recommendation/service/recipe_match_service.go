@@ -25,26 +25,26 @@ func NewRecipeMatchService(db *gorm.DB) *RecipeMatchService {
 
 // RecipeMatch - результат подбора рецепта
 type RecipeMatch struct {
-	RecipeID            string   `json:"recipeId"`
-	CanonicalName       string   `json:"canonicalName"`      // 1️⃣ Единый ключ (например: "scrambled_eggs")
-	DisplayName         string   `json:"displayName"`        // Локализованное название
-	TotalIngredients    int      `json:"totalIngredients"`
-	MatchedCount        int      `json:"matchedCount"`
-	MatchRatio          float64  `json:"matchRatio"`
-	CanCookNow          bool     `json:"canCookNow"`
-	Scenario            string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
-	Confidence          string   `json:"confidence"`         // 5️⃣ "EXACT_MATCH" | "HIGH" | "MEDIUM" | "LOW"
-	UserIngredients     []string `json:"userIngredients"`    // 2️⃣ Нормализованные названия (toLowerCase)
-	MissingIngredients  []string `json:"missingIngredients"` // 4️⃣ Недостающие ингредиенты
-	MissingCount        int      `json:"missingCount"`
+	RecipeID           string   `json:"recipeId"`
+	CanonicalName      string   `json:"canonicalName"` // 1️⃣ Единый ключ (например: "scrambled_eggs")
+	DisplayName        string   `json:"displayName"`   // Локализованное название
+	TotalIngredients   int      `json:"totalIngredients"`
+	MatchedCount       int      `json:"matchedCount"`
+	MatchRatio         float64  `json:"matchRatio"`
+	CanCookNow         bool     `json:"canCookNow"`
+	Scenario           string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
+	Confidence         string   `json:"confidence"`         // 5️⃣ "EXACT_MATCH" | "HIGH" | "MEDIUM" | "LOW"
+	UserIngredients    []string `json:"userIngredients"`    // 2️⃣ Нормализованные названия (toLowerCase)
+	MissingIngredients []string `json:"missingIngredients"` // 4️⃣ Недостающие ингредиенты
+	MissingCount       int      `json:"missingCount"`
 }
 
 // recipeMatchResult - внутренняя структура для SQL запроса
 type recipeMatchResult struct {
 	RecipeID      string
-	CanonicalName string  // может быть NULL для user recipes
-	Title         string  // всегда есть
-	LocalName     string  // всегда есть
+	CanonicalName string // может быть NULL для user recipes
+	Title         string // всегда есть
+	LocalName     string // всегда есть
 	Total         int
 	Matched       int
 }
@@ -59,7 +59,7 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 		FROM user_fridge_items 
 		WHERE user_id = ? AND quantity > 0
 	`, userID).Pluck("ingredient_id", &userIngredientIDs).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user ingredients: %w", err)
 	}
@@ -103,7 +103,7 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 	// 2.3 Правило (rules engine) - минимум 70% совпадения
 	matchRatio := float64(best.Matched) / float64(best.Total)
 	canCookNow := matchRatio >= 0.7
-	
+
 	// 5️⃣ Определить сценарий для UI
 	var scenario string
 	if canCookNow {
@@ -127,7 +127,7 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 		// 2️⃣ Нормализация: toLowerCase для консистентности
 		ingredientNames = append(ingredientNames, normalizeIngredientName(ing.GetName(lang)))
 	}
-	
+
 	// 1️⃣ ВСЕГДА генерировать правильный canonical name (английский slug)
 	// Canonical name НИКОГДА не берётся из БД напрямую (может быть локализован)
 	canonicalName := utils.GenerateCanonicalName(best.LocalName)
@@ -135,17 +135,17 @@ func (s *RecipeMatchService) FindBestRecipe(ctx context.Context, userID string, 
 		// Если не нашли в мапе - попробуем title
 		canonicalName = utils.GenerateCanonicalName(best.Title)
 	}
-	
+
 	// 2️⃣ Локализовать название рецепта (displayName)
 	displayName := localizeRecipeName(best, lang)
-	
+
 	// 3️⃣ Получить недостающие ингредиенты (для ALMOST_READY сценария)
 	missingIngredients := []string{}
 	if !canCookNow && matchRatio >= 0.5 {
 		// TODO: получить реальные недостающие ингредиенты из RecipeIngredient
 		// Пока оставляем пустым
 	}
-	
+
 	// 5️⃣ Confidence как enum
 	confidence := calculateConfidence(matchRatio)
 
@@ -270,7 +270,7 @@ Expected JSON format:
 func BuildUserPrompt(ctx *AIContext) string {
 	ingredientsJSON, _ := json.Marshal(ctx.Ingredients)
 	missingJSON, _ := json.Marshal(ctx.MissingIngredients)
-	
+
 	return fmt.Sprintf(`Recipe: %s (canonical: %s)
 Scenario: %s
 Ingredients available: %s
@@ -293,6 +293,6 @@ Explain in natural %s language why this recipe is recommended (or why they need 
 // 3️⃣ Confidence ТОЛЬКО в recipe, НЕ в AI response
 type AIResponse struct {
 	Title           string   `json:"title"`
-	Reason          string   `json:"reason"`           // Естественный язык БЕЗ цифр
+	Reason          string   `json:"reason"` // Естественный язык БЕЗ цифр
 	IngredientsUsed []string `json:"ingredientsUsed"`
 }

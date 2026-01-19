@@ -70,9 +70,9 @@ type RecipeMatchItem struct {
 type IngredientMatch struct {
 	IngredientID   string  `json:"ingredientId"`
 	Name           string  `json:"name"`
-	NameEN         string  `json:"name_en,omitempty"`        // English name for translations
-	NamePL         string  `json:"name_pl,omitempty"`        // Polish name for translations
-	NameRU         string  `json:"name_ru,omitempty"`        // Russian name for translations
+	NameEN         string  `json:"name_en,omitempty"` // English name for translations
+	NamePL         string  `json:"name_pl,omitempty"` // Polish name for translations
+	NameRU         string  `json:"name_ru,omitempty"` // Russian name for translations
 	Quantity       float64 `json:"quantity"`
 	Unit           string  `json:"unit"`
 	Optional       bool    `json:"optional,omitempty"`       // Для missingIngredients

@@ -19,9 +19,9 @@ import (
 
 // App represents the application
 type App struct {
-	config     *config.Config
-	db         *gorm.DB
-	server     *http.Server
+	config      *config.Config
+	db          *gorm.DB
+	server      *http.Server
 	cronChecker *cron.FridgeExpiryChecker
 }
 

@@ -26,25 +26,25 @@ func NewAIRecipeHandler(db *gorm.DB, matchService *service.RecipeMatchService) *
 
 // RecommendationResponse - финальный ответ клиенту (пункт 7)
 type RecommendationResponse struct {
-	Success bool                   `json:"success"`
-	Data    *RecommendationData    `json:"data,omitempty"`
-	Error   string                 `json:"error,omitempty"`
+	Success bool                `json:"success"`
+	Data    *RecommendationData `json:"data,omitempty"`
+	Error   string              `json:"error,omitempty"`
 }
 
 // RecommendationData - полная структура данных
 type RecommendationData struct {
-	Recipe RecipeData           `json:"recipe"`
-	AI     service.AIResponse   `json:"ai"`
+	Recipe RecipeData         `json:"recipe"`
+	AI     service.AIResponse `json:"ai"`
 }
 
 // RecipeData - информация о рецепте
 type RecipeData struct {
 	ID                 string   `json:"id"`
-	CanonicalName      string   `json:"canonicalName"`      // 1️⃣ Единый ключ (например: "scrambled_eggs")
-	DisplayName        string   `json:"displayName"`        // Локализованное название
+	CanonicalName      string   `json:"canonicalName"` // 1️⃣ Единый ключ (например: "scrambled_eggs")
+	DisplayName        string   `json:"displayName"`   // Локализованное название
 	CanCookNow         bool     `json:"canCookNow"`
-	Scenario           string   `json:"scenario"`           // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
-	Confidence         string   `json:"confidence"`         // 5️⃣ "EXACT_MATCH" | "HIGH" | "MEDIUM" | "LOW"
+	Scenario           string   `json:"scenario"`   // 5️⃣ "CAN_COOK_NOW" | "NEED_MORE" | "ALMOST_READY"
+	Confidence         string   `json:"confidence"` // 5️⃣ "EXACT_MATCH" | "HIGH" | "MEDIUM" | "LOW"
 	MatchRatio         float64  `json:"matchRatio"`
 	Ingredients        []string `json:"ingredients"`        // 2️⃣ Нормализованные (toLowerCase)
 	MissingIngredients []string `json:"missingIngredients"` // 4️⃣ Недостающие ингредиенты

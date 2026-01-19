@@ -22,7 +22,7 @@ type FridgeItem struct {
 	Unit         string           `gorm:"column:unit;not null" json:"unit"`
 	ExpiresAt    *time.Time       `gorm:"column:expires_at" json:"expiresAt,omitempty"`
 	Status       FridgeItemStatus `gorm:"column:status;default:'fresh'" json:"status"`
-	DaysLeft     *int             `gorm:"column:days_left" json:"daysLeft,omitempty"`      // Вычисляется на backend
+	DaysLeft     *int             `gorm:"column:days_left" json:"daysLeft,omitempty"`     // Вычисляется на backend
 	PriceTotal   float64          `gorm:"column:price_total;default:0" json:"priceTotal"` // Для расчета потерь
 	CreatedAt    time.Time        `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 	UpdatedAt    time.Time        `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"`
