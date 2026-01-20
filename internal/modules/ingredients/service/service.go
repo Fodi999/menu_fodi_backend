@@ -313,3 +313,9 @@ func (s *IngredientsService) List(category, search string) ([]models.Ingredient,
 func (s *IngredientsService) GetByCategory(category string) ([]models.Ingredient, error) {
 	return s.repo.GetByCategory(category)
 }
+
+// GetCategories returns all ingredient categories from catalog
+func (s *IngredientsService) GetCategories() ([]models.IngredientCategory, error) {
+	categoryRepo := &database.IngredientCategoryRepository{}
+	return categoryRepo.GetAll()
+}

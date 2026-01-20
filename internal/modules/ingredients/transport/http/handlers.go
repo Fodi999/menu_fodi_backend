@@ -247,3 +247,42 @@ func (h *IngredientsHandlers) ListIngredients(w http.ResponseWriter, r *http.Req
 		"count": len(ingredients),
 	})
 }
+
+// GetCategories returns ingredient categories catalog
+// @Summary Get ingredient categories
+// @Description Get all ingredient categories with localized labels
+// @Tags Catalog
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} httpx.ErrorResponse
+// @Security BearerAuth
+// @Router /api/catalog/ingredient-categories [get]
+func (h *IngredientsHandlers) GetCategories(w http.ResponseWriter, r *http.Request) {
+	// Get user language from Accept-Language header
+	lang := r.Header.Get("Accept-Language")
+	if lang == "" {
+		lang = "pl" // default to Polish
+	}
+
+	// Get categories from database
+	categories, err := h.service.GetCategories()
+	if err != nil {
+		httpx.InternalError(w, "Failed to load categories")
+		return
+	}
+
+	// Convert to DTO with localized labels
+	categoriesDTO := make([]map[string]interface{}, len(categories))
+	for i, cat := range categories {
+		categoriesDTO[i] = map[string]interface{}{
+			"key":       cat.Key,
+			"label":     cat.GetLabel(lang), // ✅ Localized on backend
+			"icon":      cat.Icon,
+			"sortOrder": cat.SortOrder,
+		}
+	}
+
+	httpx.Success(w, map[string]interface{}{
+		"categories": categoriesDTO,
+	})
+}

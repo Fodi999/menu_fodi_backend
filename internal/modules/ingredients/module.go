@@ -26,11 +26,17 @@ func NewModule(db *gorm.DB) *Module {
 
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handler) http.Handler) {
 	// 📖 CATALOG ROUTES - Справочник продуктов (для ВСЕХ авторизованных)
-	r.Route("/catalog/ingredients", func(r chi.Router) {
+	r.Route("/catalog", func(r chi.Router) {
 		r.Use(jwtMiddleware)
 
-		r.Get("/", m.handlers.ListIngredients) // Список с фильтрами (category, search)
-		r.Get("/search", m.handlers.Search)    // Автокомплит поиска
+		// Ingredient categories catalog
+		r.Get("/ingredient-categories", m.handlers.GetCategories) // ✅ NEW: категории с локализацией
+
+		// Ingredients search and list
+		r.Route("/ingredients", func(r chi.Router) {
+			r.Get("/", m.handlers.ListIngredients) // Список с фильтрами (category, search)
+			r.Get("/search", m.handlers.Search)    // Автокомплит поиска
+		})
 	})
 
 	// 📦 STOCK ROUTES - Управление складом (ТОЛЬКО pro_chef)
