@@ -403,12 +403,28 @@ func (s *FridgeService) normalizePrice(value float64, per string, unit string) (
 		// 3.20 PLN / kg → 0.0032 PLN / g
 		return value / 1000, nil
 
+	case "g":
+		// TEMPORARY: Support "g" unit until frontend is updated
+		// TODO: Frontend should send "per": "kg" with value/1000
+		if unit != "g" {
+			return 0, fmt.Errorf("unit mismatch: price per g requires unit g, got %s", unit)
+		}
+		return value, nil
+
 	case "l":
 		if unit != "ml" {
 			return 0, fmt.Errorf("unit mismatch: cannot convert price per l to unit %s", unit)
 		}
 		// 2.50 PLN / l → 0.0025 PLN / ml
 		return value / 1000, nil
+
+	case "ml":
+		// TEMPORARY: Support "ml" unit until frontend is updated
+		// TODO: Frontend should send "per": "l" with value/1000
+		if unit != "ml" {
+			return 0, fmt.Errorf("unit mismatch: price per ml requires unit ml, got %s", unit)
+		}
+		return value, nil
 
 	case "pcs", "szt", "шт":
 		if unit != "pcs" && unit != "szt" {
@@ -418,7 +434,7 @@ func (s *FridgeService) normalizePrice(value float64, per string, unit string) (
 		return value, nil
 
 	default:
-		return 0, fmt.Errorf("invalid price unit: %s (must be: kg for grams, l for ml, pcs/szt for pieces)", per)
+		return 0, fmt.Errorf("invalid price unit: %s (must be: kg/g for grams, l/ml for ml, pcs/szt for pieces)", per)
 	}
 }
 
