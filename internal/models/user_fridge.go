@@ -31,7 +31,8 @@ type UserFridgeItem struct {
 type UserFridgePriceHistory struct {
 	ID               string    `gorm:"primaryKey;type:text;default:gen_random_uuid()::text;column:id" json:"id"`
 	UserFridgeItemID string    `gorm:"type:text;not null;column:user_fridge_item_id;index" json:"userFridgeItemId"`
-	PricePerUnit     float64   `gorm:"not null;column:price_per_unit" json:"pricePerUnit"`
+	PricePerUnit     float64   `gorm:"not null;column:price_per_unit" json:"pricePerUnit"`       // Цена за единицу (может быть нормализована)
+	UnitForPrice     string    `gorm:"type:text;column:unit_for_price" json:"unitForPrice"`      // Единица измерения цены (kg, l, pcs, g, ml)
 	Currency         string    `gorm:"not null;default:'PLN';column:currency" json:"currency"`
 	Source           string    `gorm:"not null;default:'manual';column:source;index" json:"source"` // manual, receipt, estimate, market, ai
 	CreatedAt        time.Time `gorm:"column:created_at;autoCreateTime;index:,sort:desc" json:"createdAt"`
@@ -66,7 +67,8 @@ type PriceInput struct {
 
 // AddPriceRequest запрос на добавление события изменения цены
 type AddPriceRequest struct {
-	PricePerUnit float64 `json:"pricePerUnit" binding:"required,gt=0"` // Нормализованная цена за единицу
+	PricePerUnit float64 `json:"pricePerUnit" binding:"required,gt=0"` // Цена за единицу (может быть нормализована или исходная)
+	UnitForPrice string  `json:"unitForPrice"`                         // Единица измерения цены (kg, l, pcs, g, ml)
 	Currency     string  `json:"currency" binding:"required"`          // PLN, EUR, USD
 	Source       string  `json:"source" binding:"required"`            // manual, receipt, estimate, market, ai
 }
@@ -178,4 +180,31 @@ func GetFridgeItemStatus(daysLeft *int) string {
 		return "warning"
 	}
 	return "ok"
+}
+
+// PriceInfo - информация о цене продукта (из user_fridge_price_history)
+type PriceInfo struct {
+	Value float64 `json:"value"` // 6.3 (цена за единицу)
+	Per   string  `json:"per"`   // "kg", "l", "pcs" (единица измерения цены)
+}
+
+// ComputedPrice - вычисленные значения стоимости
+type ComputedPrice struct {
+	UnitPrice float64 `json:"unitPrice"` // Цена за 1 базовую единицу (g/ml/pcs)
+	TotalCost float64 `json:"totalCost"` // Общая стоимость (quantity × unitPrice)
+}
+
+// FridgeItemResponseV2 - новая версия DTO с ценами и категориями
+type FridgeItemResponseV2 struct {
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	CategoryKey string     `json:"categoryKey"` // fish, meat, egg, dairy, etc. (stable key)
+	Quantity    float64    `json:"quantity"`
+	Unit        string     `json:"unit"`
+	ExpiresAt   *time.Time `json:"expiresAt,omitempty"`
+	DaysLeft    *int       `json:"daysLeft,omitempty"`
+
+	// ✅ НОВОЕ: Информация о цене (опционально)
+	Price    *PriceInfo     `json:"price,omitempty"`    // Цена за единицу из price_history
+	Computed *ComputedPrice `json:"computed,omitempty"` // Вычисленная стоимость
 }

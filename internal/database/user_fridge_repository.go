@@ -114,11 +114,12 @@ func (r *UserFridgeRepository) GetExpired(userID string) ([]models.UserFridgeIte
 // ===== PRICE HISTORY METHODS (Event Sourcing) =====
 
 // InsertPriceHistory добавляет событие изменения цены в историю
-func (r *UserFridgeRepository) InsertPriceHistory(itemID string, pricePerUnit float64, currency string, source string) error {
+func (r *UserFridgeRepository) InsertPriceHistory(itemID string, pricePerUnit float64, unitForPrice string, currency string, source string) error {
 	history := models.UserFridgePriceHistory{
 		// ID: не устанавливаем - используем DEFAULT gen_random_uuid()::text из БД
 		UserFridgeItemID: itemID,
 		PricePerUnit:     pricePerUnit,
+		UnitForPrice:     unitForPrice, // ✅ Сохраняем единицу измерения
 		Currency:         currency,
 		Source:           source,
 	}

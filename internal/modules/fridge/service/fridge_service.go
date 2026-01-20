@@ -88,9 +88,10 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 			return nil, fmt.Errorf("invalid price input: %w", err)
 		}
 
-		// Добавляем первое событие цены
+		// Добавляем первое событие цены с исходной ценой и единицей измерения
 		priceReq := models.AddPriceRequest{
-			PricePerUnit: normalized,
+			PricePerUnit: req.PriceInput.Value, // ✅ Сохраняем ИСХОДНУЮ цену (не нормализованную)
+			UnitForPrice: req.PriceInput.Per,   // ✅ Сохраняем единицу измерения (kg, l, pcs)
 			Currency:     "PLN",
 			Source:       "manual",
 		}
@@ -100,6 +101,8 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 			logger.Error("failed to add initial price",
 				zap.String("user_id", userID),
 				zap.String("item_id", item.ID),
+				zap.Float64("original_price", req.PriceInput.Value),
+				zap.String("unit_for_price", req.PriceInput.Per),
 				zap.Float64("normalized", normalized),
 				zap.Error(err))
 			// НЕ фейлим весь запрос из-за цены - продукт уже создан
@@ -510,10 +513,10 @@ func (s *FridgeService) AddPrice(userID string, itemID string, req models.AddPri
 
 	// 3. Добавляем событие в историю (обернуто в транзакцию)
 	// Используем транзакцию для атомарности: history INSERT + cache UPDATE
-	if err := s.fridgeRepo.InsertPriceHistory(itemID, req.PricePerUnit, req.Currency, req.Source); err != nil {
+	if err := s.fridgeRepo.InsertPriceHistory(itemID, req.PricePerUnit, req.UnitForPrice, req.Currency, req.Source); err != nil {
 		// Детальное логирование для отладки
-		return fmt.Errorf("failed to insert price history (itemID=%s, price=%.8f, currency=%s, source=%s): %w",
-			itemID, req.PricePerUnit, req.Currency, req.Source, err)
+		return fmt.Errorf("failed to insert price history (itemID=%s, price=%.8f, unit=%s, currency=%s, source=%s): %w",
+			itemID, req.PricePerUnit, req.UnitForPrice, req.Currency, req.Source, err)
 	}
 
 	// 4. Обновляем кэш текущей цены (денормализация для производительности)
@@ -867,4 +870,146 @@ func (s *FridgeService) createItemDeletedNotification(userID string, item *model
 			zap.String("user_id", userID),
 			zap.String("item_name", ingredientName))
 	}
+}
+
+// getLastPrice загружает последнюю цену для продукта из user_fridge_price_history
+func (s *FridgeService) getLastPrice(itemID string) (*models.UserFridgePriceHistory, error) {
+	var priceHistory models.UserFridgePriceHistory
+	err := s.db.Where("user_fridge_item_id = ?", itemID).
+		Order("created_at DESC").
+		Limit(1).
+		First(&priceHistory).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil // Нет истории цен - это нормально
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get price history: %w", err)
+	}
+
+	return &priceHistory, nil
+}
+
+// computeTotalCost вычисляет общую стоимость продукта в холодильнике
+func (s *FridgeService) computeTotalCost(
+	quantity float64,
+	unit string,
+	pricePerUnit float64,
+	unitForPrice string,
+) *models.ComputedPrice {
+
+	// Нормализуем quantity к базовым единицам (g, ml, pcs)
+	var quantityInBaseUnits float64
+	switch unit {
+	case "kg":
+		quantityInBaseUnits = quantity * 1000 // kg → g
+	case "g":
+		quantityInBaseUnits = quantity
+	case "l":
+		quantityInBaseUnits = quantity * 1000 // l → ml
+	case "ml":
+		quantityInBaseUnits = quantity
+	case "pcs":
+		quantityInBaseUnits = quantity
+	default:
+		return nil // Неизвестная единица
+	}
+
+	// Нормализуем цену к базовым единицам
+	var pricePerBaseUnit float64
+	switch unitForPrice {
+	case "kg":
+		pricePerBaseUnit = pricePerUnit / 1000 // zł/kg → zł/g
+	case "g":
+		pricePerBaseUnit = pricePerUnit
+	case "l":
+		pricePerBaseUnit = pricePerUnit / 1000 // zł/l → zł/ml
+	case "ml":
+		pricePerBaseUnit = pricePerUnit
+	case "pcs":
+		pricePerBaseUnit = pricePerUnit // zł/pcs
+	default:
+		return nil
+	}
+
+	// Вычисляем общую стоимость
+	totalCost := quantityInBaseUnits * pricePerBaseUnit
+
+	// Округляем до 2 знаков после запятой
+	totalCost = math.Round(totalCost*100) / 100
+	pricePerBaseUnit = math.Round(pricePerBaseUnit*100000) / 100000 // Сохраняем точность для unitPrice
+
+	return &models.ComputedPrice{
+		UnitPrice: pricePerBaseUnit, // Цена за 1g/ml/pcs
+		TotalCost: totalCost,         // Общая стоимость (округленная)
+	}
+}
+
+// GetUserItemsV2 возвращает продукты в холодильнике с ценами (новая версия API)
+func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemResponseV2, error) {
+	// Автоматически очищаем просроченные продукты
+	if err := s.cleanupExpiredItems(userID); err != nil {
+		logger.Warn("failed to cleanup expired items",
+			zap.String("user_id", userID),
+			zap.Error(err))
+	}
+
+	// Загружаем items с Preload ingredient
+	items, err := s.fridgeRepo.GetUserFridgeItems(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get fridge items: %w", err)
+	}
+
+	result := make([]models.FridgeItemResponseV2, 0, len(items))
+	for _, item := range items {
+		if item.Ingredient == nil {
+			continue
+		}
+
+		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
+		status := models.GetFridgeItemStatus(daysLeft)
+
+		// Не отдаём expired продукты
+		if status == "expired" {
+			continue
+		}
+
+		response := models.FridgeItemResponseV2{
+			ID:          item.ID,
+			Name:        item.Ingredient.Name, // Используем основное имя
+			CategoryKey: item.Ingredient.Category,
+			Quantity:    item.Quantity,
+			Unit:        item.Unit,
+			ExpiresAt:   item.ExpiresAt,
+			DaysLeft:    daysLeft,
+		}
+
+		// ✅ НОВОЕ: Загружаем последнюю цену из price_history
+		lastPrice, err := s.getLastPrice(item.ID)
+		if err != nil {
+			logger.Warn("failed to get last price",
+				zap.String("item_id", item.ID),
+				zap.Error(err))
+		} else if lastPrice != nil {
+			response.Price = &models.PriceInfo{
+				Value: lastPrice.PricePerUnit,
+				Per:   lastPrice.UnitForPrice,
+			}
+
+			// Вычисляем стоимость
+			computed := s.computeTotalCost(
+				item.Quantity,
+				item.Unit,
+				lastPrice.PricePerUnit,
+				lastPrice.UnitForPrice,
+			)
+			if computed != nil {
+				response.Computed = computed
+			}
+		}
+
+		result = append(result, response)
+	}
+
+	return result, nil
 }

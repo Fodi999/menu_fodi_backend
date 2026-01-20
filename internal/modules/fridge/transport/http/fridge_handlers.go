@@ -62,7 +62,7 @@ func (h *FridgeHandlers) AddItem(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(w, response)
 }
 
-// GetUserItems возвращает список продуктов пользователя
+// GetUserItems возвращает список продуктов пользователя (обновлено для использования V2)
 func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 	// Получаем User ID из контекста
 	userIDPtr := middleware.GetUserID(r)
@@ -73,13 +73,36 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := userIDPtr.String()
 
-	// 🌍 Get user's preferred language from User.settings
-	userLang := h.getUserLanguage(r, userID)
-
-	// Получаем список продуктов
-	items, err := h.service.GetUserItems(userID, userLang)
+	// ✅ НОВОЕ: Используем GetUserItemsV2 с ценами
+	items, err := h.service.GetUserItemsV2(userID)
 	if err != nil {
 		logger.Error("failed to get fridge items",
+			zap.Error(err),
+			zap.String("user_id", userID))
+		respondError(w, http.StatusInternalServerError, "failed to get items")
+		return
+	}
+
+	respondSuccess(w, map[string]interface{}{
+		"items": items,
+	})
+}
+
+// GetUserItemsV2 возвращает список продуктов с ценами (новая версия API)
+func (h *FridgeHandlers) GetUserItemsV2(w http.ResponseWriter, r *http.Request) {
+	// Получаем User ID из контекста
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		logger.Error("user ID not found in context")
+		respondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// Получаем список продуктов с ценами
+	items, err := h.service.GetUserItemsV2(userID)
+	if err != nil {
+		logger.Error("failed to get fridge items v2",
 			zap.Error(err),
 			zap.String("user_id", userID))
 		respondError(w, http.StatusInternalServerError, "failed to get items")
