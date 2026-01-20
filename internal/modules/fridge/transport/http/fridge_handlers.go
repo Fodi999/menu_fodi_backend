@@ -89,6 +89,15 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 🔍 DEBUG: Логируем первый элемент response для проверки
+	if len(items) > 0 {
+		logger.Info("🔍 RESPONSE SAMPLE",
+			zap.String("accept_language", lang),
+			zap.String("item_name", items[0].Name),
+			zap.String("category_key", items[0].CategoryKey),
+			zap.Int("total_items", len(items)))
+	}
+
 	respondSuccess(w, map[string]interface{}{
 		"items": items,
 	})
