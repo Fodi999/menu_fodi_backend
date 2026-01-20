@@ -73,8 +73,14 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := userIDPtr.String()
 
-	// ✅ НОВОЕ: Используем GetUserItemsV2 с ценами
-	items, err := h.service.GetUserItemsV2(userID)
+	// ✅ НОВОЕ: Получаем язык из Accept-Language header
+	lang := r.Header.Get("Accept-Language")
+	if lang == "" {
+		lang = "pl" // fallback
+	}
+
+	// ✅ ИСПРАВЛЕНО: Передаём язык в GetUserItemsV2
+	items, err := h.service.GetUserItemsV2(userID, lang)
 	if err != nil {
 		logger.Error("failed to get fridge items",
 			zap.Error(err),
@@ -99,8 +105,14 @@ func (h *FridgeHandlers) GetUserItemsV2(w http.ResponseWriter, r *http.Request) 
 	}
 	userID := userIDPtr.String()
 
-	// Получаем список продуктов с ценами
-	items, err := h.service.GetUserItemsV2(userID)
+	// ✅ НОВОЕ: Получаем язык из Accept-Language header
+	lang := r.Header.Get("Accept-Language")
+	if lang == "" {
+		lang = "pl" // fallback
+	}
+
+	// ✅ ИСПРАВЛЕНО: Передаём язык в GetUserItemsV2
+	items, err := h.service.GetUserItemsV2(userID, lang)
 	if err != nil {
 		logger.Error("failed to get fridge items v2",
 			zap.Error(err),

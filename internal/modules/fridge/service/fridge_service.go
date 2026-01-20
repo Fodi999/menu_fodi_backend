@@ -928,7 +928,8 @@ func (s *FridgeService) computeTotalCost(
 }
 
 // GetUserItemsV2 возвращает продукты в холодильнике с ценами (новая версия API)
-func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemResponseV2, error) {
+// lang - язык для локализации имён (pl, en, ru)
+func (s *FridgeService) GetUserItemsV2(userID string, lang string) ([]models.FridgeItemResponseV2, error) {
 	// Автоматически очищаем просроченные продукты
 	if err := s.cleanupExpiredItems(userID); err != nil {
 		logger.Warn("failed to cleanup expired items",
@@ -940,6 +941,11 @@ func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemRespon
 	items, err := s.fridgeRepo.GetUserFridgeItems(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get fridge items: %w", err)
+	}
+
+	// Fallback to pl if lang is empty
+	if lang == "" {
+		lang = "pl"
 	}
 
 	result := make([]models.FridgeItemResponseV2, 0, len(items))
@@ -960,8 +966,8 @@ func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemRespon
 
 		response := models.FridgeItemResponseV2{
 			ID:          item.ID,
-			Name:        item.Ingredient.Name, // Используем основное имя
-			CategoryKey: item.Ingredient.Category,
+			Name:        item.Ingredient.GetName(lang), // ✅ ИСПРАВЛЕНО: локализация по языку!
+			CategoryKey: item.Ingredient.Category,      // ✅ ПРАВИЛЬНО: используем stable key
 			Quantity:    item.Quantity,
 			Unit:        item.Unit,
 			ExpiresAt:   item.ExpiresAt,
