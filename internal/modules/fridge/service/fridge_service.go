@@ -948,12 +948,34 @@ func (s *FridgeService) GetUserItemsV2(userID string, lang string) ([]models.Fri
 		lang = "pl"
 	}
 
+	logger.Info("🌍 GetUserItemsV2 called",
+		zap.String("user_id", userID),
+		zap.String("requested_lang", lang))
+
 	result := make([]models.FridgeItemResponseV2, 0, len(items))
 	for _, item := range items {
 		if item.Ingredient == nil {
 			logger.Warn("item has no ingredient",
 				zap.String("item_id", item.ID))
 			continue
+		}
+
+		// 🔍 DEBUG: Проверяем наличие переводов
+		if len(result) == 0 { // только для первого элемента
+			hasRU := item.Ingredient.NameRU != nil && *item.Ingredient.NameRU != ""
+			hasPL := item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != ""
+			hasEN := item.Ingredient.NameEN != nil && *item.Ingredient.NameEN != ""
+			
+			logger.Info("🔍 INGREDIENT TRANSLATIONS CHECK",
+				zap.String("ingredient_id", item.Ingredient.ID),
+				zap.String("legacy_name", item.Ingredient.Name),
+				zap.Bool("has_name_ru", hasRU),
+				zap.Bool("has_name_pl", hasPL),
+				zap.Bool("has_name_en", hasEN))
+			
+			if hasRU && item.Ingredient.NameRU != nil {
+				logger.Info("🔍 RU name value", zap.String("name_ru", *item.Ingredient.NameRU))
+			}
 		}
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
