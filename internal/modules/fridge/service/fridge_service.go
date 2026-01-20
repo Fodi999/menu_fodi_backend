@@ -963,8 +963,17 @@ func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemRespon
 	result := make([]models.FridgeItemResponseV2, 0, len(items))
 	for _, item := range items {
 		if item.Ingredient == nil {
+			logger.Warn("item has no ingredient",
+				zap.String("item_id", item.ID))
 			continue
 		}
+
+		// 🔍 DEBUG: Логируем категорию из Ingredient
+		logger.Info("processing item",
+			zap.String("item_id", item.ID),
+			zap.String("ingredient_name", item.Ingredient.Name),
+			zap.String("ingredient_category", item.Ingredient.Category),
+			zap.String("ingredient_id", item.IngredientID))
 
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
 		status := models.GetFridgeItemStatus(daysLeft)
