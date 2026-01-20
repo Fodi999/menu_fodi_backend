@@ -392,7 +392,8 @@ func (s *FridgeService) calculateDaysLeft(expiresAt *time.Time) *int {
 	return &days
 }
 
-// normalizePrice нормализует цену к единице измерения в БД (всегда g/ml/szt)
+// normalizePrice нормализует цену к единице измерения в БД (всегда g/ml/pcs)
+// Цена ВСЕГДА вводится за крупные единицы: kg, l, pcs (НЕ за g/ml!)
 func (s *FridgeService) normalizePrice(value float64, per string, unit string) (float64, error) {
 	switch per {
 	case "kg":
@@ -409,21 +410,7 @@ func (s *FridgeService) normalizePrice(value float64, per string, unit string) (
 		// 2.50 PLN / l → 0.0025 PLN / ml
 		return value / 1000, nil
 
-	case "g":
-		if unit != "g" {
-			return 0, fmt.Errorf("unit mismatch: price per g requires unit g, got %s", unit)
-		}
-		// 0.0032 PLN / g → 0.0032 PLN / g (без изменений)
-		return value, nil
-
-	case "ml":
-		if unit != "ml" {
-			return 0, fmt.Errorf("unit mismatch: price per ml requires unit ml, got %s", unit)
-		}
-		// 0.0025 PLN / ml → 0.0025 PLN / ml (без изменений)
-		return value, nil
-
-	case "pcs", "szt":
+	case "pcs", "szt", "шт":
 		if unit != "pcs" && unit != "szt" {
 			return 0, fmt.Errorf("unit mismatch: price per pcs requires unit pcs, got %s", unit)
 		}
@@ -431,7 +418,7 @@ func (s *FridgeService) normalizePrice(value float64, per string, unit string) (
 		return value, nil
 
 	default:
-		return 0, fmt.Errorf("unknown price unit: %s (supported: kg, l, g, ml, szt, pcs)", per)
+		return 0, fmt.Errorf("invalid price unit: %s (must be: kg for grams, l for ml, pcs/szt for pieces)", per)
 	}
 }
 
