@@ -93,13 +93,10 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 	if len(items) > 0 {
 		logger.Info("🔍 API CONTRACT CHECK",
 			zap.String("accept_language", lang),
-			zap.String("ingredient_id", items[0].Ingredient.ID),
-			zap.String("ingredient_name", items[0].Ingredient.Name),
-			zap.String("ingredient_unit", items[0].Ingredient.Unit),
+			zap.String("name", items[0].Name),                    // старое поле (обратная совместимость)
+			zap.String("ingredient_name", items[0].Ingredient.Name), // новое поле
 			zap.String("category_key", items[0].CategoryKey),
-			zap.Float64("quantity", items[0].Quantity),
-			zap.String("unit", items[0].Unit),
-			zap.Bool("has_current_price", items[0].CurrentPrice != nil),
+			zap.Bool("names_match", items[0].Name == items[0].Ingredient.Name),
 			zap.Int("total_items", len(items)))
 	}
 

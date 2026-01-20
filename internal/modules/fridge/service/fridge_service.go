@@ -970,14 +970,18 @@ func (s *FridgeService) GetUserItemsV2(userID string, lang string) ([]models.Fri
 			categoryKey = "other" // fallback только если пусто
 		}
 
+		// Локализованное имя
+		localizedName := item.Ingredient.GetName(lang)
+
 		response := models.FridgeItemResponseV2{
-			ID: item.ID,
+			ID:   item.ID,
+			Name: localizedName, // ✅ ОБРАТНАЯ СОВМЕСТИМОСТЬ: для старого фронта
 			Ingredient: models.IngredientInfo{
 				ID:   item.Ingredient.ID,
-				Name: item.Ingredient.GetName(lang), // ✅ Локализация имени
+				Name: localizedName, // ✅ Локализация имени
 				Unit: item.Ingredient.Unit,
 			},
-			CategoryKey: categoryKey,      // ✅ STABLE KEY (не зависит от языка!)
+			CategoryKey: categoryKey, // ✅ STABLE KEY (не зависит от языка!)
 			Quantity:    item.Quantity,
 			Unit:        item.Unit,
 			ExpiresAt:   item.ExpiresAt,
