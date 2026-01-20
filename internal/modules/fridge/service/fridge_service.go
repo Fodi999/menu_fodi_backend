@@ -872,24 +872,6 @@ func (s *FridgeService) createItemDeletedNotification(userID string, item *model
 	}
 }
 
-// getLastPrice загружает последнюю цену для продукта из user_fridge_price_history
-func (s *FridgeService) getLastPrice(itemID string) (*models.UserFridgePriceHistory, error) {
-	var priceHistory models.UserFridgePriceHistory
-	err := s.db.Where("user_fridge_item_id = ?", itemID).
-		Order("created_at DESC").
-		Limit(1).
-		First(&priceHistory).Error
-
-	if err == gorm.ErrRecordNotFound {
-		return nil, nil // Нет истории цен - это нормально
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to get price history: %w", err)
-	}
-
-	return &priceHistory, nil
-}
-
 // computeTotalCost вычисляет общую стоимость продукта в холодильнике
 func (s *FridgeService) computeTotalCost(
 	quantity float64,
@@ -968,13 +950,6 @@ func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemRespon
 			continue
 		}
 
-		// 🔍 DEBUG: Логируем категорию из Ingredient
-		logger.Info("processing item",
-			zap.String("item_id", item.ID),
-			zap.String("ingredient_name", item.Ingredient.Name),
-			zap.String("ingredient_category", item.Ingredient.Category),
-			zap.String("ingredient_id", item.IngredientID))
-
 		daysLeft := s.calculateDaysLeft(item.ExpiresAt)
 		status := models.GetFridgeItemStatus(daysLeft)
 
@@ -993,24 +968,20 @@ func (s *FridgeService) GetUserItemsV2(userID string) ([]models.FridgeItemRespon
 			DaysLeft:    daysLeft,
 		}
 
-		// ✅ НОВОЕ: Загружаем последнюю цену из price_history
-		lastPrice, err := s.getLastPrice(item.ID)
-		if err != nil {
-			logger.Warn("failed to get last price",
-				zap.String("item_id", item.ID),
-				zap.Error(err))
-		} else if lastPrice != nil {
+		// ✅ ОПТИМИЗАЦИЯ: Используем current_price из user_fridge_items (уже загружено)
+		// Вместо N запросов к user_fridge_price_history - 0 запросов!
+		if item.CurrentPricePerUnit != nil && *item.CurrentPricePerUnit > 0 {
 			response.Price = &models.PriceInfo{
-				Value: lastPrice.PricePerUnit,
-				Per:   lastPrice.UnitForPrice,
+				Value: *item.CurrentPricePerUnit,
+				Per:   item.Unit, // цена за текущую единицу измерения
 			}
 
 			// Вычисляем стоимость
 			computed := s.computeTotalCost(
 				item.Quantity,
 				item.Unit,
-				lastPrice.PricePerUnit,
-				lastPrice.UnitForPrice,
+				*item.CurrentPricePerUnit,
+				item.Unit,
 			)
 			if computed != nil {
 				response.Computed = computed
