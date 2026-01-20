@@ -89,12 +89,17 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 🔍 DEBUG: Логируем первый элемент response для проверки
+	// 🔍 DEBUG: Логируем первый элемент response для проверки контракта API
 	if len(items) > 0 {
-		logger.Info("🔍 RESPONSE SAMPLE",
+		logger.Info("🔍 API CONTRACT CHECK",
 			zap.String("accept_language", lang),
-			zap.String("item_name", items[0].Name),
+			zap.String("ingredient_id", items[0].Ingredient.ID),
+			zap.String("ingredient_name", items[0].Ingredient.Name),
+			zap.String("ingredient_unit", items[0].Ingredient.Unit),
 			zap.String("category_key", items[0].CategoryKey),
+			zap.Float64("quantity", items[0].Quantity),
+			zap.String("unit", items[0].Unit),
+			zap.Bool("has_current_price", items[0].CurrentPrice != nil),
 			zap.Int("total_items", len(items)))
 	}
 

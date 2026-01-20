@@ -194,17 +194,35 @@ type ComputedPrice struct {
 	TotalCost float64 `json:"totalCost"` // Общая стоимость (quantity × unitPrice)
 }
 
-// FridgeItemResponseV2 - новая версия DTO с ценами и категориями
-type FridgeItemResponseV2 struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	CategoryKey string     `json:"categoryKey"` // fish, meat, egg, dairy, etc. (stable key)
-	Quantity    float64    `json:"quantity"`
-	Unit        string     `json:"unit"`
-	ExpiresAt   *time.Time `json:"expiresAt,omitempty"`
-	DaysLeft    *int       `json:"daysLeft,omitempty"`
+// IngredientInfo - базовая информация об ингредиенте для API response
+type IngredientInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"` // Локализованное имя (зависит от Accept-Language)
+	Unit string `json:"unit"` // g, ml, pcs
+}
 
-	// ✅ НОВОЕ: Информация о цене (опционально)
-	Price    *PriceInfo     `json:"price,omitempty"`    // Цена за единицу из price_history
+// CurrentPriceInfo - информация о текущей цене
+type CurrentPriceInfo struct {
+	Value     float64    `json:"value"`               // 12.34
+	Per       string     `json:"per"`                 // kg, l, pcs
+	Currency  string     `json:"currency"`            // PLN, EUR, USD
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"` // когда обновлена
+}
+
+// FridgeItemResponseV2 - новая версия DTO с ценами и категориями
+// Контракт API: /api/fridge/items
+type FridgeItemResponseV2 struct {
+	ID           string            `json:"id"`
+	Ingredient   IngredientInfo    `json:"ingredient"`            // Информация об ингредиенте
+	CategoryKey  string            `json:"categoryKey"`           // fish, meat, egg, dairy, etc. (stable key, НЕ зависит от языка)
+	Quantity     float64           `json:"quantity"`              // 2000
+	Unit         string            `json:"unit"`                  // g, ml, pcs
+	ExpiresAt    *time.Time        `json:"expiresAt,omitempty"`   // ISO 8601
+	DaysLeft     *int              `json:"daysLeft,omitempty"`    // Вычисленное на backend
+	CurrentPrice *CurrentPriceInfo `json:"currentPrice,omitempty"` // Текущая цена (если есть)
+
+	// Deprecated: используйте currentPrice
+	Price    *PriceInfo     `json:"price,omitempty"`    // Старое поле для обратной совместимости
 	Computed *ComputedPrice `json:"computed,omitempty"` // Вычисленная стоимость
 }
+

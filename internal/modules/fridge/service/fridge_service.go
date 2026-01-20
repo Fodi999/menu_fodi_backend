@@ -964,22 +964,39 @@ func (s *FridgeService) GetUserItemsV2(userID string, lang string) ([]models.Fri
 			continue
 		}
 
+		// ✅ ПРАВИЛО: categoryKey ТОЛЬКО из Ingredient.Category (stable key)
+		categoryKey := item.Ingredient.Category
+		if categoryKey == "" {
+			categoryKey = "other" // fallback только если пусто
+		}
+
 		response := models.FridgeItemResponseV2{
-			ID:          item.ID,
-			Name:        item.Ingredient.GetName(lang), // ✅ ИСПРАВЛЕНО: локализация по языку!
-			CategoryKey: item.Ingredient.Category,      // ✅ ПРАВИЛЬНО: используем stable key
+			ID: item.ID,
+			Ingredient: models.IngredientInfo{
+				ID:   item.Ingredient.ID,
+				Name: item.Ingredient.GetName(lang), // ✅ Локализация имени
+				Unit: item.Ingredient.Unit,
+			},
+			CategoryKey: categoryKey,      // ✅ STABLE KEY (не зависит от языка!)
 			Quantity:    item.Quantity,
 			Unit:        item.Unit,
 			ExpiresAt:   item.ExpiresAt,
 			DaysLeft:    daysLeft,
 		}
 
-		// ✅ ОПТИМИЗАЦИЯ: Используем current_price из user_fridge_items (уже загружено)
-		// Вместо N запросов к user_fridge_price_history - 0 запросов!
+		// ✅ ЦЕНА: всегда включаем если есть
 		if item.CurrentPricePerUnit != nil && *item.CurrentPricePerUnit > 0 {
+			response.CurrentPrice = &models.CurrentPriceInfo{
+				Value:     *item.CurrentPricePerUnit,
+				Per:       item.Unit, // цена за текущую единицу измерения
+				Currency:  item.CurrentPriceCurrency,
+				UpdatedAt: item.PriceUpdatedAt,
+			}
+
+			// Обратная совместимость: старые поля
 			response.Price = &models.PriceInfo{
 				Value: *item.CurrentPricePerUnit,
-				Per:   item.Unit, // цена за текущую единицу измерения
+				Per:   item.Unit,
 			}
 
 			// Вычисляем стоимость
