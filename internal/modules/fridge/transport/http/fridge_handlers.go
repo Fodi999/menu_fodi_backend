@@ -91,12 +91,16 @@ func (h *FridgeHandlers) GetUserItems(w http.ResponseWriter, r *http.Request) {
 
 	// 🔍 DEBUG: Логируем первый элемент response для проверки контракта API
 	if len(items) > 0 {
-		logger.Info("🔍 API CONTRACT CHECK",
-			zap.String("accept_language", lang),
-			zap.String("name", items[0].Name),                    // старое поле (обратная совместимость)
-			zap.String("ingredient_name", items[0].Ingredient.Name), // новое поле
+		hasRU := items[0].Ingredient.NameRU != nil && *items[0].Ingredient.NameRU != ""
+		hasPL := items[0].Ingredient.NamePL != nil && *items[0].Ingredient.NamePL != ""
+		hasEN := items[0].Ingredient.NameEN != nil && *items[0].Ingredient.NameEN != ""
+		
+		logger.Info("🔍 API CONTRACT - ALL TRANSLATIONS",
+			zap.String("legacy_name", items[0].Name),
+			zap.Bool("has_name_pl", hasPL),
+			zap.Bool("has_name_en", hasEN),
+			zap.Bool("has_name_ru", hasRU),
 			zap.String("category_key", items[0].CategoryKey),
-			zap.Bool("names_match", items[0].Name == items[0].Ingredient.Name),
 			zap.Int("total_items", len(items)))
 	}
 

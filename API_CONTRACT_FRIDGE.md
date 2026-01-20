@@ -25,9 +25,13 @@ Accept-Language: ru
     "items": [
       {
         "id": "932c1f69-1454-44c8-9e54-b6062a5c0883",
+        "name": "Łosoś",
         "ingredient": {
           "id": "fe1c7431-b1b7-4d36-94bf-74276481983e",
-          "name": "Лосось",
+          "name": "Łosoś",
+          "namePl": "Łosoś",
+          "nameEn": "Salmon",
+          "nameRu": "Лосось",
           "unit": "g"
         },
         "categoryKey": "fish",
@@ -57,8 +61,28 @@ UUID продукта в холодильнике
 ### `ingredient` (object, required)
 Информация об ингредиенте из каталога:
 - `id` - UUID ингредиента в каталоге
-- `name` - **Локализованное имя** (зависит от Accept-Language)
+- `name` - Legacy поле (польское название или fallback)
+- `namePl` - Польское название (может быть null)
+- `nameEn` - Английское название (может быть null)
+- `nameRu` - Русское название (может быть null)
 - `unit` - Единица измерения (g, ml, pcs)
+
+**ВАЖНО:**
+- ✅ Backend отдаёт **ВСЕ переводы**
+- ✅ Frontend **сам выбирает** нужный язык
+- ✅ Fallback логика на фронте: `nameRu || namePl || name`
+
+**Frontend пример:**
+```typescript
+const getIngredientName = (ingredient: IngredientInfo, lang: string) => {
+  switch(lang) {
+    case 'ru': return ingredient.nameRu || ingredient.namePl || ingredient.name;
+    case 'en': return ingredient.nameEn || ingredient.namePl || ingredient.name;
+    case 'pl': return ingredient.namePl || ingredient.name;
+    default: return ingredient.name;
+  }
+}
+```
 
 ### `categoryKey` (string, required)
 **Stable key категории** - НЕ зависит от языка!

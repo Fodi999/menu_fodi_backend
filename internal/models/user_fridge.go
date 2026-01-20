@@ -195,10 +195,14 @@ type ComputedPrice struct {
 }
 
 // IngredientInfo - базовая информация об ингредиенте для API response
+// ✅ ПРАВИЛЬНЫЙ ПОДХОД: Отдаём ВСЕ переводы, frontend выбирает нужный
 type IngredientInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"` // Локализованное имя (зависит от Accept-Language)
-	Unit string `json:"unit"` // g, ml, pcs
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`             // Legacy field (fallback)
+	NamePL *string `json:"namePl,omitempty"` // Польское название
+	NameEN *string `json:"nameEn,omitempty"` // Английское название
+	NameRU *string `json:"nameRu,omitempty"` // Русское название
+	Unit   string  `json:"unit"`             // g, ml, pcs
 }
 
 // CurrentPriceInfo - информация о текущей цене

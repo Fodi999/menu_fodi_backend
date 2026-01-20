@@ -992,16 +992,23 @@ func (s *FridgeService) GetUserItemsV2(userID string, lang string) ([]models.Fri
 			categoryKey = "other" // fallback только если пусто
 		}
 
-		// Локализованное имя
-		localizedName := item.Ingredient.GetName(lang)
+		// ✅ ПРАВИЛЬНО: Отдаём ВСЕ переводы, frontend выбирает!
+		// Legacy name для обратной совместимости (fallback на польский)
+		legacyName := item.Ingredient.Name
+		if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+			legacyName = *item.Ingredient.NamePL
+		}
 
 		response := models.FridgeItemResponseV2{
 			ID:   item.ID,
-			Name: localizedName, // ✅ ОБРАТНАЯ СОВМЕСТИМОСТЬ: для старого фронта
+			Name: legacyName, // ✅ ОБРАТНАЯ СОВМЕСТИМОСТЬ: для старого фронта
 			Ingredient: models.IngredientInfo{
-				ID:   item.Ingredient.ID,
-				Name: localizedName, // ✅ Локализация имени
-				Unit: item.Ingredient.Unit,
+				ID:     item.Ingredient.ID,
+				Name:   legacyName,             // legacy fallback
+				NamePL: item.Ingredient.NamePL, // ✅ ВСЕ переводы
+				NameEN: item.Ingredient.NameEN,
+				NameRU: item.Ingredient.NameRU,
+				Unit:   item.Ingredient.Unit,
 			},
 			CategoryKey: categoryKey, // ✅ STABLE KEY (не зависит от языка!)
 			Quantity:    item.Quantity,
