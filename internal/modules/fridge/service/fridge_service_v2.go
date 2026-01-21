@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -222,9 +221,9 @@ func (s *fridgeServiceV2) DeleteItem(itemID string, userID string) error {
 		return fmt.Errorf("fridge item not found")
 	}
 
-	// 3. Создаём уведомление ПОСЛЕ успешного удаления
-	s.createItemDeletedNotification(userID, &item)
-
+	// ✅ НЕ создаём уведомление - это activity log, не notification
+	// Activity logs будут в отдельной системе (история действий)
+	
 	return nil
 }
 
@@ -246,9 +245,10 @@ func (s *fridgeServiceV2) DiscardItem(itemID string, userID string) error {
 
 	fmt.Printf("🗑️  Item %s discarded (loss: %.2f PLN)\n", item.ID, item.PriceTotal)
 
-	// 3. Создаём уведомление ПОСЛЕ успешного выброса
-	s.createItemDiscardedNotification(userID, &item)
-
+	// ✅ НЕ создаём уведомление - это activity log, не notification
+	// Discard/delete actions - это история, не требует внимания
+	// TODO: добавить в activity_logs таблицу когда будем делать историю
+	
 	return nil
 }
 
@@ -262,119 +262,22 @@ func (s *fridgeServiceV2) SetDB(db *gorm.DB) {
 	s.db = db
 }
 
-// createItemDeletedNotification создаёт уведомление об удалении продукта
-func (s *fridgeServiceV2) createItemDeletedNotification(userID string, item *models.FridgeItem) {
-	if item.Ingredient == nil {
-		fmt.Printf("⚠️  Cannot create delete notification: ingredient data missing (item_id=%s, user_id=%s)\n",
-			item.ID, userID)
-		return
-	}
-
-	// Получаем польское название если доступно
-	ingredientName := item.Ingredient.Name
-	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
-		ingredientName = *item.Ingredient.NamePL
-	}
-
-	// Формат: "Czosnek удалён из холодильника (3.5 g)"
-	message := fmt.Sprintf("%s удалён из холодильника (%.1f %s)",
-		ingredientName,
-		item.Quantity,
-		item.Unit,
-	)
-
-	// Meta данные для уведомления
-	meta := map[string]interface{}{
-		"fridgeItemId": item.ID,
-		"ingredientId": item.IngredientID,
-		"quantity":     item.Quantity,
-		"unit":         item.Unit,
-		"action":       "deleted",
-	}
-
-	metaBytes, err := json.Marshal(meta)
-	if err != nil {
-		fmt.Printf("⚠️  Failed to marshal notification meta (item_id=%s, error=%v)\n", item.ID, err)
-		return
-	}
-	metaStr := string(metaBytes)
-
-	// Создаём уведомление
-	notification := &models.Notification{
-		UserID:  userID,
-		Type:    models.NotificationTypeFridge,
-		Level:   models.NotificationLevelInfo,
-		Title:   "Продукт удалён из холодильника",
-		Message: message,
-		Meta:    &metaStr,
-	}
-
-	// Не блокируем удаление при ошибке создания уведомления
-	if err := s.notificationService.Create(notification); err != nil {
-		fmt.Printf("⚠️  Failed to create delete notification (user_id=%s, item_id=%s, error=%v)\n",
-			userID, item.ID, err)
-	}
-}
-
-// createItemDiscardedNotification создаёт уведомление о выбросе продукта
-func (s *fridgeServiceV2) createItemDiscardedNotification(userID string, item *models.FridgeItem) {
-	if item.Ingredient == nil {
-		fmt.Printf("⚠️  Cannot create discard notification: ingredient data missing (item_id=%s, user_id=%s)\n",
-			item.ID, userID)
-		return
-	}
-
-	// Получаем польское название если доступно
-	ingredientName := item.Ingredient.Name
-	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
-		ingredientName = *item.Ingredient.NamePL
-	}
-
-	// Определяем level и title в зависимости от стоимости
-	level := models.NotificationLevelWarning
-	title := "Продукт выброшен"
-
-	if item.PriceTotal > 0 {
-		level = models.NotificationLevelCritical
-		title = "Потеря продукта"
-	}
-
-	// Формат: "Czosnek выброшен. Потеря: 5.50 PLN"
-	message := fmt.Sprintf("%s выброшен. Потеря: %.2f PLN",
-		ingredientName,
-		item.PriceTotal,
-	)
-
-	// Meta данные для уведомления
-	meta := map[string]interface{}{
-		"fridgeItemId": item.ID,
-		"ingredientId": item.IngredientID,
-		"quantity":     item.Quantity,
-		"unit":         item.Unit,
-		"action":       "discarded",
-		"loss":         item.PriceTotal,
-	}
-
-	metaBytes, err := json.Marshal(meta)
-	if err != nil {
-		fmt.Printf("⚠️  Failed to marshal notification meta (item_id=%s, error=%v)\n", item.ID, err)
-		return
-	}
-	metaStr := string(metaBytes)
-
-	// Создаём уведомление
-	notification := &models.Notification{
-		UserID:  userID,
-		Type:    models.NotificationTypeFridge,
-		Level:   level,
-		Title:   title,
-		Message: message,
-		Meta:    &metaStr,
-	}
-
-	// Не блокируем выброс при ошибке создания уведомления
-	if err := s.notificationService.Create(notification); err != nil {
-		fmt.Printf("⚠️  Failed to create discard notification (user_id=%s, item_id=%s, error=%v)\n",
-			userID, item.ID, err)
-	}
-}
+// ============================================================================
+// АРХИТЕКТУРНОЕ РЕШЕНИЕ: Delete/Discard НЕ создают notifications
+// ============================================================================
+// ❌ УДАЛЕНО: createItemDeletedNotification
+// ❌ УДАЛЕНО: createItemDiscardedNotification
+//
+// Причина: по новой архитектуре notifications ТОЛЬКО для expiry tracking
+// 
+// Delete/Discard события - это ACTIVITY LOGS (история действий):
+// - Не требуют внимания пользователя
+// - Не нужны в notification bell
+// - Должны быть в отдельной таблице activity_logs
+//
+// TODO: Создать activity_logs систему для истории:
+//   - user_activity_logs table
+//   - action_type: 'item_added', 'item_deleted', 'item_discarded', 'item_used'
+//   - Отдельный API: GET /api/activity/logs
+//   - Отображать в отдельной вкладке "История" (не в notifications)
+// ============================================================================

@@ -109,8 +109,10 @@ func (s *FridgeService) AddItem(userID string, req models.CreateFridgeItemReques
 		}
 	}
 
-	// 6. Создаём системное уведомление о добавлении продукта
-	s.createItemAddedNotification(userID, item, ingredient)
+	// 6. ✅ НЕ создаём уведомление - это activity log, не notification
+	// По новой архитектуре: notifications ТОЛЬКО для expiry tracking
+	// Добавление продукта - это история действий, не требует внимания
+	// TODO: переместить в activity_logs систему
 
 	// 7. Формируем ответ
 	return s.buildFridgeItemResponse(item, ingredient), nil
@@ -124,13 +126,9 @@ func (s *FridgeService) GetUserItems(userID string, lang string) ([]models.Fridg
 		lang = "pl"
 	}
 
-	// Автоматически очищаем просроченные продукты перед возвратом списка
-	if err := s.cleanupExpiredItems(userID); err != nil {
-		logger.Warn("failed to cleanup expired items",
-			zap.String("user_id", userID),
-			zap.Error(err))
-		// Не блокируем весь запрос из-за ошибки очистки
-	}
+	// ❌ УДАЛЕНО: cleanupExpiredItems из GET (нарушает REST, мутирует состояние)
+	// ✅ ПРАВИЛЬНО: cleanup должен быть в CRON или отдельном endpoint
+	// Expired продукты просто НЕ отображаются (фильтруем по status)
 
 	items, err := s.fridgeRepo.GetUserFridgeItems(userID)
 	if err != nil {
@@ -147,6 +145,7 @@ func (s *FridgeService) GetUserItems(userID string, lang string) ([]models.Fridg
 		status := models.GetFridgeItemStatus(daysLeft)
 
 		// ❌ НЕ отдаём expired продукты в основной список
+		// ✅ Они будут удалены CRON job'ом, не здесь
 		if status == "expired" {
 			continue
 		}
@@ -221,9 +220,9 @@ func (s *FridgeService) DeleteItem(itemID string, userID string) error {
 		return err
 	}
 
-	// 3. Создаём уведомление ПОСЛЕ успешного удаления
-	s.createItemDeletedNotification(userID, item)
-
+	// 3. ✅ НЕ создаём уведомление - это activity log, не notification
+	// Delete/Discard события - это история, не требует внимания пользователя
+	
 	return nil
 }
 
@@ -233,6 +232,9 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 	if err != nil {
 		return nil, fmt.Errorf("failed to get expiring items: %w", err)
 	}
+
+	// ✅ По умолчанию польский
+	lang := "pl"
 
 	result := make([]models.FridgeItemListResponse, 0, len(items))
 	for _, item := range items {
@@ -252,8 +254,8 @@ func (s *FridgeService) GetExpiringSoon(userID string, days int) ([]models.Fridg
 
 		response := models.FridgeItemListResponse{
 			ID:        item.ID,
-			Name:      item.Ingredient.Name,
-			Category:  item.Ingredient.Category, // Добавляем категорию
+			Name:      item.Ingredient.GetName(lang), // ✅ Используем локализацию
+			Category:  item.Ingredient.Category,      // Добавляем категорию
 			Quantity:  item.Quantity,
 			Unit:      item.Unit,
 			ArrivedAt: item.ArrivedAt, // Дата поступления
@@ -624,17 +626,13 @@ func (s *FridgeService) UpdateItemQuantity(userID string, itemID string, newQuan
 
 	// 2. Проверяем срок годности перед обновлением
 	if item.ExpiresAt != nil && item.ExpiresAt.Before(time.Now()) {
-		// Продукт просрочен - не обновляем, а удаляем с созданием события
-		logger.Info("attempted to update expired item, removing instead",
+		// Продукт просрочен - просто возвращаем ошибку
+		// ✅ ПРАВИЛЬНО: cleanup будет через CRON, не здесь
+		logger.Info("attempted to update expired item",
 			zap.String("item_id", itemID),
 			zap.String("ingredient_name", item.Ingredient.Name))
 
-		// Запускаем очистку просроченных продуктов для этого пользователя
-		if err := s.cleanupExpiredItems(userID); err != nil {
-			logger.Warn("cleanup failed during update", zap.Error(err))
-		}
-
-		return ErrNotFound // Продукт больше не существует
+		return ErrNotFound // Продукт просрочен (уже не актуален)
 	}
 
 	// 3. Обновляем количество
@@ -763,114 +761,25 @@ func (s *FridgeService) AddMissingFromRecipe(userID string, recipeID string) (*d
 	return result, nil
 }
 
-// createItemAddedNotification создаёт системное уведомление о добавлении продукта
-func (s *FridgeService) createItemAddedNotification(userID string, item *models.UserFridgeItem, ingredient *models.Ingredient) {
-	// Получаем название продукта (предпочтительно на польском)
-	ingredientName := ingredient.Name
-	if ingredient.NamePL != nil && *ingredient.NamePL != "" {
-		ingredientName = *ingredient.NamePL
-	}
-
-	// Форматируем количество
-	quantityStr := fmt.Sprintf("%.1f %s", item.Quantity, item.Unit)
-
-	// Формируем сообщение
-	message := fmt.Sprintf("%s добавлен в холодильник (%s)", ingredientName, quantityStr)
-
-	// Формируем meta информацию
-	metaJSON, _ := json.Marshal(map[string]interface{}{
-		"fridgeItemId": item.ID,
-		"ingredientId": item.IngredientID,
-		"quantity":     item.Quantity,
-		"unit":         item.Unit,
-	})
-	metaStr := string(metaJSON)
-
-	// Создаём уведомление
-	notification := &models.Notification{
-		UserID:  userID,
-		Type:    models.NotificationTypeFridge,
-		Level:   models.NotificationLevelInfo,
-		Title:   "Продукт добавлен в холодильник",
-		Message: message,
-		Meta:    &metaStr,
-	}
-
-	// Сохраняем в БД (не фейлим если не получилось)
-	if err := s.notificationService.Create(notification); err != nil {
-		logger.Warn("failed to create item added notification",
-			zap.String("user_id", userID),
-			zap.String("item_id", item.ID),
-			zap.Error(err))
-	} else {
-		logger.Info("notification created",
-			zap.String("user_id", userID),
-			zap.String("item_name", ingredientName))
-	}
-}
-
-// createItemDeletedNotification создаёт уведомление об удалении продукта
-func (s *FridgeService) createItemDeletedNotification(userID string, item *models.UserFridgeItem) {
-	if item.Ingredient == nil {
-		logger.Warn("cannot create delete notification: ingredient data missing",
-			zap.String("item_id", item.ID),
-			zap.String("user_id", userID))
-		return
-	}
-
-	// Получаем польское название если доступно
-	ingredientName := item.Ingredient.Name
-	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
-		ingredientName = *item.Ingredient.NamePL
-	}
-
-	// Формат: "Czosnek удалён из холодильника (3.5 g)"
-	message := fmt.Sprintf("%s удалён из холодильника (%.1f %s)",
-		ingredientName,
-		item.Quantity,
-		item.Unit,
-	)
-
-	// Meta данные для уведомления
-	meta := map[string]interface{}{
-		"fridgeItemId": item.ID,
-		"ingredientId": item.IngredientID,
-		"quantity":     item.Quantity,
-		"unit":         item.Unit,
-		"action":       "deleted",
-	}
-
-	metaBytes, err := json.Marshal(meta)
-	if err != nil {
-		logger.Warn("failed to marshal notification meta",
-			zap.String("item_id", item.ID),
-			zap.Error(err))
-		return
-	}
-	metaStr := string(metaBytes)
-
-	// Создаём уведомление
-	notification := &models.Notification{
-		UserID:  userID,
-		Type:    models.NotificationTypeFridge,
-		Level:   models.NotificationLevelInfo,
-		Title:   "Продукт удалён из холодильника",
-		Message: message,
-		Meta:    &metaStr,
-	}
-
-	// Не блокируем удаление при ошибке создания уведомления
-	if err := s.notificationService.Create(notification); err != nil {
-		logger.Warn("failed to create item deleted notification",
-			zap.String("user_id", userID),
-			zap.String("item_id", item.ID),
-			zap.Error(err))
-	} else {
-		logger.Info("delete notification created",
-			zap.String("user_id", userID),
-			zap.String("item_name", ingredientName))
-	}
-}
+// ============================================================================
+// АРХИТЕКТУРНОЕ РЕШЕНИЕ: Add/Delete НЕ создают notifications
+// ============================================================================
+// ❌ УДАЛЕНО: createItemAddedNotification
+// ❌ УДАЛЕНО: createItemDeletedNotification
+//
+// Причина: по новой архитектуре notifications ТОЛЬКО для expiry tracking
+// 
+// Add/Delete события - это ACTIVITY LOGS (история действий):
+// - Не требуют внимания пользователя
+// - Не нужны в notification bell
+// - Должны быть в отдельной таблице activity_logs
+//
+// TODO: Создать activity_logs систему для истории:
+//   - user_activity_logs table
+//   - action_type: 'item_added', 'item_deleted', 'item_discarded', 'item_used'
+//   - Отдельный API: GET /api/activity/logs
+//   - Отображать в отдельной вкладке "История" (не в notifications)
+// ============================================================================
 
 // computeTotalCost вычисляет общую стоимость продукта в холодильнике
 func (s *FridgeService) computeTotalCost(
@@ -930,12 +839,8 @@ func (s *FridgeService) computeTotalCost(
 // GetUserItemsV2 возвращает продукты в холодильнике с ценами (новая версия API)
 // lang - язык для локализации имён (pl, en, ru)
 func (s *FridgeService) GetUserItemsV2(userID string, lang string) ([]models.FridgeItemResponseV2, error) {
-	// Автоматически очищаем просроченные продукты
-	if err := s.cleanupExpiredItems(userID); err != nil {
-		logger.Warn("failed to cleanup expired items",
-			zap.String("user_id", userID),
-			zap.Error(err))
-	}
+	// ❌ УДАЛЕНО: cleanupExpiredItems из GET (нарушает REST, мутирует состояние)
+	// ✅ ПРАВИЛЬНО: cleanup должен быть в CRON или отдельном endpoint
 
 	// Загружаем items с Preload ingredient
 	items, err := s.fridgeRepo.GetUserFridgeItems(userID)

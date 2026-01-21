@@ -34,10 +34,12 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 		// All routes require authentication
 		r.Use(jwtMiddleware)
 
-		// GET /api/notifications - get notifications (with optional unreadOnly filter)
+		// GET /api/notifications - get notifications grouped by level
+		// Returns: { critical: [], warning: [], info: [] }
 		r.Get("/", m.handlers.GetNotifications)
 
-		// GET /api/notifications/unread-count - get unread notification count
+		// GET /api/notifications/unread-count - get unread counts
+		// Returns: { critical: 1, warning: 2, info: 0, total: 3 }
 		r.Get("/unread-count", m.handlers.GetUnreadCount)
 
 		// PATCH /api/notifications/{id}/read - mark notification as read
@@ -45,5 +47,9 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(http.Handler) h
 
 		// POST /api/notifications/read-all - mark all notifications as read
 		r.Post("/read-all", m.handlers.MarkAllAsRead)
+
+		// POST /api/notifications/{id}/resolve - mark notification as resolved
+		// Used when user takes action (uses product or discards)
+		r.Post("/{id}/resolve", m.handlers.ResolveNotification)
 	})
 }

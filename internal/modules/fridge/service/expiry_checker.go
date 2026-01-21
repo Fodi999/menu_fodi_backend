@@ -1,13 +1,27 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
+	notificationService "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/notifications/service"
 	"gorm.io/gorm"
 )
+
+// ============================================================================
+// EXPIRY CHECKER - ПРАВИЛЬНАЯ АРХИТЕКТУРА
+// ============================================================================
+// Цель: проверка продуктов и создание ТОЛЬКО expiry notifications
+// Запускается: CRON (1× в день, например 08:00)
+//
+// Flow:
+//   daysLeft = 2  → INFO (summary only)
+//   daysLeft = 1  → WARNING (⚠️ скоро испортится)
+//   daysLeft <= 0 → CRITICAL (⛔ срочно использовать)
+//   daysLeft < -3 → cleanup (удаляем + history event)
+//
+// ============================================================================
 
 // FridgeEvaluationResult результат оценки продукта
 type FridgeEvaluationResult struct {
@@ -46,139 +60,52 @@ func EvaluateFridgeItem(item *models.FridgeItem) FridgeEvaluationResult {
 	}
 }
 
-// GetNotificationLevel определяет уровень уведомления по количеству дней
-func GetNotificationLevel(daysLeft int) models.NotificationLevel {
-	switch {
-	case daysLeft < 0:
-		return models.NotificationLevelCritical // Просрочено
-	case daysLeft == 0:
-		return models.NotificationLevelCritical // Истекает сегодня
-	case daysLeft == 1:
-		return models.NotificationLevelWarning // Завтра истекает
-	case daysLeft >= 2 && daysLeft <= 3:
-		return models.NotificationLevelInfo // Скоро истечет
-	default:
-		return "" // Не требует уведомления
-	}
-}
+// ============================================================================
+// NOTIFICATION CREATION (использует НОВЫЙ сервис)
+// ============================================================================
 
-// CreateExpiryNotification создает уведомление о истечении срока
-func CreateExpiryNotification(db *gorm.DB, item *models.FridgeItem, daysLeft int) error {
-	level := GetNotificationLevel(daysLeft)
-	if level == "" {
-		return nil // Не требует уведомления
-	}
-
-	// Проверяем, не создано ли уже уведомление сегодня
-	today := time.Now().Truncate(24 * time.Hour)
-	var existingCount int64
-	
-	metaJSON, _ := json.Marshal(map[string]interface{}{
-		"fridgeItemId": item.ID,
-		"daysLeft":     daysLeft,
-	})
-	metaStr := string(metaJSON)
-
-	err := db.Model(&models.Notification{}).
-		Where("user_id = ? AND type IN (?, ?) AND created_at >= ?", 
-			item.UserID, models.NotificationTypeFridge, models.NotificationTypeAI, today).
-		Where("meta->>'fridgeItemId' = ?", item.ID).
-		Count(&existingCount).Error
-
-	if err != nil {
-		return fmt.Errorf("failed to check existing notifications: %w", err)
-	}
-
-	if existingCount > 0 {
-		fmt.Printf("ℹ️  Notification already exists today for fridge item %s\n", item.ID)
-		return nil
-	}
-
-	// Формируем уведомление в зависимости от уровня
-	var notification models.Notification
-	
-	// Получаем название продукта
-	var ingredient models.Ingredient
-	if err := db.First(&ingredient, "id = ?", item.IngredientID).Error; err != nil {
-		return fmt.Errorf("failed to fetch ingredient: %w", err)
-	}
-
-	ingredientName := ingredient.Name
-	if ingredient.NamePL != nil && *ingredient.NamePL != "" {
-		ingredientName = *ingredient.NamePL
-	}
-
-	switch level {
-	case models.NotificationLevelCritical:
-		if daysLeft < 0 {
-			notification = models.Notification{
-				UserID:  item.UserID,
-				Type:    models.NotificationTypeFridge,
-				Level:   level,
-				Title:   "Продукт просрочен",
-				Message: fmt.Sprintf("%s просрочен. Потеря: %.2f PLN", ingredientName, item.PriceTotal),
-				Meta:    &metaStr,
-			}
-		} else {
-			notification = models.Notification{
-				UserID:  item.UserID,
-				Type:    models.NotificationTypeFridge,
-				Level:   level,
-				Title:   "Продукт истекает сегодня",
-				Message: fmt.Sprintf("%s нужно использовать сегодня! Ценность: %.2f PLN", ingredientName, item.PriceTotal),
-				Meta:    &metaStr,
-			}
-		}
-
-	case models.NotificationLevelWarning:
-		notification = models.Notification{
-			UserID:  item.UserID,
-			Type:    models.NotificationTypeAI,
-			Level:   level,
-			Title:   "Используй продукт завтра",
-			Message: fmt.Sprintf("У тебя есть %s (%.1f %s). Используй завтра, иначе потеряешь %.2f PLN", 
-				ingredientName, item.Quantity, item.Unit, item.PriceTotal),
-			Meta:    &metaStr,
-		}
-
-	case models.NotificationLevelInfo:
-		notification = models.Notification{
-			UserID:  item.UserID,
-			Type:    models.NotificationTypeAI,
-			Level:   level,
-			Title:   "Скоро истечет срок",
-			Message: fmt.Sprintf("%s истечет через %d дня. Не забудь использовать!", ingredientName, daysLeft),
-			Meta:    &metaStr,
-		}
-	}
-
-	if err := db.Create(&notification).Error; err != nil {
-		return fmt.Errorf("failed to create notification: %w", err)
-	}
-
-	fmt.Printf("✅ Created %s notification for %s (days left: %d)\n", level, ingredientName, daysLeft)
-	return nil
-}
-
-// CheckAndNotifyExpiringItems проверяет все продукты пользователя и создает уведомления
-// Используется в CRON или при GET /api/fridge/items (1 раз в день)
+// CheckAndNotifyExpiringItems проверяет все продукты и создает уведомления
+// ✅ ИСПОЛЬЗУЕТСЯ: CRON job (1× в день)
+// ❌ НЕ ИСПОЛЬЗУЕТСЯ: GET endpoints (они мутируют состояние)
 func CheckAndNotifyExpiringItems(db *gorm.DB, userID string) error {
+	// Инициализируем notification service
+	notifSvc := notificationService.NewNotificationService(db)
+
 	var items []models.FridgeItem
-	
-	// Получаем только fresh items с expiration date
-	err := db.Where("user_id = ? AND status = ? AND expires_at IS NOT NULL", 
-		userID, models.FridgeItemStatusFresh).
+
+	// Получаем fresh items с expiration date
+	err := db.Preload("Ingredient").
+		Where("user_id = ? AND status = ? AND expires_at IS NOT NULL",
+			userID, models.FridgeItemStatusFresh).
 		Find(&items).Error
 
 	if err != nil {
 		return fmt.Errorf("failed to fetch fridge items: %w", err)
 	}
 
-	fmt.Printf("🔍 Checking %d fridge items for user %s\n", len(items), userID)
+	if len(items) == 0 {
+		return nil // Нет продуктов для проверки
+	}
+
+	fmt.Printf("🔍 [EXPIRY CHECK] Checking %d items for user %s\n", len(items), userID)
+
+	// Группируем по уровню важности для summary
+	var criticalItems []models.FridgeItem
+	var warningItems []models.FridgeItem
+	var infoItems []models.FridgeItem
 
 	for _, item := range items {
+		if item.Ingredient == nil {
+			continue // Skip items without ingredient data
+		}
+
 		result := EvaluateFridgeItem(&item)
-		
+		if result.DaysLeft == nil {
+			continue // No expiration date
+		}
+
+		daysLeft := *result.DaysLeft
+
 		// Обновляем статус если просрочен
 		if result.Status == models.FridgeItemStatusExpired && item.Status != models.FridgeItemStatusExpired {
 			db.Model(&item).Updates(map[string]interface{}{
@@ -187,13 +114,167 @@ func CheckAndNotifyExpiringItems(db *gorm.DB, userID string) error {
 			})
 		}
 
-		// Создаем уведомление если нужно
-		if result.DaysLeft != nil {
-			if err := CreateExpiryNotification(db, &item, *result.DaysLeft); err != nil {
-				fmt.Printf("❌ Failed to create notification for item %s: %v\n", item.ID, err)
-			}
+		// Группируем по level
+		switch {
+		case daysLeft <= 0:
+			criticalItems = append(criticalItems, item)
+		case daysLeft == 1:
+			warningItems = append(warningItems, item)
+		case daysLeft == 2:
+			infoItems = append(infoItems, item)
 		}
 	}
 
+	// ✅ СОЗДАЁМ УВЕДОМЛЕНИЯ через новый сервис
+	if len(criticalItems) > 0 {
+		if err := createCriticalNotifications(notifSvc, userID, criticalItems); err != nil {
+			fmt.Printf("❌ Failed to create critical notifications: %v\n", err)
+		}
+	}
+
+	if len(warningItems) > 0 {
+		if err := createWarningNotifications(notifSvc, userID, warningItems); err != nil {
+			fmt.Printf("❌ Failed to create warning notifications: %v\n", err)
+		}
+	}
+
+	if len(infoItems) > 0 {
+		// INFO - только summary, не спамим отдельными
+		fmt.Printf("ℹ️  %d products expiring in 2 days (info level - summary only)\n", len(infoItems))
+	}
+
 	return nil
+}
+
+// createCriticalNotifications создаёт CRITICAL уведомления (daysLeft <= 0)
+func createCriticalNotifications(svc notificationService.NotificationService, userID string, items []models.FridgeItem) error {
+	for _, item := range items {
+		result := EvaluateFridgeItem(&item)
+		if result.DaysLeft == nil {
+			continue
+		}
+
+		// Получаем название
+		ingredientName := item.Ingredient.Name
+		if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+			ingredientName = *item.Ingredient.NamePL
+		}
+
+		meta := models.FridgeNotificationMeta{
+			FridgeItemID:   item.ID,
+			IngredientID:   item.IngredientID,
+			IngredientName: ingredientName,
+			DaysLeft:       *result.DaysLeft,
+			ExpiresAt:      item.ExpiresAt.Format(time.RFC3339),
+			Quantity:       item.Quantity,
+			Unit:           item.Unit,
+			CategoryKey:    item.Ingredient.Category,
+		}
+
+		// Создаём через новый сервис (автоматическая unique_key защита)
+		if err := svc.CreateExpiryNotification(userID, models.NotificationLevelCritical, meta); err != nil {
+			fmt.Printf("❌ Failed to create critical notification for %s: %v\n", item.ID, err)
+			continue
+		}
+
+		fmt.Printf("✅ [CRITICAL] Created notification for %s (days: %d)\n", ingredientName, *result.DaysLeft)
+	}
+
+	return nil
+}
+
+// createWarningNotifications создаёт WARNING уведомления (daysLeft = 1)
+func createWarningNotifications(svc notificationService.NotificationService, userID string, items []models.FridgeItem) error {
+	for _, item := range items {
+		result := EvaluateFridgeItem(&item)
+		if result.DaysLeft == nil {
+			continue
+		}
+
+		// Получаем название
+		ingredientName := item.Ingredient.Name
+		if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+			ingredientName = *item.Ingredient.NamePL
+		}
+
+		meta := models.FridgeNotificationMeta{
+			FridgeItemID:   item.ID,
+			IngredientID:   item.IngredientID,
+			IngredientName: ingredientName,
+			DaysLeft:       *result.DaysLeft,
+			ExpiresAt:      item.ExpiresAt.Format(time.RFC3339),
+			Quantity:       item.Quantity,
+			Unit:           item.Unit,
+			CategoryKey:    item.Ingredient.Category,
+		}
+
+		if err := svc.CreateExpiryNotification(userID, models.NotificationLevelWarning, meta); err != nil {
+			fmt.Printf("❌ Failed to create warning notification for %s: %v\n", item.ID, err)
+			continue
+		}
+
+		fmt.Printf("✅ [WARNING] Created notification for %s (days: 1)\n", ingredientName)
+	}
+
+	return nil
+}
+
+// ============================================================================
+// LEGACY SUPPORT (для обратной совместимости)
+// ============================================================================
+
+// CreateExpiryNotification - DEPRECATED: использует старую модель
+// TODO: Удалить после миграции на новую систему
+func CreateExpiryNotification(db *gorm.DB, item *models.FridgeItem, daysLeft int) error {
+	// Redirect to new system
+	svc := notificationService.NewNotificationService(db)
+
+	if item.Ingredient == nil {
+		return fmt.Errorf("ingredient data missing")
+	}
+
+	ingredientName := item.Ingredient.Name
+	if item.Ingredient.NamePL != nil && *item.Ingredient.NamePL != "" {
+		ingredientName = *item.Ingredient.NamePL
+	}
+
+	meta := models.FridgeNotificationMeta{
+		FridgeItemID:   item.ID,
+		IngredientID:   item.IngredientID,
+		IngredientName: ingredientName,
+		DaysLeft:       daysLeft,
+		ExpiresAt:      item.ExpiresAt.Format(time.RFC3339),
+		Quantity:       item.Quantity,
+		Unit:           item.Unit,
+		CategoryKey:    item.Ingredient.Category,
+	}
+
+	var level models.NotificationLevel
+	switch {
+	case daysLeft <= 0:
+		level = models.NotificationLevelCritical
+	case daysLeft == 1:
+		level = models.NotificationLevelWarning
+	case daysLeft == 2:
+		level = models.NotificationLevelInfo
+	default:
+		return nil // No notification needed
+	}
+
+	return svc.CreateExpiryNotification(item.UserID, level, meta)
+}
+
+// GetNotificationLevel - DEPRECATED
+// TODO: Remove after migration
+func GetNotificationLevel(daysLeft int) models.NotificationLevel {
+	switch {
+	case daysLeft <= 0:
+		return models.NotificationLevelCritical
+	case daysLeft == 1:
+		return models.NotificationLevelWarning
+	case daysLeft == 2:
+		return models.NotificationLevelInfo
+	default:
+		return ""
+	}
 }
