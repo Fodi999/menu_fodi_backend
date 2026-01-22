@@ -63,18 +63,15 @@ func (m *RecipeMatcher) MatchRecipes(userID string, lang string, limit int) ([]R
 	return results, nil
 }
 
-// getUserFridgeCanonicalIDs - получает ingredient_key из холодильника пользователя
-// Использует normalized_value из Ingredient как canonicalKey для matching
+// getUserFridgeCanonicalIDs - получает ingredient_id из холодильника пользователя
+// Использует ingredient_id для matching с RecipeIngredient.ingredientId
 func (m *RecipeMatcher) getUserFridgeCanonicalIDs(userID string) (map[string]bool, error) {
-	var items []struct {
-		NormalizedValue *string
-	}
+	var ingredientIDs []string
 
-	err := m.db.Table("user_fridge_items ufi").
-		Select("i.normalized_value").
-		Joins("JOIN ingredients i ON ufi.ingredient_id = i.id").
-		Where("ufi.user_id = ? AND ufi.quantity > 0", userID).
-		Scan(&items).Error
+	err := m.db.Table("user_fridge_items").
+		Select("DISTINCT ingredient_id").
+		Where("user_id = ? AND quantity > 0", userID).
+		Pluck("ingredient_id", &ingredientIDs).Error
 
 	if err != nil {
 		return nil, err
@@ -82,9 +79,9 @@ func (m *RecipeMatcher) getUserFridgeCanonicalIDs(userID string) (map[string]boo
 
 	// Создаем set для быстрого поиска
 	fridgeSet := make(map[string]bool)
-	for _, item := range items {
-		if item.NormalizedValue != nil && *item.NormalizedValue != "" {
-			fridgeSet[*item.NormalizedValue] = true
+	for _, id := range ingredientIDs {
+		if id != "" {
+			fridgeSet[id] = true
 		}
 	}
 
@@ -121,20 +118,20 @@ func (m *RecipeMatcher) matchSingleRecipe(
 	for _, recipeIng := range requiredIngredients {
 		ingredient := recipeIng.Ingredient
 		
-		// Используем IngredientKey как canonicalID
-		canonicalID := recipeIng.IngredientKey
+		// Используем ingredient.ID для matching (прямое совпадение)
+		ingredientID := ingredient.ID
 
 		ingredientInfo := IngredientInfo{
 			ID:            ingredient.ID,
-			CanonicalName: canonicalID,
+			CanonicalName: recipeIng.IngredientKey, // для display
 			DisplayName:   ingredient.GetName(lang),
 			Quantity:      recipeIng.Quantity,
 			Unit:          recipeIng.Unit,
 			Category:      ingredient.Category,
 		}
 
-		// Проверяем наличие в холодильнике
-		if canonicalID != "" && fridgeSet[canonicalID] {
+		// Проверяем наличие в холодильнике по ingredient_id
+		if ingredientID != "" && fridgeSet[ingredientID] {
 			matched = append(matched, ingredientInfo)
 		} else {
 			missing = append(missing, ingredientInfo)
