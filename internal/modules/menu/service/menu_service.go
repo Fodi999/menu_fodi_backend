@@ -229,8 +229,9 @@ func (s *MenuService) checkCanCookNow(ctx context.Context, userID string, recipe
 	// 1. Get recipe ingredients
 	var recipeIngredients []models.CatalogIngredient
 	err := s.db.WithContext(ctx).
+		Table("RecipeIngredient"). // Explicit table name
 		Preload("Ingredient").
-		Where("recipeId = ?", recipeID).
+		Where("\"recipeId\" = ?", recipeID). // Quote column name
 		Find(&recipeIngredients).Error
 	if err != nil {
 		return false, nil, fmt.Errorf("failed to load recipe ingredients: %w", err)
