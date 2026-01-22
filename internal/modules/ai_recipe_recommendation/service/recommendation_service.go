@@ -161,6 +161,8 @@ func (s *RecommendationService) getUserFridgeIngredientIDs(
 	ctx context.Context,
 	userID string,
 ) (map[string]bool, error) {
+	fmt.Printf("🔍 [FRIDGE CHECK] Starting for userID: %s\n", userID)
+	
 	var ingredientIDs []string
 
 	err := s.db.WithContext(ctx).
@@ -171,8 +173,12 @@ func (s *RecommendationService) getUserFridgeIngredientIDs(
 		Error
 
 	if err != nil {
+		fmt.Printf("❌ [FRIDGE CHECK] Database error: %v\n", err)
 		return nil, err
 	}
+
+	fmt.Printf("✅ [FRIDGE CHECK] Found %d ingredients in fridge for user %s\n", len(ingredientIDs), userID)
+	fmt.Printf("📦 [FRIDGE CHECK] Ingredient IDs: %v\n", ingredientIDs)
 
 	// Создаем map для O(1) lookup
 	fridgeSet := make(map[string]bool)
@@ -328,6 +334,9 @@ func (s *RecommendationService) GetSingleRecipeWithFridge(
 	ctx context.Context,
 	req RecipeMatchRequest,
 ) (*RecipeDTO, error) {
+	fmt.Printf("🎯 [GET SINGLE RECIPE] Request: userID=%s, recipeID=%s, lang=%s\n", 
+		req.UserID, req.RecipeID, req.Language)
+	
 	// Валидация
 	if req.RecipeID == "" {
 		return nil, fmt.Errorf("recipe_id is required")
@@ -337,19 +346,30 @@ func (s *RecommendationService) GetSingleRecipeWithFridge(
 	}
 
 	// 1️⃣ Получить холодильник пользователя
+	fmt.Printf("📦 [GET SINGLE RECIPE] Step 1: Getting fridge for user %s\n", req.UserID)
 	fridgeIngredientIDs, err := s.getUserFridgeIngredientIDs(ctx, req.UserID)
 	if err != nil {
+		fmt.Printf("❌ [GET SINGLE RECIPE] Fridge error: %v\n", err)
 		return nil, fmt.Errorf("failed to get fridge: %w", err)
 	}
+	fmt.Printf("✅ [GET SINGLE RECIPE] Fridge loaded: %d ingredients\n", len(fridgeIngredientIDs))
 
 	// 2️⃣ Получить рецепт (try UUID first, then canonical_name)
+	fmt.Printf("🍳 [GET SINGLE RECIPE] Step 2: Getting recipe %s\n", req.RecipeID)
 	recipe, err := s.recipeRepository.GetRecipeByIDOrCanonical(ctx, req.RecipeID)
 	if err != nil {
+		fmt.Printf("❌ [GET SINGLE RECIPE] Recipe error: %v\n", err)
 		return nil, fmt.Errorf("recipe not found: %w", err)
 	}
+	fmt.Printf("✅ [GET SINGLE RECIPE] Recipe found: %s (%d ingredients)\n", 
+		recipe.CanonicalName, len(recipe.Ingredients))
 
 	// 3️⃣ Построить DTO с проверкой холодильника
+	fmt.Printf("🔨 [GET SINGLE RECIPE] Step 3: Building DTO with fridge check\n")
 	dto := s.buildRecipeDTO(*recipe, fridgeIngredientIDs, req.Language)
+	
+	fmt.Printf("✅ [GET SINGLE RECIPE] DTO built: %d available, %d missing, %.2f%% match\n",
+		len(dto.AvailableIngredients), len(dto.MissingIngredients), dto.MatchPercent)
 
 	return &dto, nil
 }
