@@ -113,8 +113,25 @@ func (s *RecommendationService) buildRecipeDTO(
 			Category:      ingredient.Category,
 		}
 
-		// 🔥 Matching ТОЛЬКО по canonical ingredient ID (НЕ по именам!)
+		// 🔥 Matching: проверяем КАК ingredient_id, ТАК И canonical_id
+		// Это позволяет match "Olej roślinny" и "Olej rzepakowy" (оба = vegetable_oil)
+		inFridge := false
+		
+		// Check 1: Direct match by ingredient_id
 		if ingredientID != "" && fridgeIngredientIDs[ingredientID] {
+			inFridge = true
+		}
+		
+		// Check 2: Canonical match (e.g., vegetable_oil group)
+		if !inFridge && ingredient.CanonicalID != nil && *ingredient.CanonicalID != "" {
+			if fridgeIngredientIDs[*ingredient.CanonicalID] {
+				inFridge = true
+				fmt.Printf("🎯 [CANONICAL MATCH] Recipe needs '%s', matched via canonical_id='%s'\n",
+					ingredient.GetName(lang), *ingredient.CanonicalID)
+			}
+		}
+		
+		if inFridge {
 			available = append(available, info)
 		} else {
 			missing = append(missing, info)
@@ -157,19 +174,26 @@ func (s *RecommendationService) buildRecipeDTO(
 // ============================================================================
 
 // getUserFridgeIngredientIDs - получает ingredient_id из холодильника
+// + загружает canonical_id для группировки похожих ингредиентов
 func (s *RecommendationService) getUserFridgeIngredientIDs(
 	ctx context.Context,
 	userID string,
 ) (map[string]bool, error) {
 	fmt.Printf("🔍 [FRIDGE CHECK] Starting for userID: %s\n", userID)
 	
-	var ingredientIDs []string
-
+	// Загружаем ingredient_id + canonical_id
+	type FridgeItem struct {
+		IngredientID string
+		CanonicalID  *string
+	}
+	
+	var items []FridgeItem
 	err := s.db.WithContext(ctx).
-		Table("user_fridge_items").
-		Select("DISTINCT ingredient_id").
-		Where("user_id = ? AND quantity > 0", userID).
-		Pluck("ingredient_id", &ingredientIDs).
+		Table("user_fridge_items AS ufi").
+		Select("ufi.ingredient_id, i.canonical_id").
+		Joins(`LEFT JOIN "Ingredient" AS i ON i.id = ufi.ingredient_id`).
+		Where("ufi.user_id = ? AND ufi.quantity > 0", userID).
+		Scan(&items).
 		Error
 
 	if err != nil {
@@ -177,16 +201,26 @@ func (s *RecommendationService) getUserFridgeIngredientIDs(
 		return nil, err
 	}
 
-	fmt.Printf("✅ [FRIDGE CHECK] Found %d ingredients in fridge for user %s\n", len(ingredientIDs), userID)
-	fmt.Printf("📦 [FRIDGE CHECK] Ingredient IDs: %v\n", ingredientIDs)
+	fmt.Printf("✅ [FRIDGE CHECK] Found %d ingredients in fridge for user %s\n", len(items), userID)
 
 	// Создаем map для O(1) lookup
+	// Добавляем КАК ingredient_id, ТАК И canonical_id
 	fridgeSet := make(map[string]bool)
-	for _, id := range ingredientIDs {
-		if id != "" {
-			fridgeSet[id] = true
+	for _, item := range items {
+		// Direct match by ingredient_id
+		if item.IngredientID != "" {
+			fridgeSet[item.IngredientID] = true
+		}
+		
+		// Canonical match (e.g., vegetable_oil matches any oil type)
+		if item.CanonicalID != nil && *item.CanonicalID != "" {
+			fridgeSet[*item.CanonicalID] = true
+			fmt.Printf("📦 [FRIDGE CHECK] Canonical group: %s (ingredient_id: %s)\n", 
+				*item.CanonicalID, item.IngredientID)
 		}
 	}
+
+	fmt.Printf("📊 [FRIDGE CHECK] Total keys in fridgeSet: %d (includes canonical groups)\n", len(fridgeSet))
 
 	return fridgeSet, nil
 }

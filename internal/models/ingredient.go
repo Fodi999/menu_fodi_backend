@@ -37,6 +37,7 @@ type Ingredient struct {
 	NameEN               *string   `gorm:"column:name_en" json:"nameEn,omitempty"`
 	NameRU               *string   `gorm:"column:name_ru" json:"nameRu,omitempty"`
 	NormalizedValue      *string   `gorm:"column:normalized_value" json:"-"`                      // For search only
+	CanonicalID          *string   `gorm:"column:canonical_id" json:"canonicalId,omitempty"`      // Group similar ingredients (e.g., vegetable_oil)
 	Unit                 string    `gorm:"column:unit;not null" json:"unit"`                      // "g", "ml", "pcs"
 	Category             string    `gorm:"column:category;not null" json:"category"`              // Culinary category (UI)
 	NutritionGroup       string    `gorm:"column:nutrition_group;not null" json:"nutritionGroup"` // Nutritional grouping (AI, analytics)
