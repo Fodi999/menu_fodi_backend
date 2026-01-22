@@ -16,6 +16,7 @@ type RecipeMatchRequest struct {
 	UserID   string `json:"user_id"`
 	Language string `json:"language"` // pl, en, ru
 	Limit    int    `json:"limit"`    // top N рецептов (default: 10)
+	RecipeID string `json:"recipe_id,omitempty"` // Опционально: конкретный рецепт (UUID или canonical_name)
 }
 
 // RecipeRecommendationResponse - полный ответ системы (один контракт для frontend)

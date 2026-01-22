@@ -7,6 +7,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/ai_recipe_recommendation/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
+	"github.com/go-chi/chi/v5"
 )
 
 // ============================================================================
@@ -66,6 +67,46 @@ func (h *RecommendationHandler) GetRecommendations(w http.ResponseWriter, r *htt
 	}
 
 	// Отправляем ответ
+	utils.RespondJSON(w, http.StatusOK, response)
+}
+
+// GetSingleRecipeWithFridge - GET /api/recipe-recommendations/{id}
+// Returns ONE recipe with fridge check (inFridge status for each ingredient)
+func (h *RecommendationHandler) GetSingleRecipeWithFridge(w http.ResponseWriter, r *http.Request) {
+	// Extract userID from context
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		utils.RespondError(w, http.StatusUnauthorized, "unauthorized", "user ID not found in context")
+		return
+	}
+	userID := userIDPtr.String()
+
+	// Get recipeID from URL path parameter (chi router)
+	recipeID := chi.URLParam(r, "id")
+	if recipeID == "" {
+		utils.RespondError(w, http.StatusBadRequest, "missing recipe ID", "recipeID is required in path")
+		return
+	}
+
+	// Get language
+	lang := r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = "pl"
+	}
+
+	// Call service
+	req := service.RecipeMatchRequest{
+		UserID:   userID,
+		Language: lang,
+		RecipeID: recipeID, // UUID or canonical_name
+	}
+
+	response, err := h.service.GetSingleRecipeWithFridge(r.Context(), req)
+	if err != nil {
+		utils.RespondError(w, http.StatusInternalServerError, "failed to get recipe", err.Error())
+		return
+	}
+
 	utils.RespondJSON(w, http.StatusOK, response)
 }
 

@@ -47,5 +47,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(next http.Hand
 		// GET /api/recipe-recommendations?lang=ru&limit=10
 		// Rules Engine решает, AI объясняет (опционально)
 		r.Get("/", m.recommendationHandler.GetRecommendations)
+		
+		// GET /api/recipe-recommendations/{id}?lang=ru
+		// Один рецепт с проверкой холодильника (inFridge для каждого ингредиента)
+		r.Get("/{id}", m.recommendationHandler.GetSingleRecipeWithFridge)
 	})
 }

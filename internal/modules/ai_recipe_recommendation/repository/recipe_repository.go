@@ -77,3 +77,45 @@ func (r *RecipeRepository) GetRecipesByIDs(
 
 	return recipes, nil
 }
+
+// GetRecipeByIDOrCanonical - получает рецепт по UUID или canonical_name
+// Используется для гибкого поиска: сначала UUID, потом canonical_name
+func (r *RecipeRepository) GetRecipeByIDOrCanonical(
+	ctx context.Context,
+	identifier string,
+) (*models.RecipeCatalog, error) {
+	var recipe models.RecipeCatalog
+
+	// Try to parse as UUID first
+	if parsedUUID, err := uuid.Parse(identifier); err == nil {
+		// It's a valid UUID
+		err = r.db.WithContext(ctx).
+			Preload("Ingredients").
+			Preload("Ingredients.Ingredient").
+			Where("id = ?", parsedUUID).
+			First(&recipe).Error
+
+		if err == nil {
+			return &recipe, nil
+		}
+		if err != gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("failed to get recipe by UUID: %w", err)
+		}
+	}
+
+	// Not a UUID or not found, try canonical_name
+	err := r.db.WithContext(ctx).
+		Preload("Ingredients").
+		Preload("Ingredients.Ingredient").
+		Where("\"canonicalName\" = ?", identifier).
+		First(&recipe).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("recipe not found: %s", identifier)
+		}
+		return nil, fmt.Errorf("failed to get recipe by canonical_name: %w", err)
+	}
+
+	return &recipe, nil
+}

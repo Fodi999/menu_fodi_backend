@@ -317,3 +317,39 @@ func (s *RecommendationService) noRecipesResponse(lang string) *RecipeRecommenda
 		Recipes:      []RecipeDTO{},
 	}
 }
+
+// ============================================================================
+// GET SINGLE RECIPE WITH FRIDGE CHECK
+// ============================================================================
+
+// GetSingleRecipeWithFridge - получает ОДИН рецепт с проверкой холодильника
+// Используется на странице /recipes/[id] для показа inFridge статуса
+func (s *RecommendationService) GetSingleRecipeWithFridge(
+	ctx context.Context,
+	req RecipeMatchRequest,
+) (*RecipeDTO, error) {
+	// Валидация
+	if req.RecipeID == "" {
+		return nil, fmt.Errorf("recipe_id is required")
+	}
+	if req.Language == "" {
+		req.Language = "pl"
+	}
+
+	// 1️⃣ Получить холодильник пользователя
+	fridgeIngredientIDs, err := s.getUserFridgeIngredientIDs(ctx, req.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get fridge: %w", err)
+	}
+
+	// 2️⃣ Получить рецепт (try UUID first, then canonical_name)
+	recipe, err := s.recipeRepository.GetRecipeByIDOrCanonical(ctx, req.RecipeID)
+	if err != nil {
+		return nil, fmt.Errorf("recipe not found: %w", err)
+	}
+
+	// 3️⃣ Построить DTO с проверкой холодильника
+	dto := s.buildRecipeDTO(*recipe, fridgeIngredientIDs, req.Language)
+
+	return &dto, nil
+}
