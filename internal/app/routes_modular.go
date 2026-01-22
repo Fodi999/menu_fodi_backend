@@ -23,6 +23,7 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/leaderboard"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/marketplace"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/meal_plan"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/menu"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/meta"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/metrics"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/notifications"
@@ -99,7 +100,8 @@ func (a *App) setupModularRoutes() http.Handler {
 	budgetModule := budget.NewModule(a.db) // Weekly budget tracking
 	businessModule := business.NewModule(a.db)
 	mealPlanModule := meal_plan.NewModule()
-	metaModule := meta.NewModule() // Metadata (countries, cuisines, categories, difficulties)
+	menuModule := menu.NewMenuModule(a.db)                 // NEW: Kitchen Pipeline - what user wants to cook TODAY
+	metaModule := meta.NewModule()                         // Metadata (countries, cuisines, categories, difficulties)
 	metricsModule := metrics.NewModule()
 	notificationsModule := notifications.NewModule(a.db) // Notifications (fridge expiry, system, etc.)
 	nutritionModule := nutrition.NewModule()
@@ -174,6 +176,9 @@ func (a *App) setupModularRoutes() http.Handler {
 
 		// Register meal plan module routes
 		mealPlanModule.RegisterRoutes(r, middleware.AuthMiddleware)
+
+		// Register menu module routes (Kitchen Pipeline: what user wants to cook TODAY)
+		menuModule.RegisterRoutes(r, middleware.AuthMiddleware)
 
 		// Register meta module routes (public metadata endpoints)
 		metaModule.RegisterRoutes(r)

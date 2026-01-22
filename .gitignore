@@ -10,6 +10,8 @@
 
 # Test binary
 *.test
+bin/
+!bin/.gitkeep
 
 # Output of the go coverage tool
 *.out
