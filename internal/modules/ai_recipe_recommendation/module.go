@@ -11,16 +11,23 @@ import (
 
 // Module - модуль AI рекомендаций рецептов (архитектура 2025)
 type Module struct {
-	handler *httpTransport.AIRecipeHandler
+	legacyHandler       *httpTransport.AIRecipeHandler
+	recommendationHandler *httpTransport.RecommendationHandler
 }
 
 // NewModule - конструктор модуля
 func NewModule(db *gorm.DB) *Module {
+	// Legacy service (для обратной совместимости)
 	matchService := service.NewRecipeMatchService(db)
-	handler := httpTransport.NewAIRecipeHandler(db, matchService)
+	legacyHandler := httpTransport.NewAIRecipeHandler(db, matchService)
+
+	// NEW: Recommendation Engine (2025 Architecture)
+	engine := service.NewRecommendationEngine(db)
+	recommendationHandler := httpTransport.NewRecommendationHandler(engine)
 
 	return &Module{
-		handler: handler,
+		legacyHandler:       legacyHandler,
+		recommendationHandler: recommendationHandler,
 	}
 }
 
@@ -29,8 +36,16 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(next http.Hand
 	r.Route("/ai-recipe", func(r chi.Router) {
 		r.Use(authMiddleware)
 
-		// GET /api/ai-recipe/recommendation
-		// Главный endpoint: backend решает, AI объясняет
-		r.Get("/recommendation", m.handler.GetRecommendation)
+		// LEGACY: GET /api/ai-recipe/recommendation (для обратной совместимости)
+		r.Get("/recommendation", m.legacyHandler.GetRecommendation)
+	})
+
+	// NEW: Правильная архитектура 2025
+	r.Route("/recipes", func(r chi.Router) {
+		r.Use(authMiddleware)
+
+		// GET /api/recipes/recommendations?lang=ru&limit=10
+		// Rules Engine решает, AI объясняет (опционально)
+		r.Get("/recommendations", m.recommendationHandler.GetRecommendations)
 	})
 }
