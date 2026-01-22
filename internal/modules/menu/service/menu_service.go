@@ -1,15 +1,30 @@
-
 package service
 
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/menu/repository"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+// ============================================================================
+// CUSTOM ERRORS
+// ============================================================================
+
+// InsufficientIngredientsError - недостаточно ингредиентов в холодильнике
+type InsufficientIngredientsError struct {
+	RecipeID           uuid.UUID
+	MissingIngredients []string
+}
+
+func (e *InsufficientIngredientsError) Error() string {
+	return fmt.Sprintf("cannot add to menu: missing ingredients: %s", strings.Join(e.MissingIngredients, ", "))
+}
 
 // ============================================================================
 // SERVICE: Menu (Kitchen Pipeline)
@@ -18,11 +33,13 @@ import (
 
 type MenuService struct {
 	menuRepo *repository.MenuRepository
+	db       *gorm.DB // For checking fridge ingredients
 }
 
-func NewMenuService(menuRepo *repository.MenuRepository) *MenuService {
+func NewMenuService(menuRepo *repository.MenuRepository, db *gorm.DB) *MenuService {
 	return &MenuService{
 		menuRepo: menuRepo,
+		db:       db,
 	}
 }
 
@@ -62,6 +79,19 @@ func (s *MenuService) AddToMenu(
 	}
 	if servings > 10 {
 		return nil, fmt.Errorf("servings must be between 1 and 10")
+	}
+	
+	// ✅ CRITICAL: Check if user can cook this recipe NOW (Backend = Source of Truth)
+	canCook, missingIngredients, err := s.checkCanCookNow(ctx, userID, recipeID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check ingredients: %w", err)
+	}
+	
+	if !canCook {
+		return nil, &InsufficientIngredientsError{
+			RecipeID:           recipeID,
+			MissingIngredients: missingIngredients,
+		}
 	}
 	
 	// Create menu item
@@ -188,4 +218,81 @@ func (s *MenuService) buildMenuItemResponse(item models.UserMenuItem, lang strin
 	}
 	
 	return response
+}
+
+// ============================================================================
+// PRIVATE HELPER: Check if user can cook recipe NOW
+// ============================================================================
+
+// checkCanCookNow - проверяет, есть ли все ингредиенты в холодильнике
+func (s *MenuService) checkCanCookNow(ctx context.Context, userID string, recipeID uuid.UUID) (bool, []string, error) {
+	// 1. Get recipe ingredients
+	var recipeIngredients []models.CatalogIngredient
+	err := s.db.WithContext(ctx).
+		Preload("Ingredient").
+		Where("recipeId = ?", recipeID).
+		Find(&recipeIngredients).Error
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to load recipe ingredients: %w", err)
+	}
+	
+	if len(recipeIngredients) == 0 {
+		// No ingredients required = can cook
+		return true, nil, nil
+	}
+	
+	// 2. Get user's fridge ingredients (with canonical_id)
+	var fridgeItems []models.FridgeItem
+	err = s.db.WithContext(ctx).
+		Preload("Ingredient").
+		Where("user_id = ? AND quantity > 0", userID).
+		Find(&fridgeItems).Error
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to load fridge items: %w", err)
+	}
+	
+	// Build set of available canonical IDs from fridge
+	availableCanonicalIDs := make(map[string]bool)
+	for _, item := range fridgeItems {
+		if item.Ingredient != nil && item.Ingredient.CanonicalID != nil {
+			availableCanonicalIDs[*item.Ingredient.CanonicalID] = true
+		}
+		// Also add ingredient ID itself (for non-canonical ingredients)
+		if item.IngredientID != "" {
+			availableCanonicalIDs[item.IngredientID] = true
+		}
+	}
+	
+	// 3. Check each recipe ingredient
+	var missing []string
+	for _, recipeIng := range recipeIngredients {
+		if recipeIng.Ingredient.ID == "" {
+			continue // Skip if no ingredient data
+		}
+		
+		// Check if available: either by ingredient ID or by canonical ID
+		ingredientID := recipeIng.Ingredient.ID
+		canonicalID := recipeIng.Ingredient.CanonicalID
+		
+		hasIngredient := availableCanonicalIDs[ingredientID]
+		if canonicalID != nil {
+			hasIngredient = hasIngredient || availableCanonicalIDs[*canonicalID]
+		}
+		
+		if !hasIngredient {
+			// Get localized name for error message
+			ingredientName := recipeIng.Ingredient.Name
+			if recipeIng.Ingredient.NameRU != nil && *recipeIng.Ingredient.NameRU != "" {
+				ingredientName = *recipeIng.Ingredient.NameRU
+			}
+			missing = append(missing, ingredientName)
+		}
+	}
+	
+	// 4. Return result
+	if len(missing) > 0 {
+		return false, missing, nil
+	}
+	
+	return true, nil, nil
 }

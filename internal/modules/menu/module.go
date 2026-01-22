@@ -24,7 +24,7 @@ func NewMenuModule(db *gorm.DB) *MenuModule {
 	menuRepo := repository.NewMenuRepository(db)
 	
 	// Layer 2: Service (business logic)
-	menuService := service.NewMenuService(menuRepo)
+	menuService := service.NewMenuService(menuRepo, db) // ← Added db parameter
 	
 	// Layer 3: Handler (HTTP transport)
 	menuHandler := menuhttp.NewMenuHandler(menuService)

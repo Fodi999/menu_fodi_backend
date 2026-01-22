@@ -3,6 +3,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
@@ -92,6 +93,19 @@ func (h *MenuHandler) AddToMenu(w http.ResponseWriter, r *http.Request) {
 	
 	item, err := h.service.AddToMenu(r.Context(), userID, recipeID, servings, notes)
 	if err != nil {
+		// Check if it's InsufficientIngredientsError
+		var insufficientErr *service.InsufficientIngredientsError
+		if errors.As(err, &insufficientErr) {
+			// 409 Conflict: Cannot cook - missing ingredients
+			utils.RespondJSON(w, http.StatusConflict, map[string]interface{}{
+				"error":              "insufficient_ingredients",
+				"message":            "Cannot add to menu: missing ingredients in fridge",
+				"missing_ingredients": insufficientErr.MissingIngredients,
+			})
+			return
+		}
+		
+		// Other errors
 		utils.RespondError(w, http.StatusInternalServerError, "failed to add to menu", err.Error())
 		return
 	}
