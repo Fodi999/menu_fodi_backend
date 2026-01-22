@@ -21,9 +21,9 @@ func NewModule(db *gorm.DB) *Module {
 	matchService := service.NewRecipeMatchService(db)
 	legacyHandler := httpTransport.NewAIRecipeHandler(db, matchService)
 
-	// NEW: Recommendation Engine (2025 Architecture)
-	engine := service.NewRecommendationEngine(db)
-	recommendationHandler := httpTransport.NewRecommendationHandler(engine)
+	// NEW: Recommendation Service (2025 Architecture - clean & testable)
+	recommendationService := service.NewRecommendationService(db)
+	recommendationHandler := httpTransport.NewRecommendationHandler(recommendationService)
 
 	return &Module{
 		legacyHandler:       legacyHandler,

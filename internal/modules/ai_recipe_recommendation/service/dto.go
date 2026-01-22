@@ -3,8 +3,12 @@ package service
 import "time"
 
 // ============================================================================
-// DTO для Recipe Recommendation Engine
+// DTO для Recipe Recommendation Engine (Production-Grade)
 // Принцип: Rules Engine решает, AI только объясняет
+// ============================================================================
+
+// ============================================================================
+// REQUEST / RESPONSE (Top Level)
 // ============================================================================
 
 // RecipeMatchRequest - запрос на подбор рецептов
@@ -14,75 +18,94 @@ type RecipeMatchRequest struct {
 	Limit    int    `json:"limit"`    // top N рецептов (default: 10)
 }
 
-// RecipeMatchResponse - ответ системы с рекомендациями
-type RecipeMatchResponse struct {
-	Decision     string              `json:"decision"`      // "ready" | "almost_ready" | "need_more"
-	Summary      string              `json:"summary"`       // Краткое резюме для пользователя
-	TotalMatches int                 `json:"total_matches"` // Сколько рецептов нашли
-	Recipes      []RecipeMatchResult `json:"recipes"`       // Список рецептов (отсортирован по match_percent)
+// RecipeRecommendationResponse - полный ответ системы (один контракт для frontend)
+type RecipeRecommendationResponse struct {
+	Decision     string        `json:"decision"`      // "ready" | "almost_ready" | "need_more"
+	Summary      string        `json:"summary"`       // Локализованное резюме
+	TotalMatches int           `json:"total_matches"` // Количество найденных рецептов
+	Recipes      []RecipeDTO   `json:"recipes"`       // Отсортированы по match_percent (DESC)
 }
 
-// RecipeMatchResult - результат matching одного рецепта
-type RecipeMatchResult struct {
-	// Идентификация
-	ID            string `json:"id"`
-	CanonicalName string `json:"canonical_name"` // stable key (не зависит от языка)
-	Title         string `json:"title"`          // локализованное название
+// ============================================================================
+// RECIPE DTO (Full Contract)
+// ============================================================================
+
+// RecipeDTO - ПОЛНЫЙ контракт рецепта для frontend
+// Содержит ВСЁ что нужно для отображения: метаданные, ингредиенты, шаги, matching
+type RecipeDTO struct {
+	// Identification
+	ID            string  `json:"id"`
+	Title         string  `json:"title"`          // Локализованное название
+	CanonicalName string  `json:"canonical_name"` // Stable key (language-independent)
+	ImageURL      *string `json:"image_url"`      // Cloudinary URL (может быть null)
 	
-	// Метрики matching (Rules Engine)
-	MatchPercent         float64 `json:"match_percent"`          // 0-100%
-	MatchStatus          string  `json:"match_status"`           // "ready" | "almost_ready" | "not_ready"
-	MissingCount         int     `json:"missing_count"`          // Сколько ингредиентов не хватает
-	AvailableCount       int     `json:"available_count"`        // Сколько есть
-	TotalRequired        int     `json:"total_required"`         // Всего нужно
+	// Recipe Metadata
+	CookTime int `json:"cook_time"` // Минуты
+	Servings int `json:"servings"`  // Порций (базовое значение для масштабирования)
 	
-	// Ингредиенты (детали)
-	MissingIngredients   []IngredientInfo `json:"missing_ingredients"`   // Чего не хватает
-	AvailableIngredients []IngredientInfo `json:"available_ingredients"` // Что есть
+	// Matching Metrics (Rules Engine)
+	MatchPercent float64 `json:"match_percent"` // 0-100 (available / total * 100)
+	MatchStatus  string  `json:"match_status"`  // "ready" | "almost_ready" | "not_ready"
 	
-	// Метаданные рецепта
-	CookTime  int    `json:"cook_time"`  // минуты
-	Portions  int    `json:"portions"`   // порций
-	ImageURL  string `json:"image_url"`  // картинка
+	// Ingredients (Detailed Objects - НЕ строки!)
+	AvailableIngredients []IngredientInfo `json:"available_ingredients"` // ✅ Что есть в холодильнике
+	MissingIngredients   []IngredientInfo `json:"missing_ingredients"`   // ❌ Что нужно купить
 	
-	// AI объяснение (опционально, добавляется после)
-	AIExplanation *AIExplanation `json:"ai_explanation,omitempty"`
+	// Cooking Steps (локализованные)
+	Steps []string `json:"steps,omitempty"` // ["Разогрейте сковороду", "Добавьте масло", ...]
+	
+	// AI Explanation (опционально, Phase 2)
+	AI *AIBlock `json:"ai,omitempty"`
 }
 
-// IngredientInfo - информация об ингредиенте
+// IngredientInfo - детальная информация об ингредиенте
+// Это объект (НЕ строка), чтобы frontend мог:
+// - показать units (g, ml, pcs)
+// - рассчитать цену
+// - масштабировать порции
+// - добавить в shopping cart
 type IngredientInfo struct {
 	ID            string  `json:"id"`
-	CanonicalName string  `json:"canonical_name"` // stable key
-	DisplayName   string  `json:"display_name"`   // локализованное название
-	Quantity      float64 `json:"quantity"`
-	Unit          string  `json:"unit"`
-	Category      string  `json:"category"` // для группировки в UI
+	CanonicalName string  `json:"canonical_name"` // Для внутренней логики
+	DisplayName   string  `json:"display_name"`   // Локализованное название
+	Quantity      float64 `json:"quantity"`       // 30, 2, 3
+	Unit          string  `json:"unit"`           // "ml", "g", "pcs"
+	Category      string  `json:"category"`       // "condiment", "vegetable", "protein"
 }
 
-// AIExplanation - AI объяснение (добавляется отдельно)
-type AIExplanation struct {
-	Explanation  string              `json:"explanation"`  // Почему этот рецепт подходит
+// ============================================================================
+// AI EXPLANATION (Phase 2 - Optional)
+// ============================================================================
+
+// AIBlock - AI объяснение (добавляется ПОСЛЕ Rules Engine)
+type AIBlock struct {
+	Title        string              `json:"title"`        // "Почти готово!" | "Можете готовить сейчас!"
+	Reason       string              `json:"reason"`       // "Не хватает растительного масла"
 	Substitutes  []SubstituteOption  `json:"substitutes"`  // Чем заменить недостающие
 	GeneratedAt  time.Time           `json:"generated_at"` // Когда сгенерировано
 }
 
-// SubstituteOption - вариант замены ингредиента
+// SubstituteOption - вариант замены ингредиента (AI)
 type SubstituteOption struct {
-	OriginalIngredient string   `json:"original_ingredient"` // Что нужно заменить
-	Alternatives       []string `json:"alternatives"`        // Чем можно заменить
-	Reason             string   `json:"reason"`              // Почему подходит
+	OriginalIngredient string   `json:"original_ingredient"` // "Растительное масло"
+	Alternatives       []string `json:"alternatives"`        // ["Сливочное масло", "Топленое масло"]
+	Reason             string   `json:"reason"`              // "Можно использовать любое масло для жарки"
 }
+
+// ============================================================================
+// CONSTANTS (Decision Engine)
+// ============================================================================
 
 // MatchingDecision - решение системы (enum)
 const (
-	DecisionReady       = "ready"        // 🟢 Все ингредиенты есть
-	DecisionAlmostReady = "almost_ready" // 🟡 Не хватает 1-2 ингредиента
+	DecisionReady       = "ready"        // 🟢 Все ингредиенты есть (missing = 0)
+	DecisionAlmostReady = "almost_ready" // 🟡 Не хватает 1-2 ингредиентов
 	DecisionNeedMore    = "need_more"    // 🔴 Не хватает 3+ ингредиентов
 )
 
-// MatchStatus - статус matching рецепта (enum)
+// MatchStatus - статус matching одного рецепта (enum)
 const (
-	StatusReady       = "ready"        // 100% match
-	StatusAlmostReady = "almost_ready" // 67-99% match
-	StatusNotReady    = "not_ready"    // < 67% match
+	StatusReady       = "ready"        // 🟢 Можно готовить (missing = 0)
+	StatusAlmostReady = "almost_ready" // 🟡 Почти готов (missing ≤ 2)
+	StatusNotReady    = "not_ready"    // 🔴 Не готов (missing > 2)
 )

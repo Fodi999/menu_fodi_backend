@@ -16,12 +16,12 @@ import (
 
 // RecommendationHandler - HTTP handler для рекомендаций
 type RecommendationHandler struct {
-	engine *service.RecommendationEngine
+	service *service.RecommendationService
 }
 
 // NewRecommendationHandler - конструктор
-func NewRecommendationHandler(engine *service.RecommendationEngine) *RecommendationHandler {
-	return &RecommendationHandler{engine: engine}
+func NewRecommendationHandler(svc *service.RecommendationService) *RecommendationHandler {
+	return &RecommendationHandler{service: svc}
 }
 
 // GetRecommendations - GET /api/recipes/recommendations
@@ -58,8 +58,8 @@ func (h *RecommendationHandler) GetRecommendations(w http.ResponseWriter, r *htt
 		Limit:    limit,
 	}
 
-	// Вызываем Rules Engine
-	response, err := h.engine.GetRecommendations(req)
+	// Вызываем Service
+	response, err := h.service.GetRecommendations(r.Context(), req)
 	if err != nil {
 		utils.RespondError(w, http.StatusInternalServerError, "failed to get recommendations", err.Error())
 		return
