@@ -291,10 +291,33 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 	// Get user's preferred language
 	userLang := h.getUserLanguage(r)
 
-	// Get recipe from database
-	recipe, err := h.matchService.GetRecipeByID(recipeID)
+	// Get recipe from database (try UUID first, then canonical_name)
+	var recipe *models.RecipeCatalog
+	var err error
+	
+	// Try to parse as UUID
+	if _, uuidErr := uuid.Parse(recipeID); uuidErr == nil {
+		// It's a valid UUID, use existing method
+		recipe, err = h.matchService.GetRecipeByID(recipeID)
+	} else {
+		// Not a UUID, try canonical_name
+		h.logger.Info("Searching by canonical_name", zap.String("canonicalName", recipeID))
+		err = h.db.
+			Preload("Ingredients").
+			Preload("Ingredients.Ingredient").
+			Where("canonicalName = ?", recipeID).
+			First(&recipe).Error
+		
+		if err == nil {
+			h.logger.Info("Recipe found by canonical_name",
+				zap.String("canonicalName", recipeID),
+				zap.String("id", recipe.ID.String()),
+			)
+		}
+	}
+	
 	if err != nil {
-		h.logger.Error("Failed to get recipe", zap.Error(err))
+		h.logger.Error("Failed to get recipe", zap.Error(err), zap.String("lookup", recipeID))
 		http.Error(w, "Recipe not found", http.StatusNotFound)
 		return
 	}
