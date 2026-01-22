@@ -37,13 +37,14 @@ func (h *MenuHandler) GetTodayMenu(w http.ResponseWriter, r *http.Request) {
 		utils.RespondError(w, http.StatusUnauthorized, "unauthorized", "user ID not found")
 		return
 	}
+	userID := userIDPtr.String() // Convert UUID to string
 	
 	lang := r.URL.Query().Get("lang")
 	if lang == "" {
 		lang = "pl"
 	}
 	
-	items, err := h.service.GetTodayMenu(r.Context(), *userIDPtr, lang)
+	items, err := h.service.GetTodayMenu(r.Context(), userID, lang)
 	if err != nil {
 		utils.RespondError(w, http.StatusInternalServerError, "failed to get menu", err.Error())
 		return
@@ -60,6 +61,7 @@ func (h *MenuHandler) AddToMenu(w http.ResponseWriter, r *http.Request) {
 		utils.RespondError(w, http.StatusUnauthorized, "unauthorized", "user ID not found")
 		return
 	}
+	userID := userIDPtr.String() // Convert UUID to string
 	
 	// Parse request body
 	var req models.AddToMenuRequest
@@ -88,7 +90,7 @@ func (h *MenuHandler) AddToMenu(w http.ResponseWriter, r *http.Request) {
 		notes = &req.Notes
 	}
 	
-	item, err := h.service.AddToMenu(r.Context(), *userIDPtr, recipeID, servings, notes)
+	item, err := h.service.AddToMenu(r.Context(), userID, recipeID, servings, notes)
 	if err != nil {
 		utils.RespondError(w, http.StatusInternalServerError, "failed to add to menu", err.Error())
 		return

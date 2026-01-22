@@ -24,7 +24,7 @@ const (
 // UserMenuItem - рецепт в меню пользователя (на сегодня)
 type UserMenuItem struct {
 	ID       uuid.UUID      `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	UserID   uuid.UUID      `gorm:"type:uuid;not null" json:"user_id"`
+	UserID   string         `gorm:"type:text;not null" json:"user_id"` // TEXT to match "User".id
 	RecipeID uuid.UUID      `gorm:"type:uuid;not null;column:recipe_id" json:"recipe_id"`
 	Servings int            `gorm:"not null;default:1" json:"servings"`
 	Status   MenuItemStatus `gorm:"type:text;not null;default:'planned'" json:"status"`

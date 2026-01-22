@@ -1,3 +1,4 @@
+
 package repository
 
 import (
@@ -28,7 +29,7 @@ func NewMenuRepository(db *gorm.DB) *MenuRepository {
 // ============================================================================
 
 // GetTodayMenu - получить меню на сегодня (все статусы кроме cancelled)
-func (r *MenuRepository) GetTodayMenu(ctx context.Context, userID uuid.UUID) ([]models.UserMenuItem, error) {
+func (r *MenuRepository) GetTodayMenu(ctx context.Context, userID string) ([]models.UserMenuItem, error) {
 	var items []models.UserMenuItem
 	
 	err := r.db.WithContext(ctx).
@@ -143,7 +144,7 @@ func (r *MenuRepository) DeleteMenuItem(ctx context.Context, itemID uuid.UUID) e
 // ============================================================================
 
 // GetMenuStats - статистика меню
-func (r *MenuRepository) GetMenuStats(ctx context.Context, userID uuid.UUID) (map[string]int, error) {
+func (r *MenuRepository) GetMenuStats(ctx context.Context, userID string) (map[string]int, error) {
 	type StatusCount struct {
 		Status models.MenuItemStatus
 		Count  int
@@ -170,7 +171,7 @@ func (r *MenuRepository) GetMenuStats(ctx context.Context, userID uuid.UUID) (ma
 }
 
 // GetHistory - история приготовлений
-func (r *MenuRepository) GetHistory(ctx context.Context, userID uuid.UUID, limit int) ([]models.UserMenuItem, error) {
+func (r *MenuRepository) GetHistory(ctx context.Context, userID string, limit int) ([]models.UserMenuItem, error) {
 	var items []models.UserMenuItem
 	
 	err := r.db.WithContext(ctx).

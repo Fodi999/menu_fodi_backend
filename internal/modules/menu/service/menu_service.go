@@ -1,3 +1,4 @@
+
 package service
 
 import (
@@ -30,7 +31,7 @@ func NewMenuService(menuRepo *repository.MenuRepository) *MenuService {
 // ============================================================================
 
 // GetTodayMenu - получить меню на сегодня
-func (s *MenuService) GetTodayMenu(ctx context.Context, userID uuid.UUID, lang string) ([]models.MenuItemResponse, error) {
+func (s *MenuService) GetTodayMenu(ctx context.Context, userID string, lang string) ([]models.MenuItemResponse, error) {
 	// Get raw menu items from repository
 	items, err := s.menuRepo.GetTodayMenu(ctx, userID)
 	if err != nil {
@@ -50,7 +51,7 @@ func (s *MenuService) GetTodayMenu(ctx context.Context, userID uuid.UUID, lang s
 // AddToMenu - добавить рецепт в меню (с валидацией!)
 func (s *MenuService) AddToMenu(
 	ctx context.Context,
-	userID uuid.UUID,
+	userID string,
 	recipeID uuid.UUID,
 	servings int,
 	notes *string,
