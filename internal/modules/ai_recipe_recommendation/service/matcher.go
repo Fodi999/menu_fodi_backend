@@ -95,7 +95,6 @@ func (m *RecipeMatcher) getActiveRecipes() ([]models.RecipeCatalog, error) {
 	err := m.db.
 		Preload("Ingredients").
 		Preload("Ingredients.Ingredient").
-		Where("status = ?", "published").
 		Find(&recipes).Error
 
 	return recipes, err
