@@ -173,8 +173,8 @@ func classifyMatchStatus(missingCount int, matchPercent float64) string {
 	switch {
 	case missingCount == 0:
 		return StatusReady // 🟢 готово
-	case missingCount <= 2 && matchPercent >= 67:
-		return StatusAlmostReady // 🟡 почти готово
+	case missingCount <= 2:
+		return StatusAlmostReady // 🟡 почти готово (не хватает 1-2 ингредиента)
 	default:
 		return StatusNotReady // 🔴 не хватает
 	}
