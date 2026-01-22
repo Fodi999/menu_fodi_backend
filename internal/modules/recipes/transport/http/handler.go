@@ -354,6 +354,9 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// Get user language (for localized names)
+	lang := h.getUserLanguage(r)
+
 	// Parse filters
 	filters := service.RecipeFilters{
 		Country:          r.URL.Query().Get("country"),
@@ -365,11 +368,32 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 		Limit:            parseIntQuery(r, "limit", 20),
 	}
 
-	h.logger.Info("Listing recipes", zap.Any("filters", filters))
+	h.logger.Info("Listing recipes", zap.Any("filters", filters), zap.String("lang", lang))
 
-	// Get recipes from service
-	recipes, err := h.matchService.ListRecipes(filters)
-	if err != nil {
+	// Get recipes from service with full relations
+	var recipes []models.RecipeCatalog
+	query := h.db.
+		Preload("Ingredients").
+		Preload("Ingredients.Ingredient")
+
+	// Apply filters
+	if filters.Country != "" {
+		query = query.Where("country = ?", filters.Country)
+	}
+	if filters.Category != "" {
+		query = query.Where("category = ?", filters.Category)
+	}
+	if filters.Difficulty != "" {
+		query = query.Where("difficulty = ?", filters.Difficulty)
+	}
+	if filters.MaxTime > 0 {
+		query = query.Where("timeMinutes <= ?", filters.MaxTime)
+	}
+	if filters.Limit > 0 {
+		query = query.Limit(filters.Limit)
+	}
+
+	if err := query.Find(&recipes).Error; err != nil {
 		h.logger.Error("Failed to list recipes", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -379,23 +403,41 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Format response
+	// Format response with FULL data (like recommendation endpoint)
 	recipesData := make([]map[string]interface{}, len(recipes))
 	for i, recipe := range recipes {
-		recipeData := map[string]interface{}{
-			"id":            recipe.ID.String(),
-			"canonicalName": recipe.CanonicalName,
-			"localName":     recipe.LocalName,
-			"country":       recipe.Country,
-			"category":      recipe.Category,
-			"difficulty":    recipe.Difficulty,
-			"timeMinutes":   recipe.TimeMinutes,
-			"servings":      recipe.Servings,
+		// Get localized name
+		localizedName := recipe.GetLocalizedName(lang)
+
+		// Extract steps for language
+		steps := extractLocalizedSteps(recipe, lang)
+
+		// Format ingredients
+		ingredients := make([]map[string]interface{}, len(recipe.Ingredients))
+		for j, recipeIng := range recipe.Ingredients {
+			ingredient := recipeIng.Ingredient
+			ingredients[j] = map[string]interface{}{
+				"id":            ingredient.ID,
+				"canonical_name": recipeIng.IngredientKey,
+				"display_name":   ingredient.GetName(lang),
+				"quantity":       recipeIng.Quantity,
+				"unit":           recipeIng.Unit,
+				"category":       ingredient.Category,
+			}
 		}
 
-		// Add imageUrl if present
-		if recipe.ImageUrl != "" {
-			recipeData["imageUrl"] = recipe.ImageUrl
+		recipeData := map[string]interface{}{
+			"id":             recipe.ID.String(),
+			"canonical_name": recipe.CanonicalName,
+			"title":          localizedName,
+			"country":        recipe.Country,
+			"category":       recipe.Category,
+			"difficulty":     recipe.Difficulty,
+			"cook_time":      recipe.TimeMinutes,
+			"servings":       recipe.Servings,
+			"image_url":      recipe.ImageUrl,
+			"ingredients":    ingredients,
+			"steps":          steps,
 		}
 
 		recipesData[i] = recipeData
@@ -410,6 +452,42 @@ func (h *RecipeHandler) ListRecipes(w http.ResponseWriter, r *http.Request) {
 			"filters": filters,
 		},
 	})
+}
+
+// extractLocalizedSteps - helper to extract steps in specific language
+func extractLocalizedSteps(recipe models.RecipeCatalog, lang string) []string {
+	var stepsJSON datatypes.JSON
+
+	switch lang {
+	case "ru":
+		stepsJSON = recipe.StepsRu
+	case "en":
+		stepsJSON = recipe.StepsEn
+	case "pl":
+		stepsJSON = recipe.StepsPl
+	default:
+		stepsJSON = recipe.StepsPl
+	}
+
+	if len(stepsJSON) == 0 {
+		return []string{}
+	}
+
+	var stepsData []struct {
+		Text  string `json:"text"`
+		Order int    `json:"order"`
+	}
+
+	if err := json.Unmarshal(stepsJSON, &stepsData); err != nil {
+		return []string{}
+	}
+
+	steps := make([]string, 0, len(stepsData))
+	for _, step := range stepsData {
+		steps = append(steps, step.Text)
+	}
+
+	return steps
 }
 
 // AdaptRecipe adapts existing recipe to available ingredients using AI
