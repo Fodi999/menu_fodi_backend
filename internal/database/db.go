@@ -121,6 +121,8 @@ func AutoMigrate() error {
 		&models.UserFridgeItem{},
 		// Token Bank (admin management)
 		&models.TokenBank{},
+		// Kitchen Pipeline (user menu)
+		&models.UserMenuItem{},
 	)
 
 	if err != nil {
