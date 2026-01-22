@@ -97,8 +97,9 @@ func (s *RecommendationService) buildRecipeDTO(
 	lang string,
 ) RecipeDTO {
 	// 1️⃣ Разделить ингредиенты на available / missing
-	var available []IngredientInfo
-	var missing []IngredientInfo
+	// ВАЖНО: Инициализируем как пустые массивы, а не nil, чтобы JSON был [] вместо null
+	available := make([]IngredientInfo, 0)
+	missing := make([]IngredientInfo, 0)
 
 	for _, recipeIng := range recipe.Ingredients {
 		ingredient := recipeIng.Ingredient
