@@ -41,11 +41,11 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(next http.Hand
 	})
 
 	// NEW: Правильная архитектура 2025
-	r.Route("/recipes", func(r chi.Router) {
+	r.Route("/recipe-recommendations", func(r chi.Router) {
 		r.Use(authMiddleware)
 
-		// GET /api/recipes/recommendations?lang=ru&limit=10
+		// GET /api/recipe-recommendations?lang=ru&limit=10
 		// Rules Engine решает, AI объясняет (опционально)
-		r.Get("/recommendations", m.recommendationHandler.GetRecommendations)
+		r.Get("/", m.recommendationHandler.GetRecommendations)
 	})
 }
