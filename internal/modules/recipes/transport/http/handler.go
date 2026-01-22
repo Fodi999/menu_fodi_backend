@@ -302,10 +302,12 @@ func (h *RecipeHandler) GetRecipeByID(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Not a UUID, try canonical_name
 		h.logger.Info("Searching by canonical_name", zap.String("canonicalName", recipeID))
+		
+		// Use GORM tag name from model (column:"canonicalName")
 		err = h.db.
 			Preload("Ingredients").
 			Preload("Ingredients.Ingredient").
-			Where("canonicalName = ?", recipeID).
+			Where("\"canonicalName\" = ?", recipeID).
 			First(&recipe).Error
 		
 		if err == nil {
