@@ -221,15 +221,16 @@ func (h *MenuHandler) DeleteMenuItem(w http.ResponseWriter, r *http.Request) {
 // GetHistory - GET /api/menu/history?limit=30
 // Get completed menu items (history)
 func (h *MenuHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(uuid.UUID)
-	if !ok {
-		utils.RespondError(w, http.StatusUnauthorized, "unauthorized", "user ID not found in context")
+	userIDPtr := middleware.GetUserID(r)
+	if userIDPtr == nil {
+		utils.RespondError(w, http.StatusUnauthorized, "unauthorized", "user ID not found")
 		return
 	}
+	userID := userIDPtr.String()
 	
 	lang := r.URL.Query().Get("lang")
 	if lang == "" {
-		lang = "en"
+		lang = "pl"
 	}
 	
 	// Parse optional limit parameter
@@ -240,7 +241,7 @@ func (h *MenuHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	
-	history, err := h.service.GetHistory(r.Context(), userID.String(), lang, limit)
+	history, err := h.service.GetHistory(r.Context(), userID, lang, limit)
 	if err != nil {
 		utils.RespondError(w, http.StatusInternalServerError, "failed to get history", err.Error())
 		return
