@@ -42,7 +42,6 @@ import (
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/platform/logger"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 )
 
 // setupModularRoutes configures routes using new modular architecture
@@ -57,20 +56,40 @@ func (a *App) setupModularRoutes() http.Handler {
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(60 * time.Second))
 
-	// CORS configuration
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"https://menu-fodi.vercel.app",
-			"https://*.vercel.app",
-		},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
+	// CORS configuration - dynamic origin validation
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			
+			// Allowed origins
+			allowedOrigins := map[string]bool{
+				"http://localhost:3000":                                       true,
+				"http://localhost:3001":                                       true,
+				"https://menu-fodifood.vercel.app":                           true,
+				"https://dima-fomin.pl":                                       true,
+				"https://yeasty-madelaine-fodi999-671ccdf5.koyeb.app":        true,
+			}
+			
+			// Check if origin is allowed
+			if allowedOrigins[origin] {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+			}
+			
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept-Language, X-Request-ID")
+			w.Header().Set("Access-Control-Expose-Headers", "X-Request-ID")
+			w.Header().Set("Access-Control-Max-Age", "300")
+			
+			// Handle preflight OPTIONS request
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
