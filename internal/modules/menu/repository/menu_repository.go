@@ -36,8 +36,10 @@ func (r *MenuRepository) GetTodayMenu(ctx context.Context, userID string) ([]mod
 		Preload("Recipe").                    // Load full recipe data
 		Preload("Recipe.Ingredients").        // Load recipe ingredients
 		Preload("Recipe.Ingredients.Ingredient"). // Load ingredient details
-		Where("user_id = ? AND planned_for = ? AND status != ?", 
-			userID, time.Now().Format("2006-01-02"), models.MenuItemCancelled).
+		Where("user_id = ? AND planned_for = ? AND status IN ?", 
+			userID, 
+			time.Now().Format("2006-01-02"), 
+			[]models.MenuItemStatus{models.MenuItemPlanned, models.MenuItemCooking}). // ✅ ONLY active menu
 		Order("created_at ASC").
 		Find(&items).Error
 	

@@ -65,6 +65,32 @@ func (s *MenuService) GetTodayMenu(ctx context.Context, userID string, lang stri
 	return responses, nil
 }
 
+// GetHistory - получить историю приготовлений
+func (s *MenuService) GetHistory(ctx context.Context, userID string, lang string, limit int) ([]models.MenuItemResponse, error) {
+	// Default limit if not specified
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	
+	// Get history from repository
+	items, err := s.menuRepo.GetHistory(ctx, userID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get history: %w", err)
+	}
+	
+	// Transform to response DTOs
+	responses := make([]models.MenuItemResponse, 0, len(items))
+	for _, item := range items {
+		response := s.buildMenuItemResponse(item, lang)
+		responses = append(responses, response)
+	}
+	
+	return responses, nil
+}
+
 // AddToMenu - добавить рецепт в меню (с валидацией!)
 func (s *MenuService) AddToMenu(
 	ctx context.Context,

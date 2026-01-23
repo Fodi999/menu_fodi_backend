@@ -44,6 +44,9 @@ func (m *MenuModule) RegisterRoutes(r chi.Router, authMiddleware func(http.Handl
 		r.Get("/today", m.menuHandler.GetTodayMenu)       // GET /api/menu/today - get today's menu
 		r.Post("/today", m.menuHandler.AddToMenu)         // POST /api/menu/today - add recipe to menu
 		
+		// History
+		r.Get("/history", m.menuHandler.GetHistory)       // GET /api/menu/history - get completed items
+		
 		// Menu item actions
 		r.Post("/{id}/start", m.menuHandler.StartCooking)      // POST /api/menu/{id}/start - start cooking
 		r.Post("/{id}/complete", m.menuHandler.CompleteCooking) // POST /api/menu/{id}/complete - complete cooking

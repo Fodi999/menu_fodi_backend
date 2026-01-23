@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
@@ -215,4 +216,35 @@ func (h *MenuHandler) DeleteMenuItem(w http.ResponseWriter, r *http.Request) {
 		"success": true,
 		"message": "Menu item deleted",
 	})
+}
+
+// GetHistory - GET /api/menu/history?limit=30
+// Get completed menu items (history)
+func (h *MenuHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(uuid.UUID)
+	if !ok {
+		utils.RespondError(w, http.StatusUnauthorized, "unauthorized", "user ID not found in context")
+		return
+	}
+	
+	lang := r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = "en"
+	}
+	
+	// Parse optional limit parameter
+	limit := 30 // default
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 100 {
+			limit = parsedLimit
+		}
+	}
+	
+	history, err := h.service.GetHistory(r.Context(), userID.String(), lang, limit)
+	if err != nil {
+		utils.RespondError(w, http.StatusInternalServerError, "failed to get history", err.Error())
+		return
+	}
+	
+	utils.RespondJSON(w, http.StatusOK, history)
 }
