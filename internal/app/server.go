@@ -19,10 +19,11 @@ import (
 
 // App represents the application
 type App struct {
-	config      *config.Config
-	db          *gorm.DB
-	server      *http.Server
-	cronChecker *cron.FridgeExpiryChecker
+	config              *config.Config
+	db                  *gorm.DB
+	server              *http.Server
+	cronChecker         *cron.FridgeExpiryChecker
+	dishAvailabilityChecker *cron.DishAvailabilityChecker
 }
 
 // New creates a new application instance
@@ -50,12 +51,18 @@ func New() (*App, error) {
 	// Initialize CRON jobs for fridge expiry checks
 	cronChecker := cron.NewFridgeExpiryChecker(database.DB)
 	cronChecker.Start()
-	logger.Info("⏰ CRON jobs initialized - Daily fridge expiry checks at 08:00 UTC")
+	logger.Info("⏰ CRON: Fridge expiry checker - Daily at 08:00")
+
+	// Initialize CRON jobs for dish availability checks
+	dishAvailabilityChecker := cron.NewDishAvailabilityChecker(database.DB)
+	dishAvailabilityChecker.Start()
+	logger.Info("⏰ CRON: Dish availability checker - Every 30 minutes")
 
 	app := &App{
-		config:      cfg,
-		db:          database.DB,
-		cronChecker: cronChecker,
+		config:                  cfg,
+		db:                      database.DB,
+		cronChecker:             cronChecker,
+		dishAvailabilityChecker: dishAvailabilityChecker,
 	}
 
 	// Setup routes using modular DDD architecture
@@ -94,7 +101,11 @@ func (a *App) Run() error {
 	// Stop CRON jobs
 	if a.cronChecker != nil {
 		a.cronChecker.Stop()
-		logger.Info("⏰ CRON jobs stopped")
+		logger.Info("⏰ CRON: Fridge expiry checker stopped")
+	}
+	if a.dishAvailabilityChecker != nil {
+		a.dishAvailabilityChecker.Stop()
+		logger.Info("⏰ CRON: Dish availability checker stopped")
 	}
 
 	// Graceful shutdown with timeout
