@@ -284,6 +284,11 @@ func (h *AdminHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 // UpdateUserRole изменяет роль пользователя (ТОЛЬКО super_admin)
 // PATCH /api/admin/users/{id}/role
+//
+// ПРИНЦИП 2026: БД — единственный источник истины
+// - Роль и статус меняются атомарно
+// - JWT содержит только ID, фронт вызывает /api/auth/me для получения актуальных данных
+// - Super admin нельзя назначить через UI
 func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	// Получаем ID из URL (RESTful) или из body (legacy)
 	userID := chi.URLParam(r, "id")
@@ -320,6 +325,8 @@ func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	err := h.service.UpdateUserRole(userID, req.Role, adminID)
 	if err != nil {
 		switch {
+		case strings.Contains(err.Error(), "super_admin role cannot be assigned"):
+			utils.RespondWithError(w, http.StatusForbidden, "Super admin role cannot be assigned via API")
 		case strings.Contains(err.Error(), "user not found"):
 			utils.RespondWithError(w, http.StatusNotFound, "User not found")
 		case strings.Contains(err.Error(), "invalid role"):
@@ -330,10 +337,26 @@ func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+	// Получаем обновлённого пользователя для возврата актуального статуса
+	user, err := h.service.GetUserByID(userID)
+	if err != nil {
+		// Роль изменена, но не можем получить статус (не критично)
+		utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "Role updated successfully",
+			"user_id": userID,
+			"new_role": req.Role,
+			"note": "Status may have been automatically adjusted. Please refresh user data.",
+		})
+		return
+	}
+
+	// Возвращаем полную информацию о пользователе после изменения
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Role updated successfully",
 		"user_id": userID,
-		"new_role": req.Role,
+		"new_role": user.Role,
+		"new_status": user.Status,
+		"note": "Status automatically adjusted based on role",
 	})
 }
 

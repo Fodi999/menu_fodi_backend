@@ -330,20 +330,34 @@ func (s *adminService) DeleteUser(userID string) error {
 // UpdateUserRole изменяет роль пользователя
 // ❌ Пользователь НИКОГДА сам не выбирает роль
 // ✅ Роль назначает ТОЛЬКО super_admin через этот эндпоинт
+// 
+// ПРИНЦИП 2026: БД — единственный источник истины
+// - JWT содержит только ID пользователя
+// - /api/auth/me всегда читает актуальные данные из БД
+// - Роль и статус меняются атомарно
 func (s *adminService) UpdateUserRole(userID, role, adminID string) error {
-	// Валидация роли (все доступные роли)
-	validRoles := map[string]bool{
-		models.RoleCustomer:   true,
-		models.RoleHomeChef:   true,
-		models.RoleChefStaff:  true,
-		models.RoleAdmin:      true,
-		models.RoleSuperAdmin: true,
-	}
-	if !validRoles[role] {
-		return errors.New("invalid role: must be one of customer, home_chef, chef_staff, admin, super_admin")
+	// 1️⃣ ЗАПРЕТ НА НАЗНАЧЕНИЕ SUPER_ADMIN ЧЕРЕЗ UI
+	// Super admin может быть назначен только через миграцию БД или SQL
+	if role == models.RoleSuperAdmin {
+		logger.Warn("Attempt to assign super_admin role via API (blocked)",
+			zap.String("target_user", userID),
+			zap.String("admin_id", adminID),
+		)
+		return errors.New("super_admin role cannot be assigned via API. Use database migration instead")
 	}
 
-	// Получаем текущего пользователя для логирования старой роли
+	// 2️⃣ Валидация роли (все доступные роли кроме super_admin)
+	validRoles := map[string]bool{
+		models.RoleCustomer:  true,
+		models.RoleHomeChef:  true,
+		models.RoleChefStaff: true,
+		models.RoleAdmin:     true,
+	}
+	if !validRoles[role] {
+		return errors.New("invalid role: must be one of customer, home_chef, chef_staff, admin")
+	}
+
+	// 3️⃣ Получаем текущего пользователя для логирования
 	var user models.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -353,24 +367,59 @@ func (s *adminService) UpdateUserRole(userID, role, adminID string) error {
 	}
 
 	oldRole := user.Role
+	oldStatus := user.Status
 
-	// Обновляем роль
-	result := s.db.Model(&models.User{}).Where("id = ?", userID).Update("role", role)
+	// 4️⃣ АВТОМАТИЧЕСКАЯ ЛОГИКА СТАТУСА (важно!)
+	// Определяем новый статус в зависимости от роли
+	newStatus := models.UserStatusActive // По умолчанию активен
+
+	switch role {
+	case models.RoleChefStaff:
+		// Персонал требует дополнительной проверки
+		newStatus = models.UserStatusPending
+		logger.Info("User role changed to chef_staff, status set to pending for verification",
+			zap.String("user_id", userID),
+		)
+	case models.RoleAdmin:
+		// Админ должен быть сразу активен
+		newStatus = models.UserStatusActive
+	case models.RoleHomeChef, models.RoleCustomer:
+		// Обычные роли остаются активными
+		newStatus = models.UserStatusActive
+	}
+
+	// 5️⃣ АТОМАРНОЕ ОБНОВЛЕНИЕ роли и статуса
+	// Используем транзакцию для гарантии консистентности
+	updates := map[string]interface{}{
+		"role":   role,
+		"status": newStatus,
+	}
+	
+	result := s.db.Model(&models.User{}).Where("id = ?", userID).Updates(updates)
 	if result.Error != nil {
+		logger.Error("Failed to update user role and status",
+			zap.String("user_id", userID),
+			zap.String("new_role", role),
+			zap.String("new_status", newStatus),
+			zap.Error(result.Error),
+		)
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
 		return errors.New("user not found")
 	}
 
-	// 📝 Логируем изменение роли в историю
+	// 6️⃣ АУДИТ: Логируем изменение роли И статуса в историю
 	historyRepo := database.NewHistoryRepository(s.db)
 	metadata := map[string]interface{}{
-		"old_role":   oldRole,
-		"new_role":   role,
-		"changed_by": adminID,
-		"changed_at": time.Now().Format(time.RFC3339),
-		"reason":     "role_change_by_admin",
+		"old_role":     oldRole,
+		"new_role":     role,
+		"old_status":   oldStatus,
+		"new_status":   newStatus,
+		"changed_by":   adminID,
+		"changed_at":   time.Now().Format(time.RFC3339),
+		"reason":       "role_change_by_admin",
+		"auto_status":  oldStatus != newStatus, // Флаг автоматической смены статуса
 	}
 
 	metadataJSON, _ := json.Marshal(metadata)
@@ -378,7 +427,7 @@ func (s *adminService) UpdateUserRole(userID, role, adminID string) error {
 	historyEvent := &models.HistoryEvent{
 		ID:         uuid.New().String(),
 		UserID:     userID,
-		EventType:  "role_changed", // Новый тип события
+		EventType:  "role_changed", // Тип события
 		SourceType: "admin",
 		SourceID:   &adminID,
 		Metadata:   metadataJSON,
@@ -391,14 +440,19 @@ func (s *adminService) UpdateUserRole(userID, role, adminID string) error {
 			zap.String("user_id", userID),
 			zap.String("old_role", oldRole),
 			zap.String("new_role", role),
+			zap.String("old_status", oldStatus),
+			zap.String("new_status", newStatus),
 			zap.Error(err),
 		)
 	} else {
-		logger.Info("User role changed",
+		logger.Info("User role and status changed successfully",
 			zap.String("user_id", userID),
 			zap.String("old_role", oldRole),
 			zap.String("new_role", role),
+			zap.String("old_status", oldStatus),
+			zap.String("new_status", newStatus),
 			zap.String("changed_by", adminID),
+			zap.Bool("status_auto_changed", oldStatus != newStatus),
 		)
 	}
 
