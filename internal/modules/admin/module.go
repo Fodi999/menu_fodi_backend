@@ -42,6 +42,7 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		// Users (доступно admin + super_admin)
 		r.Get("/users", m.handlers.GetAllUsers)
 		r.Get("/users/stats", m.handlers.GetUsersStats)
+		r.Get("/users/{id}", m.handlers.GetUserByID)     // ← ДОБАВЛЕНО: получить пользователя по ID
 		r.Put("/users/{id}", m.handlers.UpdateUser)
 
 		// CRITICAL: Super admin only operations

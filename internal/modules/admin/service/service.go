@@ -55,6 +55,7 @@ type PaginationMeta struct {
 type AdminService interface {
 	// Users
 	GetAllUsers() ([]models.User, error)
+	GetUserByID(userID string) (*models.User, error)
 	GetUsersWithFilters(params GetUsersParams) (*UserListResponse, error)
 	GetUsersStats() (map[string]interface{}, error)
 	UpdateUser(userID string, name, email string) (*models.User, error)
@@ -181,6 +182,19 @@ func (s *adminService) GetAllUsers() ([]models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// GetUserByID получает пользователя по ID
+func (s *adminService) GetUserByID(userID string) (*models.User, error) {
+	var user models.User
+	result := s.db.Where("id = ?", userID).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, result.Error
+	}
+	return &user, nil
 }
 
 // GetUsersWithFilters возвращает пользователей с фильтрацией и пагинацией

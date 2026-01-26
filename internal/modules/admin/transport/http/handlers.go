@@ -207,6 +207,29 @@ func (h *AdminHandlers) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, response)
 }
 
+// GetUserByID возвращает конкретного пользователя по ID
+// GET /api/admin/users/{id}
+func (h *AdminHandlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+	
+	if userID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "User ID is required")
+		return
+	}
+
+	user, err := h.service.GetUserByID(userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			utils.RespondWithError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch user")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, user)
+}
+
 func (h *AdminHandlers) GetUsersStats(w http.ResponseWriter, r *http.Request) {
 	stats, err := h.service.GetUsersStats()
 	if err != nil {
