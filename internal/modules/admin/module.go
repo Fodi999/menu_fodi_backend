@@ -30,6 +30,12 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/treasury", m.handlers.GetTreasuryInfo) // Public treasury info
 	})
 
+	// MARKETPLACE PUBLIC ENDPOINTS - NO AUTH REQUIRED
+	r.Route("/api/marketplace", func(r chi.Router) {
+		r.Get("/dishes", m.handlers.GetPublishedDishes)       // GET /api/marketplace/dishes - опубликованные блюда
+		r.Get("/dishes/{id}", m.handlers.GetPublishedDishByID) // GET /api/marketplace/dishes/{id} - блюдо по ID
+	})
+
 	// PUBLIC SSE ENDPOINT — БЕЗ АВТОРИЗАЦИИ (EventSource не может отправлять headers)
 	r.Route("/treasury", func(r chi.Router) {
 		r.Get("/stream", m.handlers.StreamTreasury) // SSE stream - публичный доступ
@@ -108,5 +114,15 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		// Recipe Image Management (Cloudinary)
 		r.Post("/recipes/{id}/image", m.handlers.UploadRecipeImage)   // POST /api/admin/recipes/{id}/image - загрузить изображение
 		r.Delete("/recipes/{id}/image", m.handlers.DeleteRecipeImage) // DELETE /api/admin/recipes/{id}/image - удалить изображение
+
+		// Dish Management (Marketplace Cards)
+		r.Get("/dishes", m.handlers.GetDishes)                           // GET /api/admin/dishes - список блюд
+		r.Get("/dishes/{id}", m.handlers.GetDishByID)                    // GET /api/admin/dishes/{id} - блюдо по ID
+		r.Post("/dishes/generate-from-recipe", m.handlers.GenerateDishFromRecipe) // POST /api/admin/dishes/generate-from-recipe - AI генерация
+		r.Patch("/dishes/{id}", m.handlers.UpdateDish)                   // PATCH /api/admin/dishes/{id} - редактирование
+		r.Post("/dishes/{id}/approve", m.handlers.ApproveDish)           // POST /api/admin/dishes/{id}/approve - утверждение
+		r.Post("/dishes/{id}/publish", m.handlers.PublishDish)           // POST /api/admin/dishes/{id}/publish - публикация
+		r.Post("/dishes/{id}/unpublish", m.handlers.UnpublishDish)       // POST /api/admin/dishes/{id}/unpublish - снятие с публикации
+		r.Delete("/dishes/{id}", m.handlers.DeleteDish)                  // DELETE /api/admin/dishes/{id} - удаление (только draft)
 	})
 }
