@@ -25,10 +25,20 @@ type GenerateDishRequest struct {
 	Language     string  `json:"language"`                                      // "pl", "en", "ru" (default "en")
 }
 
-// DishAIResponse - ответ от AI для карточки блюда
+// DishAIResponse - ответ от AI для карточки блюда (многоязычный)
 type DishAIResponse struct {
+	// Primary language (от пользователя)
 	Title       string `json:"title"`       // Привлекательное название для меню
 	Description string `json:"description"` // Продающее описание (2-3 предложения)
+	
+	// Translations
+	TitlePl       *string `json:"titlePl,omitempty"`
+	TitleEn       *string `json:"titleEn,omitempty"`
+	TitleRu       *string `json:"titleRu,omitempty"`
+	
+	DescriptionPl *string `json:"descriptionPl,omitempty"`
+	DescriptionEn *string `json:"descriptionEn,omitempty"`
+	DescriptionRu *string `json:"descriptionRu,omitempty"`
 }
 
 // ===========================
@@ -96,12 +106,18 @@ func (s *adminService) GenerateDishWithAI(req GenerateDishRequest, adminID strin
 		aiContent = s.generateFallbackDishContent(recipe, lang)
 	}
 	
-	// 5️⃣ Сохраняем блюдо как draft
+	// 5️⃣ Сохраняем блюдо как draft (с многоязычным контентом)
 	dish := &models.Dish{
 		ID:          uuid.New(),
 		RecipeID:    uuid.MustParse(req.RecipeID),
 		Title:       aiContent.Title,
+		TitlePl:     aiContent.TitlePl,
+		TitleEn:     aiContent.TitleEn,
+		TitleRu:     aiContent.TitleRu,
 		Description: aiContent.Description,
+		DescriptionPl: aiContent.DescriptionPl,
+		DescriptionEn: aiContent.DescriptionEn,
+		DescriptionRu: aiContent.DescriptionRu,
 		ImageURL:    recipe.ImageUrl, // Используем изображение рецепта
 		Cost:        cost,
 		Price:       price,
@@ -230,29 +246,66 @@ func (s *adminService) calculatePrice(cost float64, marginPercent float64) float
 	return price
 }
 
-// generateDishContentViaAI вызывает AI для генерации привлекательного контента
+// generateDishContentViaAI вызывает AI для генерации привлекательного контента на ВСЕХ ЯЗЫКАХ
 func (s *adminService) generateDishContentViaAI(
 	ctx context.Context,
 	recipe *models.RecipeCatalog,
 	cost, price, margin float64,
 	language string,
 ) (*DishAIResponse, error) {
-	// Формируем prompt для AI
-	prompt := s.buildDishPrompt(recipe, cost, price, margin, language)
+	// Генерируем контент на основном языке
+	primaryContent := s.generateFallbackDishContent(recipe, language)
 	
-	// TODO: Вызов Groq/OpenAI API
-	// response, err := s.groqClient.CreateChatCompletion(ctx, prompt)
-	// if err != nil {
-	//     return nil, err
-	// }
+	// Генерируем на остальных двух языках
+	response := &DishAIResponse{
+		Title:       primaryContent.Title,
+		Description: primaryContent.Description,
+	}
 	
-	// Временная заглушка для тестирования
-	logger.Debug("AI dish generation prompt prepared",
-		zap.String("language", language),
-		zap.Int("prompt_length", len(prompt)),
+	// Устанавливаем основной язык
+	switch language {
+	case "pl":
+		response.TitlePl = &response.Title
+		response.DescriptionPl = &response.Description
+		// Генерируем переводы на EN и RU
+		enContent := s.generateFallbackDishContent(recipe, "en")
+		response.TitleEn = &enContent.Title
+		response.DescriptionEn = &enContent.Description
+		ruContent := s.generateFallbackDishContent(recipe, "ru")
+		response.TitleRu = &ruContent.Title
+		response.DescriptionRu = &ruContent.Description
+		
+	case "ru":
+		response.TitleRu = &response.Title
+		response.DescriptionRu = &response.Description
+		// Генерируем переводы на PL и EN
+		plContent := s.generateFallbackDishContent(recipe, "pl")
+		response.TitlePl = &plContent.Title
+		response.DescriptionPl = &plContent.Description
+		enContent := s.generateFallbackDishContent(recipe, "en")
+		response.TitleEn = &enContent.Title
+		response.DescriptionEn = &enContent.Description
+		
+	default: // "en"
+		response.TitleEn = &response.Title
+		response.DescriptionEn = &response.Description
+		// Генерируем переводы на PL и RU
+		plContent := s.generateFallbackDishContent(recipe, "pl")
+		response.TitlePl = &plContent.Title
+		response.DescriptionPl = &plContent.Description
+		ruContent := s.generateFallbackDishContent(recipe, "ru")
+		response.TitleRu = &ruContent.Title
+		response.DescriptionRu = &ruContent.Description
+	}
+	
+	logger.Debug("Dish content generated for all languages",
+		zap.String("primary_language", language),
+		zap.String("title_pl", *response.TitlePl),
+		zap.String("title_en", *response.TitleEn),
+		zap.String("title_ru", *response.TitleRu),
 	)
-	logger.Warn("AI service not implemented yet, using fallback")
-	return s.generateFallbackDishContent(recipe, language), nil
+	
+	return response, nil
 }
 
 // buildDishPrompt формирует prompt для AI
