@@ -25,15 +25,14 @@ func NewModule(db *gorm.DB) *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handler) http.Handler) {
-	// 📖 CATALOG ROUTES - Справочник продуктов (для ВСЕХ авторизованных)
+	// 📖 CATALOG ROUTES - Справочник продуктов
 	r.Route("/catalog", func(r chi.Router) {
-		r.Use(jwtMiddleware)
+		// PUBLIC: Ingredient categories (справочная информация)
+		r.Get("/ingredient-categories", m.handlers.GetCategories) // ✅ PUBLIC: категории с локализацией
 
-		// Ingredient categories catalog
-		r.Get("/ingredient-categories", m.handlers.GetCategories) // ✅ NEW: категории с локализацией
-
-		// Ingredients search and list
+		// PROTECTED: Ingredients search and list (требует авторизацию)
 		r.Route("/ingredients", func(r chi.Router) {
+			r.Use(jwtMiddleware)
 			r.Get("/", m.handlers.ListIngredients) // Список с фильтрами (category, search)
 			r.Get("/search", m.handlers.Search)    // Автокомплит поиска
 		})
