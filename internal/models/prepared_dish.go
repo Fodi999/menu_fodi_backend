@@ -47,27 +47,27 @@ func (d *PreparedDish) ConsumedPortions() int {
 	return d.PortionsInitial - d.PortionsAvailable
 }
 
-// DishStatus represents the status of a prepared dish
-type DishStatus string
+// PreparedDishStatus represents the status of a prepared dish
+type PreparedDishStatus string
 
 const (
-	DishStatusAvailable DishStatus = "available"
-	DishStatusFinished  DishStatus = "finished"
-	DishStatusExpired   DishStatus = "expired"
+	PreparedDishStatusAvailable PreparedDishStatus = "available"
+	PreparedDishStatusFinished  PreparedDishStatus = "finished"
+	PreparedDishStatusExpired   PreparedDishStatus = "expired"
 )
 
 // GetStatus returns the computed status of the dish
-func (d *PreparedDish) GetStatus() DishStatus {
+func (d *PreparedDish) GetStatus() PreparedDishStatus {
 	// Check expired first
 	if d.IsExpired() {
-		return DishStatusExpired
+		return PreparedDishStatusExpired
 	}
 
 	// Check if finished (no portions left)
 	if d.PortionsAvailable == 0 {
-		return DishStatusFinished
+		return PreparedDishStatusFinished
 	}
 
 	// Otherwise available
-	return DishStatusAvailable
+	return PreparedDishStatusAvailable
 }
