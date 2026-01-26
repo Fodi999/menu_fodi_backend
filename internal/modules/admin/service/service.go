@@ -139,6 +139,9 @@ type AdminService interface {
 	DeleteRecipe(recipeID string) error
 	GenerateAlternativeTitles(originalTitle, language string) ([]string, error)
 	GenerateMultilingualTitles(originalTitle, primaryLanguage string) (map[string][]string, error)
+	
+	// Dish Generation (marketplace card creation)
+	GenerateDishWithAI(req GenerateDishRequest, adminID string) (*models.Dish, error)
 }
 
 // adminService реализация интерфейса AdminService
