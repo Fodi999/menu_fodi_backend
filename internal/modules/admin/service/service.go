@@ -142,6 +142,15 @@ type AdminService interface {
 	
 	// Dish Generation (marketplace card creation)
 	GenerateDishWithAI(req GenerateDishRequest, adminID string) (*models.Dish, error)
+	
+	// Dish CRUD operations
+	ApproveDish(dishID, adminID string) error
+	PublishDish(dishID, adminID string) error
+	UnpublishDish(dishID, adminID string) error
+	UpdateDish(dishID string, req UpdateDishRequest, adminID string) (*models.Dish, error)
+	GetDishes(params GetDishesParams) ([]models.Dish, int64, error)
+	GetDishByID(dishID string) (*models.Dish, error)
+	DeleteDish(dishID, adminID string) error
 }
 
 // adminService реализация интерфейса AdminService
