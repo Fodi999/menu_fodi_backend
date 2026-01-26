@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	authservice "github.com/dmitrijfomin/menu-fodifood/backend/internal/modules/auth/service"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type contextKey string
@@ -56,7 +58,29 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("✅ Auth OK for user %s: %s %s", claims.Subject, r.Method, r.URL.Path)
+		// 🔒 КРИТИЧНО: Проверяем статус пользователя в БД
+		// JWT может быть валидным, но пользователь мог быть заблокирован после выдачи токена
+		userRepo := &database.UserRepository{}
+		user, err := userRepo.FindByID(claims.Subject)
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				log.Printf("❌ User not found: %s for %s %s", claims.Subject, r.Method, r.URL.Path)
+				utils.WriteError(w, http.StatusUnauthorized, "User not found")
+				return
+			}
+			log.Printf("❌ Database error checking user status: %v", err)
+			utils.WriteError(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+
+		// Проверяем статус пользователя
+		if user.Status != models.UserStatusActive {
+			log.Printf("❌ User %s is not active (status: %s) for %s %s", claims.Subject, user.Status, r.Method, r.URL.Path)
+			utils.WriteError(w, http.StatusForbidden, "Account is not active")
+			return
+		}
+
+		log.Printf("✅ Auth OK for user %s (status: %s): %s %s", claims.Subject, user.Status, r.Method, r.URL.Path)
 
 		// Добавляем данные пользователя в контекст
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
@@ -139,6 +163,20 @@ func OptionalAuthMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+
+		// Optional: Check user status if user exists (don't block if not found)
+		userRepo := &database.UserRepository{}
+		user, err := userRepo.FindByID(claims.Subject)
+		if err == nil && user != nil {
+			// User exists - check status
+			if user.Status != models.UserStatusActive {
+				// User is blocked - continue without auth (don't block request)
+				log.Printf("⚠️ OptionalAuth: User %s is not active (status: %s), continuing without auth", claims.Subject, user.Status)
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		// If user not found, continue anyway (optional auth)
 
 		// Valid token → add to context
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)

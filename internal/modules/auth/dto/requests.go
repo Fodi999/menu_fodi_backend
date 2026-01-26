@@ -47,6 +47,7 @@ type CurrentUserResponse struct {
 	Email         string           `json:"email"`
 	Name          string           `json:"name"`
 	Role          string           `json:"role"`
+	Status        string           `json:"status"`
 	CreatedAt     time.Time        `json:"createdAt"`
 	WalletBalance int              `json:"walletBalance"`
 	Profile       *UserProfileInfo `json:"profile,omitempty"`

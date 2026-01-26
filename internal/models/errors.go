@@ -14,6 +14,8 @@ const (
 	ErrorAuthInsufficientPermissions = "AUTH_INSUFFICIENT_PERMISSIONS"
 	ErrorAuthExpiredToken            = "AUTH_EXPIRED_TOKEN"
 	ErrorAuthInvalidRefreshToken     = "AUTH_INVALID_REFRESH_TOKEN"
+	ErrorAuthUserNotFound            = "AUTH_USER_NOT_FOUND"
+	ErrorAuthUserInactive            = "AUTH_USER_INACTIVE"
 )
 
 // ============================================================

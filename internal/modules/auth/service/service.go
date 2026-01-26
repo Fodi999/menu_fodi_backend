@@ -169,6 +169,7 @@ func (s *AuthService) GetCurrentUser(userID uuid.UUID) (*dto.CurrentUserResponse
 		Email:         user.Email,
 		Name:          user.Name,
 		Role:          user.Role,
+		Status:        user.Status,
 		CreatedAt:     user.CreatedAt,
 		WalletBalance: 0,
 	}
