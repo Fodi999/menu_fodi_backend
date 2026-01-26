@@ -46,8 +46,9 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Put("/users/{id}", m.handlers.UpdateUser)
 
 		// CRITICAL: Super admin only operations
-		r.With(superAdminMiddleware).Delete("/users/{id}", m.handlers.DeleteUser)           // Удаление пользователя
-		r.With(superAdminMiddleware).Patch("/users/update-role", m.handlers.UpdateUserRole) // Изменение ролей
+		r.With(superAdminMiddleware).Delete("/users/{id}", m.handlers.DeleteUser)            // Удаление пользователя
+		r.With(superAdminMiddleware).Patch("/users/{id}/role", m.handlers.UpdateUserRole)    // Изменение ролей (RESTful)
+		r.With(superAdminMiddleware).Patch("/users/update-role", m.handlers.UpdateUserRole)  // Legacy endpoint (deprecated)
 
 		// Orders
 		r.Get("/orders", m.handlers.GetAllOrders)

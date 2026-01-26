@@ -8,6 +8,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
@@ -60,7 +61,7 @@ type AdminService interface {
 	GetUsersStats() (map[string]interface{}, error)
 	UpdateUser(userID string, name, email string) (*models.User, error)
 	DeleteUser(userID string) error
-	UpdateUserRole(userID, role string) error
+	UpdateUserRole(userID, role, adminID string) error
 
 	// Orders
 	GetAllOrders() ([]models.Order, error)
@@ -328,8 +329,8 @@ func (s *adminService) DeleteUser(userID string) error {
 
 // UpdateUserRole изменяет роль пользователя
 // ❌ Пользователь НИКОГДА сам не выбирает роль
-// ✅ Роль назначает ТОЛЬКО admin / super_admin через этот эндпоинт
-func (s *adminService) UpdateUserRole(userID, role string) error {
+// ✅ Роль назначает ТОЛЬКО super_admin через этот эндпоинт
+func (s *adminService) UpdateUserRole(userID, role, adminID string) error {
 	// Валидация роли (все доступные роли)
 	validRoles := map[string]bool{
 		models.RoleCustomer:   true,
@@ -342,6 +343,18 @@ func (s *adminService) UpdateUserRole(userID, role string) error {
 		return errors.New("invalid role: must be one of customer, home_chef, chef_staff, admin, super_admin")
 	}
 
+	// Получаем текущего пользователя для логирования старой роли
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		return err
+	}
+
+	oldRole := user.Role
+
+	// Обновляем роль
 	result := s.db.Model(&models.User{}).Where("id = ?", userID).Update("role", role)
 	if result.Error != nil {
 		return result.Error
@@ -349,6 +362,46 @@ func (s *adminService) UpdateUserRole(userID, role string) error {
 	if result.RowsAffected == 0 {
 		return errors.New("user not found")
 	}
+
+	// 📝 Логируем изменение роли в историю
+	historyRepo := database.NewHistoryRepository(s.db)
+	metadata := map[string]interface{}{
+		"old_role":   oldRole,
+		"new_role":   role,
+		"changed_by": adminID,
+		"changed_at": time.Now().Format(time.RFC3339),
+		"reason":     "role_change_by_admin",
+	}
+
+	metadataJSON, _ := json.Marshal(metadata)
+	
+	historyEvent := &models.HistoryEvent{
+		ID:         uuid.New().String(),
+		UserID:     userID,
+		EventType:  "role_changed", // Новый тип события
+		SourceType: "admin",
+		SourceID:   &adminID,
+		Metadata:   metadataJSON,
+		CreatedAt:  time.Now(),
+	}
+
+	if err := historyRepo.Create(historyEvent); err != nil {
+		// Логируем ошибку, но не блокируем изменение роли
+		logger.Error("Failed to log role change to history",
+			zap.String("user_id", userID),
+			zap.String("old_role", oldRole),
+			zap.String("new_role", role),
+			zap.Error(err),
+		)
+	} else {
+		logger.Info("User role changed",
+			zap.String("user_id", userID),
+			zap.String("old_role", oldRole),
+			zap.String("new_role", role),
+			zap.String("changed_by", adminID),
+		)
+	}
+
 	return nil
 }
 

@@ -282,9 +282,14 @@ func (h *AdminHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "User deleted successfully"})
 }
 
+// UpdateUserRole изменяет роль пользователя (ТОЛЬКО super_admin)
+// PATCH /api/admin/users/{id}/role
 func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	// Получаем ID из URL (RESTful) или из body (legacy)
+	userID := chi.URLParam(r, "id")
+	
 	var req struct {
-		UserID string `json:"user_id"`
+		UserID string `json:"user_id"` // Legacy support
 		Role   string `json:"role"`
 	}
 
@@ -293,20 +298,43 @@ func (h *AdminHandlers) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.UpdateUserRole(req.UserID, req.Role)
+	// Приоритет: URL параметр > body параметр
+	if userID == "" {
+		userID = req.UserID
+	}
+	
+	if userID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "User ID is required")
+		return
+	}
+
+	// Получаем ID администратора, который меняет роль
+	claims := middleware.GetUserFromContext(r)
+	if claims == nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	adminID := claims.Subject
+
+	// Меняем роль и логируем изменение
+	err := h.service.UpdateUserRole(userID, req.Role, adminID)
 	if err != nil {
-		switch err.Error() {
-		case "user not found":
+		switch {
+		case strings.Contains(err.Error(), "user not found"):
 			utils.RespondWithError(w, http.StatusNotFound, "User not found")
-		case "invalid role":
-			utils.RespondWithError(w, http.StatusBadRequest, "Invalid role")
+		case strings.Contains(err.Error(), "invalid role"):
+			utils.RespondWithError(w, http.StatusBadRequest, err.Error())
 		default:
 			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update role")
 		}
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Role updated successfully"})
+	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Role updated successfully",
+		"user_id": userID,
+		"new_role": req.Role,
+	})
 }
 
 func (h *AdminHandlers) GetAllOrders(w http.ResponseWriter, r *http.Request) {
