@@ -33,6 +33,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		authHeader := r.Header.Get("Authorization")
 		log.Printf("📋 Auth header present: %v, length: %d", authHeader != "", len(authHeader))
+		
+		// Debug: log first 50 chars of header (for debugging, remove sensitive data)
+		if authHeader != "" {
+			preview := authHeader
+			if len(preview) > 50 {
+				preview = preview[:50] + "..."
+			}
+			log.Printf("🔍 Auth header preview: %q", preview)
+		}
 
 		if authHeader == "" {
 			log.Printf("❌ No Authorization header for %s %s", r.Method, r.URL.Path)
@@ -41,15 +50,41 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Proper Bearer token extraction
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			log.Printf("❌ Invalid Authorization format (not 'Bearer <token>') for %s %s", r.Method, r.URL.Path)
-			utils.WriteError(w, http.StatusUnauthorized, "Invalid Authorization format")
-			return
+		var tokenString string
+		
+		// Check if header starts with "Bearer "
+		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
+			// Standard format: "Bearer <token>"
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) != 2 {
+				headerPreview := authHeader
+				if len(headerPreview) > 50 {
+					headerPreview = headerPreview[:50] + "..."
+				}
+				log.Printf("❌ Invalid Authorization format: expected 'Bearer <token>', got %d parts. Header preview: %q", len(parts), headerPreview)
+				utils.WriteError(w, http.StatusUnauthorized, "Invalid Authorization format: expected 'Bearer <token>'")
+				return
+			}
+			tokenString = strings.TrimSpace(parts[1])
+		} else {
+			// Try to handle case where token comes without "Bearer " prefix
+			// This shouldn't happen, but some clients might send it incorrectly
+			tokenString = strings.TrimSpace(authHeader)
+			log.Printf("⚠️ Authorization header doesn't start with 'Bearer ', treating entire header as token (length: %d)", len(tokenString))
 		}
-
-		tokenString := strings.TrimSpace(parts[1])
+		
 		log.Printf("🎫 Token extracted, length: %d", len(tokenString))
+		
+		// Validate token length (JWT tokens are typically 200+ characters)
+		if len(tokenString) < 50 {
+			tokenPreview := tokenString
+			if len(tokenPreview) > 20 {
+				tokenPreview = tokenPreview[:20] + "..."
+			}
+			log.Printf("⚠️ Token seems too short (%d chars). Expected JWT token length: 200+. Token preview: %q", len(tokenString), tokenPreview)
+			log.Printf("⚠️ This might indicate: 1) Frontend sending partial token, 2) Token being truncated by proxy/CDN, 3) Wrong token format")
+			// Don't fail here, let JWT validation handle it, but log warning
+		}
 
 		claims, err := authservice.ValidateToken(tokenString)
 		if err != nil {
