@@ -53,13 +53,16 @@ func (s *AuthService) Register(req dto.RegisterRequest) (*dto.AuthResponse, erro
 		return nil, err
 	}
 
-	// Create user with home_chef role (MVP default)
+	// Create user with customer role (default for new registrations)
+	// ❌ Пользователь НИКОГДА сам не выбирает роль
+	// ✅ Роль назначает ТОЛЬКО admin / super_admin
 	user := &models.User{
 		ID:        uuid.New().String(),
 		Email:     req.Email,
 		Name:      req.Name,
 		Password:  string(hashedPassword),
-		Role:      models.RoleHomeChef, // Default role for new users
+		Role:      models.RoleCustomer, // Default role for new users
+		Status:    models.UserStatusActive, // Active by default (можно изменить на Pending если нужна активация)
 		CreatedAt: time.Now(),
 	}
 

@@ -313,16 +313,19 @@ func (s *adminService) DeleteUser(userID string) error {
 }
 
 // UpdateUserRole изменяет роль пользователя
+// ❌ Пользователь НИКОГДА сам не выбирает роль
+// ✅ Роль назначает ТОЛЬКО admin / super_admin через этот эндпоинт
 func (s *adminService) UpdateUserRole(userID, role string) error {
 	// Валидация роли (все доступные роли)
 	validRoles := map[string]bool{
+		models.RoleCustomer:   true,
 		models.RoleHomeChef:   true,
-		models.RoleProChef:    true,
+		models.RoleChefStaff:  true,
 		models.RoleAdmin:      true,
 		models.RoleSuperAdmin: true,
 	}
 	if !validRoles[role] {
-		return errors.New("invalid role: must be one of home_chef, pro_chef, admin, super_admin")
+		return errors.New("invalid role: must be one of customer, home_chef, chef_staff, admin, super_admin")
 	}
 
 	result := s.db.Model(&models.User{}).Where("id = ?", userID).Update("role", role)

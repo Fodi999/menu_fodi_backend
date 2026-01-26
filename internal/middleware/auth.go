@@ -109,9 +109,23 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Проверяем статус пользователя
+		// Только active пользователи могут использовать API
+		// pending / suspended / blocked → 403 Forbidden
 		if user.Status != models.UserStatusActive {
-			log.Printf("❌ User %s is not active (status: %s) for %s %s", claims.Subject, user.Status, r.Method, r.URL.Path)
-			utils.WriteError(w, http.StatusForbidden, "Account is not active")
+			log.Printf("❌ User %s has status '%s' (expected active) for %s %s", claims.Subject, user.Status, r.Method, r.URL.Path)
+			
+			// Разные сообщения для разных статусов
+			message := "Account is not active"
+			switch user.Status {
+			case models.UserStatusPending:
+				message = "Account is pending activation"
+			case models.UserStatusSuspended:
+				message = "Account is temporarily suspended"
+			case models.UserStatusBlocked:
+				message = "Account is blocked"
+			}
+			
+			utils.WriteError(w, http.StatusForbidden, message)
 			return
 		}
 

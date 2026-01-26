@@ -8,17 +8,19 @@ import (
 
 // User roles constants - используй ТОЛЬКО эти константы для избежания опечаток
 const (
+	RoleCustomer   = "customer"    // Покупатель (обычный пользователь)
 	RoleHomeChef   = "home_chef"   // Домашний повар
-	RoleProChef    = "pro_chef"    // Профессиональный повар / ресторан
+	RoleChefStaff  = "chef_staff"  // Младший повар / персонал
 	RoleAdmin      = "admin"       // Администратор
-	RoleSuperAdmin = "super_admin" // Супер администратор (управление ролями)
+	RoleSuperAdmin = "super_admin" // Супер администратор (владелец системы)
 )
 
 // User account status constants
 const (
-	UserStatusActive  = "active"  // Normal user - can login and use all features
-	UserStatusBlocked = "blocked" // Blocked by admin - cannot login
-	UserStatusPending = "pending" // Unverified / limited access
+	UserStatusPending   = "pending"   // Зарегистрирован, но не активирован
+	UserStatusActive    = "active"    // Активен - может использовать все функции
+	UserStatusSuspended = "suspended" // Временно отключён
+	UserStatusBlocked   = "blocked"   // Заблокирован администратором
 )
 
 // User модель пользователя (соответствует Prisma схеме)

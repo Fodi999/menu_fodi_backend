@@ -38,10 +38,11 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handl
 		})
 	})
 
-	// 📦 STOCK ROUTES - Управление складом (ТОЛЬКО pro_chef)
+	// 📦 STOCK ROUTES - Управление складом (для поваров: home_chef, chef_staff)
 	r.Route("/stock", func(r chi.Router) {
 		r.Use(jwtMiddleware)
-		r.Use(middleware.RequireRole(models.RoleProChef))
+		// TODO: Можно добавить проверку на несколько ролей если нужно
+		r.Use(middleware.RequireRole(models.RoleHomeChef))
 
 		r.Get("/", m.handlers.GetAll)                          // Складские остатки (StockItem)
 		r.Post("/", m.handlers.Create)                         // Добавить на склад
