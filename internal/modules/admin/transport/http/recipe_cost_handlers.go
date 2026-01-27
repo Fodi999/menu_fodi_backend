@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/database"
+	"github.com/dmitrijfomin/menu-fodifood/backend/internal/middleware"
 	"github.com/dmitrijfomin/menu-fodifood/backend/internal/models"
 	"github.com/dmitrijfomin/menu-fodifood/backend/pkg/utils"
 	"github.com/go-chi/chi/v5"
@@ -19,18 +20,22 @@ type RecipeCostResponse struct {
 	CostPerServing  float64 `json:"costPerServing"`  // PLN, (alias для TotalCost для ясности)
 	IngredientsCount int    `json:"ingredientsCount"` // Количество ингредиентов
 	MissingPrice    bool    `json:"missingPrice"`     // true если некоторые ингредиенты без цены
-	Details         []struct {
-		IngredientName string  `json:"ingredientName"`
-		Quantity       float64 `json:"quantity"`
-		Unit           string  `json:"unit"`
-		PricePerUnit   float64 `json:"pricePerUnit,omitempty"`
-		ItemCost       float64 `json:"itemCost"`
-		Optional       bool    `json:"optional"`
-	} `json:"details"`
+	Details         []RecipeCostDetail `json:"details"`
+}
+
+// RecipeCostDetail детали расчета стоимости по ингредиентам
+type RecipeCostDetail struct {
+	IngredientName string  `json:"ingredientName"`
+	Quantity       float64 `json:"quantity"`
+	Unit           string  `json:"unit"`
+	PricePerUnit   float64 `json:"pricePerUnit,omitempty"`
+	ItemCost       float64 `json:"itemCost"`
+	Optional       bool    `json:"optional"`
+	Source         string  `json:"source"` // "fridge" или "default" или "missing"
 }
 
 // CalculateRecipeCost - GET /api/admin/recipes/{recipeId}/calculate-cost
-// Рассчитывает себестоимость рецепта БЕЗ создания блюда
+// Рассчитывает себестоимость рецепта из холодильника админа БЕЗ создания блюда
 func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Request) {
 	// 🛡️ Защита от panic
 	defer func() {
@@ -39,6 +44,16 @@ func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Reque
 			utils.RespondWithError(w, http.StatusInternalServerError, "Internal server error")
 		}
 	}()
+
+	// Получаем админа из контекста (обязательно авторизован)
+	claims := middleware.GetUserFromContext(r)
+	if claims == nil || claims.Subject == "" {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	adminID := claims.Subject
+	fmt.Printf("🔑 Admin ID: %s\n", adminID)
 
 	// Получаем recipeId из path параметра
 	recipeIDStr := chi.URLParam(r, "recipeId")
@@ -55,7 +70,7 @@ func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	fmt.Printf("🎯 CalculateRecipeCost: recipeId=%s\n", recipeID.String())
+	fmt.Printf("🎯 CalculateRecipeCost: recipeId=%s for admin=%s\n", recipeID.String(), adminID)
 
 	// Получаем рецепт из каталога
 	var recipe models.RecipeCatalog
@@ -70,28 +85,50 @@ func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Reque
 
 	fmt.Printf("✅ Found recipe: %s (title=%s)\n", recipe.ID, recipe.Title)
 
+	// Получаем все items холодильника админа для быстрого O(1) lookup
+	var fridgeItems []models.UserFridgeItem
+	if err := database.DB.
+		Where("user_id = ?", adminID).
+		Find(&fridgeItems).Error; err != nil {
+		fmt.Printf("⚠️ Error loading admin fridge: %v\n", err)
+	}
+
+	// Создаем map для быстрого поиска по ингредиентам
+	fridgeMap := make(map[string]*models.UserFridgeItem)
+	for i := range fridgeItems {
+		fridgeMap[fridgeItems[i].IngredientID] = &fridgeItems[i]
+	}
+
+	fmt.Printf("📦 Loaded %d fridge items for admin\n", len(fridgeItems))
+
 	// Рассчитываем стоимость
 	var totalCost float64
 	missingPrice := false
-	var details []struct {
-		IngredientName string  `json:"ingredientName"`
-		Quantity       float64 `json:"quantity"`
-		Unit           string  `json:"unit"`
-		PricePerUnit   float64 `json:"pricePerUnit,omitempty"`
-		ItemCost       float64 `json:"itemCost"`
-		Optional       bool    `json:"optional"`
-	}
+	var details []RecipeCostDetail
 
 	for _, catalogIng := range recipe.Ingredients {
 		ingredient := catalogIng.Ingredient
 
-		// Получаем цену за единицу из DefaultPricePerUnit
 		var pricePerUnit float64
-		if ingredient.DefaultPricePerUnit != nil {
-			pricePerUnit = *ingredient.DefaultPricePerUnit
+		var source string
+
+		// 1️⃣ СНАЧАЛА ищем цену в холодильнике админа
+		if fridgeItem, exists := fridgeMap[ingredient.ID]; exists && fridgeItem.CurrentPricePerUnit != nil {
+			pricePerUnit = *fridgeItem.CurrentPricePerUnit
+			source = "fridge"
+			fmt.Printf("✅ Using fridge price for %s: %.2f\n", ingredient.ID, pricePerUnit)
 		} else {
-			fmt.Printf("⚠️ No price for ingredient: %s\n", ingredient.ID)
-			missingPrice = true
+			// 2️⃣ FALLBACK: используем цену из каталога (DefaultPricePerUnit)
+			if ingredient.DefaultPricePerUnit != nil {
+				pricePerUnit = *ingredient.DefaultPricePerUnit
+				source = "default"
+				fmt.Printf("⚠️ Using default price for %s: %.2f\n", ingredient.ID, pricePerUnit)
+			} else {
+				// 3️⃣ ПОСЛЕДНИЙ вариант: нет цены совсем
+				fmt.Printf("❌ No price found for ingredient: %s\n", ingredient.ID)
+				missingPrice = true
+				source = "missing"
+			}
 		}
 
 		// Рассчитываем стоимость для этого ингредиента
@@ -112,20 +149,14 @@ func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Reque
 			ingredientName = *ingredient.NameRU
 		}
 
-		details = append(details, struct {
-			IngredientName string  `json:"ingredientName"`
-			Quantity       float64 `json:"quantity"`
-			Unit           string  `json:"unit"`
-			PricePerUnit   float64 `json:"pricePerUnit,omitempty"`
-			ItemCost       float64 `json:"itemCost"`
-			Optional       bool    `json:"optional"`
-		}{
+		details = append(details, RecipeCostDetail{
 			IngredientName: ingredientName,
 			Quantity:       catalogIng.Quantity,
 			Unit:           catalogIng.Unit,
 			PricePerUnit:   pricePerUnit,
 			ItemCost:       itemCost,
 			Optional:       catalogIng.Optional,
+			Source:         source,
 		})
 	}
 
@@ -142,7 +173,7 @@ func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Reque
 		Details:          details,
 	}
 
-	fmt.Printf("✅ Recipe cost calculated: %.2f PLN\n", totalCost)
+	fmt.Printf("✅ Recipe cost calculated: %.2f PLN (from admin fridge)\n", totalCost)
 	utils.RespondWithJSON(w, http.StatusOK, response)
 }
 
