@@ -25,24 +25,24 @@ func NewModule(db *gorm.DB) *Module {
 }
 
 func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handler) http.Handler) {
-	// 📖 CATALOG ROUTES - Справочник продуктов
+	// 📖 CATALOG ROUTES - Справочник продуктов (для ВСЕХ авторизованных)
 	r.Route("/catalog", func(r chi.Router) {
-		// PUBLIC: Ingredient categories (справочная информация)
-		r.Get("/ingredient-categories", m.handlers.GetCategories) // ✅ PUBLIC: категории с локализацией
+		r.Use(jwtMiddleware)
 
-		// PROTECTED: Ingredients search and list (требует авторизацию)
+		// Ingredient categories catalog
+		r.Get("/ingredient-categories", m.handlers.GetCategories) // ✅ NEW: категории с локализацией
+
+		// Ingredients search and list
 		r.Route("/ingredients", func(r chi.Router) {
-			r.Use(jwtMiddleware)
 			r.Get("/", m.handlers.ListIngredients) // Список с фильтрами (category, search)
 			r.Get("/search", m.handlers.Search)    // Автокомплит поиска
 		})
 	})
 
-	// 📦 STOCK ROUTES - Управление складом (для поваров: home_chef, chef_staff)
+	// 📦 STOCK ROUTES - Управление складом (ТОЛЬКО pro_chef)
 	r.Route("/stock", func(r chi.Router) {
 		r.Use(jwtMiddleware)
-		// TODO: Можно добавить проверку на несколько ролей если нужно
-		r.Use(middleware.RequireRole(models.RoleHomeChef))
+		r.Use(middleware.RequireRole(models.RoleProChef))
 
 		r.Get("/", m.handlers.GetAll)                          // Складские остатки (StockItem)
 		r.Post("/", m.handlers.Create)                         // Добавить на склад
