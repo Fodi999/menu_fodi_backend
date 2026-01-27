@@ -39,10 +39,10 @@ func (m *Module) RegisterRoutes(r chi.Router, jwtMiddleware func(next http.Handl
 		})
 	})
 
-	// 📦 STOCK ROUTES - Управление складом (ТОЛЬКО pro_chef)
+	// 📦 STOCK ROUTES - Управление складом (ТОЛЬКО admin)
 	r.Route("/stock", func(r chi.Router) {
 		r.Use(jwtMiddleware)
-		r.Use(middleware.RequireRole(models.RoleProChef))
+		r.Use(middleware.RequireRole(models.RoleAdmin))
 
 		r.Get("/", m.handlers.GetAll)                          // Складские остатки (StockItem)
 		r.Post("/", m.handlers.Create)                         // Добавить на склад
