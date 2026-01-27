@@ -29,7 +29,7 @@ type RecipeCostResponse struct {
 	} `json:"details"`
 }
 
-// CalculateRecipeCost - GET /api/admin/recipes/{recipeId}/cost
+// CalculateRecipeCost - GET /api/admin/recipes/{recipeId}/calculate-cost
 // Рассчитывает себестоимость рецепта БЕЗ создания блюда
 func (h *AdminHandlers) CalculateRecipeCost(w http.ResponseWriter, r *http.Request) {
 	// 🛡️ Защита от panic

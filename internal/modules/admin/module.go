@@ -105,7 +105,7 @@ func (m *Module) RegisterRoutes(r chi.Router, authMiddleware func(http.Handler) 
 		r.Get("/recipes/stats", m.handlers.GetRecipesStats)                // GET /api/admin/recipes/stats - статистика
 
 		// 🎯 COST CALCULATION - Calculation endpoint (BEFORE {id}!)
-		r.Get("/recipes/{recipeId}/cost", m.handlers.CalculateRecipeCost) // GET /api/admin/recipes/{recipeId}/cost - расчет себестоимости
+		r.Get("/recipes/{recipeId}/calculate-cost", m.handlers.CalculateRecipeCost) // GET /api/admin/recipes/{recipeId}/calculate-cost - расчет себестоимости
 
 		// AI Recipe Creation
 		r.Post("/recipes/create-ai", m.handlers.CreateRecipeWithAI)   // POST /api/admin/recipes/create-ai - создать рецепт через AI
